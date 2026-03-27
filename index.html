@@ -43,11 +43,14 @@
 
     <header class="sticky top-0 z-40 border-b border-white/10 bg-[#090611]/60 backdrop-blur-xl">
         <div class="mx-auto flex max-w-md items-center justify-between px-4 py-3 lg:max-w-5xl">
-            <button onclick="window.scrollTo(0,0)" class="text-left">
-                <div class="text-sm tracking-[0.3em] text-fuchsia-200/90 font-bold">W-EDEN</div>
-                <div class="text-[11px] text-white/55 uppercase font-medium">PG Forward Base</div>
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex items-center gap-3">
+                <img src="胖宮logo.png" alt="W-EDEN Logo" class="h-9 w-auto drop-shadow-[0_0_8px_rgba(192,132,252,0.4)]">
+                <div class="text-left">
+                    <div class="text-[10px] tracking-[0.3em] text-fuchsia-200/90 font-bold leading-none mb-1">W-EDEN</div>
+                    <div class="text-[9px] text-white/55 uppercase font-medium leading-none">PG Forward Base</div>
+                </div>
             </button>
-            <div class="hidden items-center gap-2 md:flex">
+            <div class="hidden items-center gap-4 md:flex">
                 <button onclick="jumpTo('map')" class="flex items-center gap-2 px-4 py-2 rounded-full text-white/75 hover:bg-white/10 hover:text-white transition-all text-sm">
                     <i data-lucide="map" class="w-4 h-4"></i> 基地
                 </button>
@@ -58,20 +61,30 @@
                     <i data-lucide="info" class="w-4 h-4"></i> 座標
                 </button>
             </div>
-            <button onclick="toggleMenu()" class="md:hidden p-2 text-white/80"><i data-lucide="sparkles" class="w-5 h-5"></i></button>
+            <button onclick="toggleMenu()" class="md:hidden p-2 text-white/80"><i data-lucide="menu" class="w-5 h-5"></i></button>
         </div>
-        <div id="mobile-menu" class="hidden overflow-hidden border-t border-white/10 md:hidden bg-[#090611]/90 transition-all">
-            <div class="mx-auto flex max-w-md flex-col gap-2 px-4 py-3">
-                <button onclick="jumpTo('map')" class="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3 text-sm text-white/80"><span class="flex items-center gap-3"><i data-lucide="map" class="w-4 h-4 text-fuchsia-200"></i>基地</span><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                <button onclick="jumpTo('flow')" class="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3 text-sm text-white/80"><span class="flex items-center gap-3"><i data-lucide="clock-3" class="w-4 h-4 text-fuchsia-200"></i>日誌</span><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                <button onclick="jumpTo('info')" class="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3 text-sm text-white/80"><span class="flex items-center gap-3"><i data-lucide="info" class="w-4 h-4 text-fuchsia-200"></i>座標</span><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+        
+        <div id="mobile-menu" class="hidden border-t border-white/10 md:hidden bg-[#090611]/95 backdrop-blur-2xl">
+            <div class="mx-auto flex max-w-md flex-col gap-2 px-4 py-4">
+                <button onclick="jumpTo('map')" class="flex items-center justify-between rounded-2xl bg-white/5 px-5 py-4 text-sm text-white/80">
+                    <span class="flex items-center gap-3"><i data-lucide="map" class="w-5 h-5 text-fuchsia-300"></i>基地圖系統</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 opacity-40"></i>
+                </button>
+                <button onclick="jumpTo('flow')" class="flex items-center justify-between rounded-2xl bg-white/5 px-5 py-4 text-sm text-white/80">
+                    <span class="flex items-center gap-3"><i data-lucide="clock-3" class="w-5 h-5 text-fuchsia-300"></i>任務日誌</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 opacity-40"></i>
+                </button>
+                <button onclick="jumpTo('info')" class="flex items-center justify-between rounded-2xl bg-white/5 px-5 py-4 text-sm text-white/80">
+                    <span class="flex items-center gap-3"><i data-lucide="info" class="w-5 h-5 text-fuchsia-300"></i>基地座標</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 opacity-40"></i>
+                </button>
             </div>
         </div>
     </header>
 
     <main class="mx-auto max-w-md px-4 pb-28 pt-0 lg:max-w-5xl lg:px-6">
         
-        <section id="landing" class="landing-snap relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen no-scrollbar">
+        <div id="landing" class="landing-snap relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen no-scrollbar">
             <div class="sticky top-0 h-full w-full -z-10">
                 <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&q=80&w=2000" class="h-full w-full object-cover opacity-60" />
                 <div class="absolute inset-0 bg-gradient-to-t from-[#090611] via-[#090611]/40 to-transparent"></div>
@@ -85,80 +98,76 @@
                         <div class="text-[14px] tracking-[0.6em] text-fuchsia-200/90 font-medium uppercase">Year 04</div>
                     </div>
                 </div>
-                <div class="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent"></div>
             </section>
 
             <section class="relative flex items-center justify-center text-center px-6">
-                <p class="max-w-sm text-lg leading-9 text-white/90">2023，我們集結相遇，<br>開啟了故事的扉頁；</p>
-                <div class="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent"></div>
+                <p class="max-w-sm text-lg leading-9 text-white/90 font-light">2023，我們集結相遇，<br>開啟了故事的扉頁；</p>
             </section>
 
             <section class="relative flex items-center justify-center text-center px-6">
-                <p class="max-w-sm text-lg leading-9 text-white/90">2024，我們放縱狂歡，<br>在音樂與酒精裡把夜晚燃到最亮；</p>
-                <div class="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent"></div>
+                <p class="max-w-sm text-lg leading-9 text-white/90 font-light">2024，我們放縱狂歡，<br>在音樂與酒精裡把夜晚燃到最亮；</p>
             </section>
 
             <section class="relative flex items-center justify-center text-center px-6">
-                <p class="max-w-sm text-lg leading-9 text-white/90">2025，我們登上冒險船，離開熟悉的海岸，<br>航向未知的前方。</p>
-                <div class="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent"></div>
+                <p class="max-w-sm text-lg leading-9 text-white/90 font-light">2025，我們登上冒險船，離開熟悉的海岸，<br>航向未知的前方。</p>
             </section>
 
             <section class="relative flex items-center justify-center text-center px-6">
-                <p class="max-w-sm text-lg leading-9 text-white/90">如今一年又過，經歷漫長等待，我們終於即將登陸迷幻的新世界。<br>2026，伊甸星前進基地已建立，生命的野性正等待甦醒——</p>
-                <div class="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent"></div>
+                <p class="max-w-sm text-lg leading-9 text-white/90 font-light px-4">如今一年又過，經歷漫長等待，我們終於即將登陸迷幻的新世界。<br>2026，伊甸星前進基地已建立，生命的野性正等待甦醒——</p>
             </section>
 
             <section class="relative flex items-center justify-center text-center px-6">
-                <div class="max-w-sm space-y-6">
-                    <div class="text-3xl font-bold tracking-[0.2em]">W-EDEN</div>
-                    <div class="text-sm tracking-[0.3em] text-white/70">PG FORWARD BASE</div>
-                    <p class="text-white/90 leading-8">探索你的動物本能<br>歡迎登陸伊甸星</p>
-                    <button onclick="jumpTo('map')" class="rounded-2xl bg-fuchsia-500/80 hover:bg-fuchsia-500 px-8 py-3 font-medium transition-all transform hover:scale-105 shadow-lg shadow-fuchsia-500/20">
+                <div class="max-w-sm space-y-8">
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold tracking-[0.2em]">W-EDEN</div>
+                        <div class="text-[11px] tracking-[0.3em] text-white/50">PG FORWARD BASE</div>
+                    </div>
+                    <p class="text-white/90 leading-8 text-lg">探索你的動物本能<br>歡迎登陸伊甸星</p>
+                    <button onclick="jumpTo('map')" class="group relative rounded-2xl bg-fuchsia-600 px-10 py-4 font-bold transition-all hover:bg-fuchsia-500 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(192,132,252,0.3)]">
                         進入基地系統
                     </button>
                 </div>
             </section>
-        </section>
+        </div>
 
-        <section id="map" class="scroll-mt-24 py-12">
-            <div class="mb-8">
-                <div class="text-[11px] tracking-[0.28em] text-white/40 uppercase">Base Map</div>
-                <h2 class="mt-2 text-2xl font-medium text-white">基地地圖</h2>
+        <section id="map" class="scroll-mt-24 py-16">
+            <div class="mb-10">
+                <div class="text-[11px] tracking-[0.3em] text-fuchsia-400/80 uppercase font-bold">Base Map</div>
+                <h2 class="mt-2 text-3xl font-bold text-white">基地地圖</h2>
             </div>
             
-            <div class="overflow-hidden rounded-[30px] border-white/10 bg-white/5 p-4 shadow-2xl">
-                <div class="relative aspect-[4/5] rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_50%_45%,rgba(255,255,255,.07),transparent_28%)]">
+            <div class="overflow-hidden rounded-[32px] border border-white/10 bg-white/5 p-4 shadow-2xl backdrop-blur-sm">
+                <div class="relative aspect-[4/5] rounded-[24px] border border-white/10 bg-[#0c0a1a] overflow-hidden">
                     
-                    <div class="absolute left-1/2 top-1/2 h-full w-px -translate-x-1/2 -translate-y-1/2 bg-white/5"></div>
-                    <div class="absolute top-1/2 left-1/2 h-px w-full -translate-x-1/2 -translate-y-1/2 bg-white/5"></div>
+                    <div class="absolute inset-0 opacity-10" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 40px 40px;"></div>
 
-                    <button onclick="jumpTo('flow')" class="absolute top-[8%] right-[14%] w-[28%] h-[18%] rounded-[20px] border border-white/10 bg-gradient-to-br from-fuchsia-500/20 via-violet-500/10 to-cyan-400/10 p-3 text-left transition-all hover:bg-white/10 group">
-                        <i data-lucide="door-open" class="w-4 h-4 text-white/70 group-hover:text-fuchsia-300 transition-colors"></i>
-                        <div class="mt-2 text-[11px] font-bold">星際之門</div>
+                    <button onclick="jumpTo('flow')" class="absolute top-[8%] right-[10%] w-[32%] h-[18%] rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:bg-fuchsia-500/20 group">
+                        <i data-lucide="door-open" class="w-5 h-5 text-fuchsia-300"></i>
+                        <div class="mt-2 text-[12px] font-bold">星際之門</div>
                         <div class="text-[9px] text-white/40">任務日誌</div>
                     </button>
 
-                    <button onclick="jumpTo('sec-supply')" class="absolute top-[38%] left-[36%] w-[28%] h-[18%] rounded-[20px] border border-white/10 bg-gradient-to-br from-amber-300/20 via-fuchsia-400/10 to-orange-300/10 p-3 text-left transition-all hover:bg-white/10 group">
-                        <i data-lucide="wine" class="w-4 h-4 text-white/70 group-hover:text-amber-200 transition-colors"></i>
-                        <div class="mt-2 text-[11px] font-bold">補給站</div>
+                    <button onclick="jumpTo('sec-supply')" class="absolute top-[38%] left-[34%] w-[32%] h-[18%] rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:bg-amber-500/20 group">
+                        <i data-lucide="wine" class="w-5 h-5 text-amber-300"></i>
+                        <div class="mt-2 text-[12px] font-bold">補給站</div>
                         <div class="text-[9px] text-white/40">中央酒吧</div>
                     </button>
 
-                    <button onclick="jumpTo('sec-forest')" class="absolute bottom-[10%] right-[8%] w-[34%] h-[28%] rounded-[20px] border border-white/10 bg-gradient-to-br from-emerald-400/20 via-teal-300/10 to-lime-300/10 p-3 text-left transition-all hover:bg-white/10 group">
-                        <i data-lucide="trees" class="w-4 h-4 text-white/70 group-hover:text-emerald-200 transition-colors"></i>
-                        <div class="mt-2 text-[11px] font-bold">伊甸森林</div>
+                    <button onclick="jumpTo('sec-forest')" class="absolute bottom-[10%] right-[10%] w-[35%] h-[28%] rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:bg-emerald-500/20 group">
+                        <i data-lucide="trees" class="w-5 h-5 text-emerald-300"></i>
+                        <div class="mt-2 text-[12px] font-bold">伊甸森林</div>
                         <div class="text-[9px] text-white/40">沙發區</div>
                     </button>
 
-                    <button onclick="jumpTo('sec-station')" class="absolute bottom-[10%] left-[8%] w-[30%] h-[26%] rounded-[20px] border border-white/10 bg-gradient-to-br from-violet-500/25 via-fuchsia-500/10 to-black/20 p-3 text-left transition-all hover:bg-white/10 group">
-                        <i data-lucide="moon-star" class="w-4 h-4 text-white/70 group-hover:text-violet-300 transition-colors"></i>
-                        <div class="mt-2 text-[11px] font-bold">暗能量觀測站</div>
+                    <button onclick="jumpTo('sec-station')" class="absolute bottom-[10%] left-[10%] w-[32%] h-[26%] rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:bg-violet-500/20 group">
+                        <i data-lucide="moon-star" class="w-5 h-5 text-violet-300"></i>
+                        <div class="mt-2 text-[12px] font-bold">暗能量觀測站</div>
                         <div class="text-[9px] text-white/40">臥室區</div>
                     </button>
 
-                    <button onclick="jumpTo('sec-swamp')" class="absolute top-[8%] left-[8%] w-[28%] h-[24%] rounded-[20px] border border-white/10 bg-gradient-to-br from-sky-400/20 via-cyan-300/10 to-fuchsia-400/10 p-3 text-left transition-all hover:bg-white/10 group">
-                        <i data-lucide="waves" class="w-4 h-4 text-white/70 group-hover:text-cyan-200 transition-colors"></i>
-                        <div class="mt-2 text-[11px] font-bold">迷幻沼澤</div>
+                    <button onclick="jumpTo('sec-swamp')" class="absolute top-[8%] left-[10%] w-[30%] h-[24%] rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:bg-cyan-500/20 group">
+                        <i data-lucide="waves" class="w-5 h-5 text-cyan-300"></i>
+                        <div class="mt-2 text-[12px] font-bold">迷幻沼澤</div>
                         <div class="text-[9px] text-white/40">浴室區</div>
                     </button>
                 </div>
@@ -166,236 +175,196 @@
         </section>
 
         <section id="sec-forest" class="scroll-mt-24 py-12 border-t border-white/10">
-            <div class="flex items-center gap-3 mb-8">
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="trees" class="text-emerald-200"></i></div>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="trees" class="text-emerald-300"></i></div>
                 <div>
-                    <div class="text-[11px] text-white/40 uppercase tracking-widest">Eden Forest</div>
-                    <h2 class="text-2xl font-medium text-white">伊甸森林</h2>
+                    <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Eden Forest</div>
+                    <h2 class="text-2xl font-bold text-white">伊甸森林</h2>
                 </div>
             </div>
-
-            <div class="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl overflow-hidden flex flex-col sm:flex-row gap-6 items-start">
-                <div class="w-full sm:w-1/2 rounded-[24px] border border-fuchsia-200/15 overflow-hidden shadow-inner shrink-0">
-                    <img src="伊甸森林.png" alt="伊甸森林情境沙發" class="w-full h-full object-cover aspect-[4/3] sm:aspect-square" />
+            <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl flex flex-col sm:flex-row gap-8 items-center overflow-hidden">
+                <div class="w-full sm:w-1/2 rounded-[24px] border border-white/10 overflow-hidden shrink-0">
+                    <img src="伊甸森林.jpg" alt="伊甸森林" class="w-full h-full object-cover aspect-[4/3]" />
                 </div>
                 <div class="w-full sm:w-1/2 space-y-4">
-                    <p class="text-white/70 leading-relaxed text-sm">柔軟的空氣在這裡停滯，聲音被吸收，節奏自然放慢。</p>
-                    <p class="text-white/70 leading-relaxed text-sm">你不需要尋找什麼，只需要待著，讓距離逐漸縮短，讓時間變得無關緊要。</p>
-                    <div class="pt-2">
-                        <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-bold text-emerald-100 uppercase tracking-wider shadow-sm">
-                            <i data-lucide="trees" class="w-3.5 h-3.5 text-emerald-200"></i>
-                            沙發休憩區
-                        </span>
-                    </div>
+                    <p class="text-white/80 leading-relaxed">柔軟的空氣在這裡停滯，聲音被吸收，節奏自然放慢。你不需要尋找什麼，只需要待著，讓距離逐漸縮短，讓時間變得無關緊要。</p>
+                    <span class="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold text-emerald-200 uppercase tracking-widest">
+                        <i data-lucide="trees" class="w-3.5 h-3.5"></i> 沙發休憩區
+                    </span>
                 </div>
             </div>
         </section>
 
         <section id="sec-supply" class="scroll-mt-24 py-12 border-t border-white/10">
-            <div class="flex items-center gap-3 mb-8">
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="wine" class="text-amber-200"></i></div>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="wine" class="text-amber-300"></i></div>
                 <div>
-                    <div class="text-[11px] text-white/40 uppercase tracking-widest">Supply Station</div>
-                    <h2 class="text-2xl font-medium text-white">補給站</h2>
+                    <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Supply Station</div>
+                    <h2 class="text-2xl font-bold text-white">補給站</h2>
                 </div>
             </div>
-
-            <div class="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl overflow-hidden flex flex-col sm:flex-row gap-6 items-start">
-                
-                <div class="w-full sm:w-1/2 rounded-[24px] border border-amber-200/15 overflow-hidden shadow-inner shrink-0">
-                    <img src="能量補給站.png" alt="補給站情境酒吧" class="w-full h-full object-cover aspect-[4/3] sm:aspect-square" />
+            <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl flex flex-col sm:flex-row gap-8 items-center overflow-hidden">
+                <div class="w-full sm:w-1/2 rounded-[24px] border border-white/10 overflow-hidden shrink-0">
+                    <img src="能量補給站.jpg" alt="補給站" class="w-full h-full object-cover aspect-[4/3]" />
                 </div>
-
                 <div class="w-full sm:w-1/2 space-y-4">
-                    <p class="text-white/70 leading-relaxed text-sm">光線與人群在這裡匯聚，能量不斷流動。</p>
-                    <p class="text-white/70 leading-relaxed text-sm">每一次停留，都是重新出發前的短暫對接，在喧鬧與目光之間找到自己的位置。</p>
-                    <div class="pt-2">
-                        <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-xs font-bold text-amber-100 uppercase tracking-wider shadow-sm">
-                            <i data-lucide="wine" class="w-3.5 h-3.5 text-amber-200"></i>
-                            中央酒吧區
-                        </span>
-                    </div>
+                    <p class="text-white/80 leading-relaxed">光線與人群在這裡匯聚，能量不斷流動。每一次停留，都是重新出發前的短暫對接，在喧鬧與目光之間找到自己的位置。</p>
+                    <span class="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-bold text-amber-200 uppercase tracking-widest">
+                        <i data-lucide="wine" class="w-3.5 h-3.5"></i> 中央酒吧區
+                    </span>
                 </div>
             </div>
         </section>
 
         <section id="sec-station" class="scroll-mt-24 py-12 border-t border-white/10">
-            <div class="flex items-center gap-3 mb-8">
+            <div class="flex items-center gap-4 mb-8">
                 <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="moon-star" class="text-violet-300"></i></div>
                 <div>
-                    <div class="text-[11px] text-white/40 uppercase tracking-widest">Dark Energy</div>
-                    <h2 class="text-2xl font-medium text-white">暗能量觀測站</h2>
+                    <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Dark Energy</div>
+                    <h2 class="text-2xl font-bold text-white">暗能量觀測站</h2>
                 </div>
             </div>
-
-            <div class="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl overflow-hidden flex flex-col sm:flex-row gap-6 items-start">
-                <div class="w-full sm:w-1/2 rounded-[24px] border border-violet-200/15 overflow-hidden shadow-inner shrink-0">
-                    <img src="暗能量觀測站.png" alt="暗能量觀測站情境" class="w-full h-full object-cover aspect-[4/3] sm:aspect-square" />
+            <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl flex flex-col sm:flex-row gap-8 items-center overflow-hidden">
+                <div class="w-full sm:w-1/2 rounded-[24px] border border-white/10 overflow-hidden shrink-0">
+                    <img src="暗能量觀測站.jpg" alt="觀測站" class="w-full h-full object-cover aspect-[4/3]" />
                 </div>
                 <div class="w-full sm:w-1/2 space-y-4">
-                    <p class="text-white/70 leading-relaxed text-sm">光逐漸退去，感官變得敏銳。界線不再清晰，語言也失去必要性。</p>
-                    <p class="text-white/70 leading-relaxed text-sm">在這裡，存在本身就是回應。</p>
-                    <div class="pt-2">
-                        <span class="inline-flex items-center gap-1.5 rounded-full border border-violet-300/20 bg-violet-300/10 px-3 py-1 text-xs font-bold text-violet-100 uppercase tracking-wider shadow-sm">
-                            <i data-lucide="moon-star" class="w-3.5 h-3.5 text-violet-200"></i>
-                            私密臥室區
-                        </span>
-                    </div>
+                    <p class="text-white/80 leading-relaxed">光逐漸退去，感官變得敏銳。界線不再清晰，語言也失去必要性。在這裡，存在本身就是回應。</p>
+                    <span class="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-xs font-bold text-violet-200 uppercase tracking-widest">
+                        <i data-lucide="moon-star" class="w-3.5 h-3.5"></i> 私密臥室區
+                    </span>
                 </div>
             </div>
         </section>
 
         <section id="sec-swamp" class="scroll-mt-24 py-12 border-t border-white/10">
-            <div class="flex items-center gap-3 mb-8">
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="waves" class="text-cyan-200"></i></div>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="waves" class="text-cyan-300"></i></div>
                 <div>
-                    <div class="text-[11px] text-white/40 uppercase tracking-widest">Swamp</div>
-                    <h2 class="text-2xl font-medium text-white">迷幻沼澤</h2>
+                    <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Swamp</div>
+                    <h2 class="text-2xl font-bold text-white">迷幻沼澤</h2>
                 </div>
             </div>
-
-            <div class="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl overflow-hidden flex flex-col sm:flex-row gap-6 items-start">
-                <div class="w-full sm:w-1/2 rounded-[24px] border border-cyan-200/15 overflow-hidden shadow-inner shrink-0">
-                    <img src="迷幻沼澤.png" alt="迷幻沼澤情境" class="w-full h-full object-cover aspect-[4/3] sm:aspect-square" />
+            <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl flex flex-col sm:flex-row gap-8 items-center overflow-hidden">
+                <div class="w-full sm:w-1/2 rounded-[24px] border border-white/10 overflow-hidden shrink-0">
+                    <img src="迷幻沼澤.jpg" alt="迷幻沼澤" class="w-full h-full object-cover aspect-[4/3]" />
                 </div>
                 <div class="w-full sm:w-1/2 space-y-4">
-                    <p class="text-white/70 leading-relaxed text-sm">霧氣與水氣交錯，邊界被不斷沖淡。</p>
-                    <p class="text-white/70 leading-relaxed text-sm">方向不再重要，感受成為唯一的導航，讓自己慢慢沉入其中。</p>
-                    <div class="pt-2">
-                        <span class="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-bold text-cyan-100 uppercase tracking-wider shadow-sm">
-                            <i data-lucide="waves" class="w-3.5 h-3.5 text-cyan-200"></i>
-                            迷霧浴室區
-                        </span>
+                    <p class="text-white/80 leading-relaxed">霧氣與水氣交錯，邊界被不斷沖淡。方向不再重要，感受成為唯一的導航，讓自己慢慢沉入其中。</p>
+                    <span class="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-1.5 text-xs font-bold text-cyan-200 uppercase tracking-widest">
+                        <i data-lucide="waves" class="w-3.5 h-3.5"></i> 迷霧浴室區
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <section id="flow" class="scroll-mt-24 py-16 border-t border-white/10">
+            <div class="mb-10">
+                <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Mission Log</div>
+                <h2 class="text-3xl font-bold text-white">任務日誌</h2>
+            </div>
+            <div class="rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-xl space-y-10">
+                <div class="flex gap-6">
+                    <div class="flex flex-col items-center w-16 shrink-0 font-black text-fuchsia-300 text-xs">
+                        <span class="rounded-full bg-fuchsia-500/20 border border-fuchsia-500/40 px-3 py-1.5">20:00</span>
+                        <div class="w-px h-full bg-gradient-to-b from-fuchsia-500/50 to-transparent mt-3"></div>
+                    </div>
+                    <div class="text-[16px] text-white/90 pb-2">
+                        <strong class="text-white text-lg">軌道對接：報到迎賓</strong><br>
+                        <span class="text-white/50 text-sm mt-1 block">抵達大廳領取通行憑證，享用迎賓特調。</span>
+                    </div>
+                </div>
+                <div class="flex gap-6">
+                    <div class="flex flex-col items-center w-16 shrink-0 font-black text-fuchsia-300 text-xs">
+                        <span class="rounded-full bg-fuchsia-500/20 border border-fuchsia-500/40 px-3 py-1.5">20:30</span>
+                        <div class="w-px h-full bg-gradient-to-b from-fuchsia-500/50 to-transparent mt-3"></div>
+                    </div>
+                    <div class="text-[16px] text-white/90 pb-2">
+                        <strong class="text-white text-lg">星核引爆：壽星致詞</strong><br>
+                        <span class="text-white/50 text-sm mt-1 block">點燃能量核心，分享第一份甜蜜星塵。</span>
+                    </div>
+                </div>
+                <div class="flex gap-6">
+                    <div class="flex flex-col items-center w-16 shrink-0 font-black text-fuchsia-300 text-xs">
+                        <span class="rounded-full bg-fuchsia-500/20 border border-fuchsia-500/40 px-3 py-1.5">21:00</span>
+                    </div>
+                    <div class="text-[16px] text-white/90">
+                        <strong class="text-white text-lg">能量補充：狂歡開啟</strong><br>
+                        <span class="text-white/50 text-sm mt-1 block">補給艙門開啟，隨音樂漂浮。</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="flow" class="scroll-mt-24 py-12 border-t border-white/10">
-            <div class="mb-8">
-                <div class="text-[11px] text-white/40 uppercase tracking-widest">Mission Log</div>
-                <h2 class="text-2xl font-medium text-white">任務日誌</h2>
+        <section id="info" class="scroll-mt-24 py-16 border-t border-white/10">
+            <div class="mb-10">
+                <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Coordinates</div>
+                <h2 class="text-3xl font-bold text-white">基地座標</h2>
             </div>
-            <div class="rounded-[28px] border-white/10 bg-white/5 p-6 shadow-xl space-y-8">
-                <div class="flex gap-4">
-                    <div class="flex flex-col items-center w-16 shrink-0">
-                        <span class="rounded-full bg-fuchsia-200/10 border border-fuchsia-200/20 px-2 py-1 text-[11px] font-bold text-fuchsia-100">20:00</span>
-                        <div class="w-px h-16 bg-gradient-to-b from-fuchsia-200/30 to-transparent mt-2"></div>
-                    </div>
-                    <div class="text-[15px] text-white/90 pt-1 leading-relaxed">
-                        <strong class="text-white">軌道對接：報到迎賓 (The Landing & Welcome)</strong><br>
-                        <span class="text-white/60 text-sm">抵達大廳領取通行憑證，享用「星際引力」迎賓特調。</span>
-                    </div>
-                </div>
-                <div class="flex gap-4">
-                    <div class="flex flex-col items-center w-16 shrink-0">
-                        <span class="rounded-full bg-fuchsia-200/10 border border-fuchsia-200/20 px-2 py-1 text-[11px] font-bold text-fuchsia-100">20:30</span>
-                        <div class="w-px h-16 bg-gradient-to-b from-fuchsia-200/30 to-transparent mt-2"></div>
-                    </div>
-                    <div class="text-[15px] text-white/90 pt-1 leading-relaxed">
-                        <strong class="text-white">星核引爆：壽星致詞／切蛋糕 (Core Ignition: Toast & Cake)</strong><br>
-                        <span class="text-white/60 text-sm">點燃能量核心，分享第一份甜蜜星塵。</span>
-                    </div>
-                </div>
-                <div class="flex gap-4">
-                    <div class="flex flex-col items-center w-16 shrink-0">
-                        <span class="rounded-full bg-fuchsia-200/10 border border-fuchsia-200/20 px-2 py-1 text-[11px] font-bold text-fuchsia-100">21:00</span>
-                        <div class="w-px h-16 bg-gradient-to-b from-fuchsia-200/30 to-transparent mt-2"></div>
-                    </div>
-                    <div class="text-[15px] text-white/90 pt-1 leading-relaxed">
-                        <strong class="text-white">能量補充：主食供應與狂歡 (Fueling Station: Feast & Revelry)</strong><br>
-                        <span class="text-white/60 text-sm">補給艙門開啟，引力失效，隨音樂漂浮。</span>
-                    </div>
-                </div>
-                <div class="flex gap-4">
-                    <div class="flex flex-col items-center w-16 shrink-0">
-                        <span class="rounded-full bg-fuchsia-200/10 border border-fuchsia-200/20 px-2 py-1 text-[11px] font-bold text-fuchsia-100">22:30</span>
-                    </div>
-                    <div class="text-[15px] text-white/90 pt-1 leading-relaxed">
-                        <strong class="text-white">深空探索：暗房開啟 (Deep Space Probe: Dark Room Unlocked)</strong><br>
-                        <span class="text-white/60 text-sm">進入迷霧沼澤，探索私密領域。</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="info" class="scroll-mt-24 py-12 border-t border-white/10">
-            <div class="mb-8">
-                <div class="text-[11px] text-white/40 uppercase tracking-widest">Coordinates</div>
-                <h2 class="text-2xl font-medium text-white">基地座標</h2>
-            </div>
-            
-            <div class="space-y-4">
-                <div class="rounded-[24px] border border-fuchsia-500/30 bg-fuchsia-500/5 p-6">
-                    <div class="text-sm text-fuchsia-200 mb-2 font-bold italic">Welcome to W-EDEN</div>
-                    <p class="text-white/90 text-sm leading-relaxed">感謝你降落在這片神祕之地。</p>
-                </div>
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="rounded-[24px] border border-white/10 bg-white/5 p-6">
-                        <div class="text-sm text-fuchsia-200 mb-4 font-bold">登陸規格</div>
-                        <div class="space-y-3">
-                            <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white/80">
-                                <span class="text-white/40 block text-[10px] uppercase mb-1">Location</span>
-                                W Hotel Taipei
-                            </div>
-                            <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white/80">
-                                <span class="text-white/40 block text-[10px] uppercase mb-1">Check-in</span>
-                                2026-08-14
-                            </div>
-                            <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white/80">
-                                <span class="text-white/40 block text-[10px] uppercase mb-1">Check-out</span>
-                                whenever the stars fade
-                            </div>
+            <div class="grid gap-6 sm:grid-cols-2">
+                <div class="rounded-[28px] border border-white/10 bg-white/5 p-8 backdrop-blur-sm">
+                    <div class="text-fuchsia-300 mb-6 font-black text-sm uppercase tracking-widest">登陸規格</div>
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-white/30 text-[10px] uppercase block mb-1">Location</span>
+                            <p class="text-white font-medium">W Hotel Taipei</p>
                         </div>
-                    </div>
-
-                    <div class="rounded-[24px] border border-white/10 bg-white/5 p-6">
-                        <div class="text-sm text-fuchsia-200 mb-4 font-bold">通訊與裝備</div>
-                        <div class="space-y-3">
-                            <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white/80">
-                                <span class="text-white/40 block text-[10px] uppercase mb-1">Dress code</span>
-                                動物avtar
-                            </div>
-                            <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white/80">
-                                <span class="text-white/40 block text-[10px] uppercase mb-1">Service</span>
-                                若需補充酒精或快樂，請前往吧台聯繫「星際管家」。
-                            </div>
+                        <div>
+                            <span class="text-white/30 text-[10px] uppercase block mb-1">Check-in</span>
+                            <p class="text-white font-medium">2026-08-14</p>
                         </div>
                     </div>
                 </div>
+                <div class="rounded-[28px] border border-white/10 bg-white/5 p-8 backdrop-blur-sm">
+                    <div class="text-fuchsia-300 mb-6 font-black text-sm uppercase tracking-widest">通訊與裝備</div>
+                    <div>
+                        <span class="text-white/30 text-[10px] uppercase block mb-1">Dress code</span>
+                        <p class="text-white font-medium italic">動物 Avatar</p>
+                    </div>
+                </div>
             </div>
         </section>
+
     </main>
 
-    <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#090611]/80 backdrop-blur-xl md:hidden">
-        <div class="mx-auto grid grid-cols-3 px-2 py-2">
-            <button onclick="jumpTo('map')" class="flex flex-col items-center gap-1 py-2 text-[10px] text-white/70">
-                <i data-lucide="map" class="w-4 h-4"></i>基地
+    <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#090611]/80 backdrop-blur-2xl md:hidden">
+        <div class="mx-auto grid grid-cols-3 px-2 py-3">
+            <button onclick="jumpTo('map')" class="flex flex-col items-center gap-1.5 py-1 text-[10px] text-white/50 hover:text-fuchsia-300 transition-colors">
+                <i data-lucide="map" class="w-5 h-5"></i>基地
             </button>
-            <button onclick="jumpTo('flow')" class="flex flex-col items-center gap-1 py-2 text-[10px] text-white/70">
-                <i data-lucide="clock-3" class="w-4 h-4"></i>日誌
+            <button onclick="jumpTo('flow')" class="flex flex-col items-center gap-1.5 py-1 text-[10px] text-white/50 hover:text-fuchsia-300 transition-colors">
+                <i data-lucide="clock-3" class="w-5 h-5"></i>日誌
             </button>
-            <button onclick="jumpTo('info')" class="flex flex-col items-center gap-1 py-2 text-[10px] text-white/70">
-                <i data-lucide="info" class="w-4 h-4"></i>座標
+            <button onclick="jumpTo('info')" class="flex flex-col items-center gap-1.5 py-1 text-[10px] text-white/50 hover:text-fuchsia-300 transition-colors">
+                <i data-lucide="info" class="w-5 h-5"></i>座標
             </button>
         </div>
     </nav>
 
     <script>
-        lucide.createIcons();
+        // 初始化圖示
+        function initIcons() {
+            lucide.createIcons();
+        }
+
+        // 頁面加載完成後初始化
+        window.addEventListener('DOMContentLoaded', initIcons);
 
         function toggleMenu() {
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('hidden');
+            // 切換選單時重新初始化圖示，確保手機版選單內的圖示正常顯示
+            initIcons();
         }
 
         function jumpTo(id) {
-            const el = document.getElementById(id);
-            if(el) {
-                el.scrollIntoView({ behavior: 'smooth' });
+            const element = document.getElementById(id);
+            if (element) {
+                // 關閉手機版選單
+                document.getElementById('mobile-menu').classList.add('hidden');
+                // 平滑捲動
+                element.scrollIntoView({ behavior: 'smooth' });
             }
-            document.getElementById('mobile-menu').classList.add('hidden');
         }
     </script>
 </body>
