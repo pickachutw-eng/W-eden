@@ -31,6 +31,17 @@
         }
         
         body { background-color: #090611; color: white; }
+
+        /* 地圖區域的手機滑動優化 */
+        #map-container {
+            -webkit-overflow-scrolling: touch;
+        }
+        @media (max-width: 1023px) {
+            #map-wrapper {
+                width: 177.78vh; /* 確保 16:9 的圖片在滿版高度下能完整顯示寬度 */
+                max-width: none;
+            }
+        }
     </style>
 </head>
 <body class="selection:bg-fuchsia-300/30">
@@ -130,45 +141,46 @@
             </section>
         </div>
 
-        <section id="map" class="scroll-mt-24 py-16">
-            <div class="mb-10">
+        <section id="map" class="scroll-mt-16 py-12 lg:py-16 h-[calc(100svh-64px)] lg:h-auto overflow-x-auto no-scrollbar relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
+            <div class="mb-10 lg:mb-10 px-4 lg:max-w-5xl lg:mx-auto">
                 <div class="text-[11px] tracking-[0.3em] text-fuchsia-400/80 uppercase font-bold">Base Map</div>
                 <h2 class="mt-2 text-3xl font-bold text-white">基地地圖</h2>
+                <div class="text-xs text-white/50 mt-1 lg:hidden">(請左右滑動地圖)</div>
             </div>
             
-            <div class="overflow-hidden rounded-[32px] border border-white/10 bg-white/5 p-4 shadow-2xl backdrop-blur-sm">
-                <div class="relative aspect-[4/5] rounded-[24px] border border-white/10 bg-[#0c0a1a] overflow-hidden">
+            <div id="map-container" class="lg:overflow-hidden lg:rounded-[32px] lg:border lg:border-white/10 lg:bg-white/5 lg:p-4 lg:shadow-2xl lg:backdrop-blur-sm lg:max-w-5xl lg:mx-auto">
+                <div id="map-wrapper" class="relative aspect-[16/9] h-[calc(100svh-180px)] lg:h-auto lg:aspect-[4/5] lg:rounded-[24px] lg:border lg:border-white/10 overflow-hidden bg-cover bg-center shadow-inner" style="background-image: url('派對區域圖.png');">
                     
-                    <div class="absolute inset-0 opacity-10" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 40px 40px;"></div>
+                    <div class="absolute inset-0 opacity-10 hidden lg:block" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 40px 40px;"></div>
 
-                    <button onclick="jumpTo('flow')" class="absolute top-[8%] right-[10%] w-[32%] h-[18%] rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:bg-fuchsia-500/20 group">
-                        <i data-lucide="door-open" class="w-5 h-5 text-fuchsia-300"></i>
-                        <div class="mt-2 text-[12px] font-bold">星際之門</div>
-                        <div class="text-[9px] text-white/40">任務日誌</div>
+                    <button onclick="jumpTo('flow')" class="absolute top-[21%] right-[11.5%] w-[13%] h-[23%] lg:top-[8%] lg:right-[10%] lg:w-[32%] lg:h-[18%] rounded-2xl border border-white/20 bg-[#090611]/60 p-2.5 lg:p-3 text-left transition-all hover:bg-fuchsia-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(192,132,252,0.3)] hover:shadow-[0_0_25px_rgba(192,132,252,0.5)]">
+                        <i data-lucide="door-open" class="w-4 h-4 lg:w-5 lg:h-5 text-fuchsia-300"></i>
+                        <div class="mt-1.5 lg:mt-2 text-[10px] lg:text-[12px] font-bold text-white">星際之門</div>
+                        <div class="text-[8px] lg:text-[9px] text-white/60">任務日誌</div>
                     </button>
 
-                    <button onclick="jumpTo('sec-supply')" class="absolute top-[38%] left-[34%] w-[32%] h-[18%] rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:bg-amber-500/20 group">
-                        <i data-lucide="wine" class="w-5 h-5 text-amber-300"></i>
-                        <div class="mt-2 text-[12px] font-bold">補給站</div>
-                        <div class="text-[9px] text-white/40">中央酒吧</div>
+                    <button onclick="jumpTo('sec-supply')" class="absolute top-[37.5%] left-[45.5%] w-[14%] h-[21%] lg:top-[38%] lg:left-[34%] lg:w-[32%] lg:h-[18%] rounded-2xl border border-white/20 bg-[#090611]/60 p-2.5 lg:p-3 text-left transition-all hover:bg-amber-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(252,189,88,0.3)] hover:shadow-[0_0_25px_rgba(252,189,88,0.5)]">
+                        <i data-lucide="wine" class="w-4 h-4 lg:w-5 lg:h-5 text-amber-300"></i>
+                        <div class="mt-1.5 lg:mt-2 text-[10px] lg:text-[12px] font-bold text-white">補給站</div>
+                        <div class="text-[8px] lg:text-[9px] text-white/60">中央酒吧</div>
                     </button>
 
-                    <button onclick="jumpTo('sec-forest')" class="absolute bottom-[10%] right-[10%] w-[35%] h-[28%] rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:bg-emerald-500/20 group">
-                        <i data-lucide="trees" class="w-5 h-5 text-emerald-300"></i>
-                        <div class="mt-2 text-[12px] font-bold">伊甸森林</div>
-                        <div class="text-[9px] text-white/40">沙發區</div>
+                    <button onclick="jumpTo('sec-forest')" class="absolute bottom-[23%] right-[13.5%] w-[15%] h-[28%] lg:bottom-[10%] lg:right-[10%] lg:w-[35%] lg:h-[28%] rounded-2xl border border-white/20 bg-[#090611]/60 p-2.5 lg:p-3 text-left transition-all hover:bg-emerald-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)]">
+                        <i data-lucide="trees" class="w-4 h-4 lg:w-5 lg:h-5 text-emerald-300"></i>
+                        <div class="mt-1.5 lg:mt-2 text-[10px] lg:text-[12px] font-bold text-white">伊甸森林</div>
+                        <div class="text-[8px] lg:text-[9px] text-white/60">沙發休憩區</div>
                     </button>
 
-                    <button onclick="jumpTo('sec-station')" class="absolute bottom-[10%] left-[10%] w-[32%] h-[26%] rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:bg-violet-500/20 group">
-                        <i data-lucide="moon-star" class="w-5 h-5 text-violet-300"></i>
-                        <div class="mt-2 text-[12px] font-bold">暗能量觀測站</div>
-                        <div class="text-[9px] text-white/40">臥室區</div>
+                    <button onclick="jumpTo('sec-station')" class="absolute bottom-[24%] left-[16.5%] w-[15%] h-[27%] lg:bottom-[10%] lg:left-[10%] lg:w-[32%] lg:h-[26%] rounded-2xl border border-white/20 bg-[#090611]/60 p-2.5 lg:p-3 text-left transition-all hover:bg-violet-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(167,139,250,0.3)] hover:shadow-[0_0_25px_rgba(167,139,250,0.5)]">
+                        <i data-lucide="moon-star" class="w-4 h-4 lg:w-5 lg:h-5 text-violet-300"></i>
+                        <div class="mt-1.5 lg:mt-2 text-[10px] lg:text-[12px] font-bold text-white">暗能量觀測站</div>
+                        <div class="text-[8px] lg:text-[9px] text-white/60">私密臥室區</div>
                     </button>
 
-                    <button onclick="jumpTo('sec-swamp')" class="absolute top-[8%] left-[10%] w-[30%] h-[24%] rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:bg-cyan-500/20 group">
-                        <i data-lucide="waves" class="w-5 h-5 text-cyan-300"></i>
-                        <div class="mt-2 text-[12px] font-bold">迷幻沼澤</div>
-                        <div class="text-[9px] text-white/40">浴室區</div>
+                    <button onclick="jumpTo('sec-swamp')" class="absolute top-[28%] left-[13%] w-[14%] h-[24%] lg:top-[8%] lg:left-[10%] lg:w-[30%] lg:h-[24%] rounded-2xl border border-white/20 bg-[#090611]/60 p-2.5 lg:p-3 text-left transition-all hover:bg-cyan-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:shadow-[0_0_25px_rgba(34,211,238,0.5)]">
+                        <i data-lucide="waves" class="w-4 h-4 lg:w-5 lg:h-5 text-cyan-300"></i>
+                        <div class="mt-1.5 lg:mt-2 text-[10px] lg:text-[12px] font-bold text-white">迷幻沼澤</div>
+                        <div class="text-[8px] lg:text-[9px] text-white/60">迷霧浴室區</div>
                     </button>
                 </div>
             </div>
