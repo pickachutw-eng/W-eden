@@ -7,6 +7,31 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+@keyframes map-deploy {
+    0% { transform: scaleX(0); opacity: 0; filter: brightness(2); }
+    60% { transform: scaleX(1.05); opacity: 0.8; }
+    100% { transform: scaleX(1); opacity: 1; filter: brightness(1); }
+}
+
+@keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+}
+
+.animate-map-deploy {
+    animation: map-deploy 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: center;
+}
+
+/* 掃描線特效遮罩 */
+.scan-effect::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent, rgba(192, 132, 252, 0.1), transparent);
+    animation: scanline 3s linear infinite;
+    pointer-events: none;
+}
         @keyframes float {
             0%, 100% { transform: translate(-50%, 0px); opacity: 0.35; }
             50% { transform: translate(-50%, 18px); opacity: 0.55; }
@@ -140,50 +165,53 @@
             </section>
         </div>
 
-        <section id="map" class="scroll-mt-16 py-12 lg:py-16 h-[calc(100svh-64px)] lg:h-auto overflow-x-auto no-scrollbar relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
-            <div class="mb-10 lg:mb-10 px-4 lg:max-w-5xl lg:mx-auto">
-                <div class="text-[11px] tracking-[0.3em] text-fuchsia-400/80 uppercase font-bold">Base Map</div>
-                <h2 class="mt-2 text-3xl font-bold text-white">基地地圖</h2>
-                <div class="text-xs text-white/50 mt-1 lg:hidden">(請左右滑動地圖)</div>
-            </div>
-            
-            <div id="map-container" class="lg:overflow-hidden lg:rounded-[32px] lg:border lg:border-white/10 lg:bg-white/5 lg:p-4 lg:shadow-2xl lg:backdrop-blur-sm lg:max-w-5xl lg:mx-auto">
-                <div id="map-wrapper" class="relative aspect-[16/9] h-[calc(100svh-180px)] lg:h-auto lg:aspect-[4/5] lg:rounded-[24px] lg:border lg:border-white/10 overflow-hidden bg-cover bg-center shadow-inner" style="background-image: url('派對區域圖.png');">
-                    
-                    <div class="absolute inset-0 opacity-10 hidden lg:block" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 40px 40px;"></div>
+<section id="map" class="scroll-mt-16 py-12 lg:py-16 h-[calc(100svh-64px)] lg:h-auto overflow-x-auto no-scrollbar relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
+    <div class="mb-10 lg:mb-10 px-4 lg:max-w-5xl lg:mx-auto">
+        <div class="text-[11px] tracking-[0.3em] text-fuchsia-400/80 uppercase font-bold">Base Map</div>
+        <h2 class="mt-2 text-3xl font-bold text-white">基地地圖</h2>
+        <div class="text-xs text-white/50 mt-1 lg:hidden">(請左右滑動地圖)</div>
+    </div>
+    
+<div id="map-container" class="lg:overflow-hidden lg:rounded-[32px] lg:border lg:border-white/10 lg:bg-white/5 lg:p-4 lg:shadow-[0_0_50px_rgba(192,132,252,0.15)] lg:backdrop-blur-sm lg:max-w-5xl lg:mx-auto animate-map-deploy">
+    <div id="map-wrapper" class="relative aspect-[16/9] h-[calc(100svh-180px)] lg:h-auto lg:aspect-[16/9] lg:rounded-[24px] lg:border lg:border-white/10 overflow-hidden bg-cover bg-center shadow-inner scan-effect" style="background-image: url('派對區域圖.png');">
+        
+        <div class="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-fuchsia-400/50"></div>
+        <div class="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-fuchsia-400/50"></div>
+        <div class="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-fuchsia-400/50"></div>
+        <div class="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-fuchsia-400/50"></div>
 
-                    <button onclick="jumpTo('flow')" class="absolute top-[21%] right-[12%] w-[11%] h-[20%] lg:top-[8%] lg:right-[10%] lg:w-[32%] lg:h-[18%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 lg:p-3 text-left transition-all hover:bg-fuchsia-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(192,132,252,0.3)]">
-                        <i data-lucide="door-open" class="w-3.5 h-3.5 lg:w-5 lg:h-5 text-fuchsia-300"></i>
-                        <div class="mt-1 lg:mt-2 text-[9px] lg:text-[12px] font-bold text-white">星際之門</div>
-                        <div class="text-[7px] lg:text-[9px] text-white/60">任務日誌</div>
-                    </button>
+    <button onclick="jumpTo('flow')" class="absolute top-[8%] right-[25%] w-[10%] h-[12%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-fuchsia-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(192,132,252,0.3)]">
+        <i data-lucide="door-open" class="w-3.5 h-3.5 text-fuchsia-300"></i>
+        <div class="mt-1 text-[10px] font-bold text-white">星際之門</div>
+        <div class="text-[8px] text-white/60">任務日誌</div>
+    </button>
 
-                    <button onclick="jumpTo('sec-supply')" class="absolute top-[37.5%] left-[46.5%] w-[11%] h-[18%] lg:top-[38%] lg:left-[34%] lg:w-[32%] lg:h-[18%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 lg:p-3 text-left transition-all hover:bg-amber-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(252,189,88,0.3)]">
-                        <i data-lucide="wine" class="w-3.5 h-3.5 lg:w-5 lg:h-5 text-amber-300"></i>
-                        <div class="mt-1 lg:mt-2 text-[9px] lg:text-[12px] font-bold text-white">補給站</div>
-                        <div class="text-[7px] lg:text-[9px] text-white/60">中央酒吧</div>
-                    </button>
+    <button onclick="jumpTo('sec-supply')" class="absolute top-[23%] left-[43%] w-[10%] h-[12%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-amber-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(252,189,88,0.3)]">
+        <i data-lucide="wine" class="w-3.5 h-3.5 text-amber-300"></i>
+        <div class="mt-1 text-[10px] font-bold text-white">補給站</div>
+        <div class="text-[8px] text-white/60">中央酒吧</div>
+    </button>
 
-                    <button onclick="jumpTo('sec-forest')" class="absolute bottom-[23%] right-[14.5%] w-[12%] h-[25%] lg:bottom-[10%] lg:right-[10%] lg:w-[35%] lg:h-[28%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 lg:p-3 text-left transition-all hover:bg-emerald-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                        <i data-lucide="trees" class="w-3.5 h-3.5 lg:w-5 lg:h-5 text-emerald-300"></i>
-                        <div class="mt-1 lg:mt-2 text-[9px] lg:text-[12px] font-bold text-white">伊甸森林</div>
-                        <div class="text-[7px] lg:text-[9px] text-white/60">沙發區</div>
-                    </button>
+    <button onclick="jumpTo('sec-forest')" class="absolute bottom-[20%] right-[23%] w-[10%] h-[12%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-emerald-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+        <i data-lucide="trees" class="w-3.5 h-3.5 text-emerald-300"></i>
+        <div class="mt-1 text-[10px] font-bold text-white">伊甸森林</div>
+        <div class="text-[8px] text-white/60">沙發區</div>
+    </button>
 
-                    <button onclick="jumpTo('sec-station')" class="absolute bottom-[24%] left-[18%] w-[12%] h-[24%] lg:bottom-[10%] lg:left-[10%] lg:w-[32%] lg:h-[26%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 lg:p-3 text-left transition-all hover:bg-violet-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(167,139,250,0.3)]">
-                        <i data-lucide="moon-star" class="w-3.5 h-3.5 lg:w-5 lg:h-5 text-violet-300"></i>
-                        <div class="mt-1 lg:mt-2 text-[9px] lg:text-[12px] font-bold text-white">暗能量觀測所</div>
-                        <div class="text-[7px] lg:text-[9px] text-white/60">臥室區</div>
-                    </button>
+    <button onclick="jumpTo('sec-station')" class="absolute bottom-[10%] left-[10%] w-[10%] h-[12%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-violet-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(167,139,250,0.3)]">
+        <i data-lucide="moon-star" class="w-3.5 h-3.5 text-violet-300"></i>
+        <div class="mt-1 text-[10px] font-bold text-white">暗能量觀測所</div>
+        <div class="text-[8px] text-white/60">臥室區</div>
+    </button>
 
-                    <button onclick="jumpTo('sec-swamp')" class="absolute top-[28%] left-[14.5%] w-[11%] h-[20%] lg:top-[8%] lg:left-[10%] lg:w-[30%] lg:h-[24%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 lg:p-3 text-left transition-all hover:bg-cyan-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(34,211,238,0.3)]">
-                        <i data-lucide="waves" class="w-3.5 h-3.5 lg:w-5 lg:h-5 text-cyan-300"></i>
-                        <div class="mt-1 lg:mt-2 text-[9px] lg:text-[12px] font-bold text-white">迷幻沼澤</div>
-                        <div class="text-[7px] lg:text-[9px] text-white/60">浴室區</div>
-                    </button>
-                </div>
-            </div>
-        </section>
+    <button onclick="jumpTo('sec-swamp')" class="absolute top-[42%] left-[6%] w-[10%] h-[12%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-cyan-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+        <i data-lucide="waves" class="w-3.5 h-3.5 text-cyan-300"></i>
+        <div class="mt-1 text-[10px] font-bold text-white">迷幻沼澤</div>
+        <div class="text-[8px] text-white/60">浴室區</div>
+    </button>
+</div>
+    </div>
+</section>
 
         <section id="sec-forest" class="scroll-mt-24 py-12 border-t border-white/10">
             <div class="flex items-center gap-4 mb-8">
@@ -273,7 +301,7 @@
             <div class="mb-10">
                 <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Mission Log</div>
                 <h2 class="text-3xl font-bold text-white">任務日誌</h2>
-                <p class="mt-4 text-sm text-fuchsia-300/90 leading-relaxed italic">
+                <p class="mt-4 text-sm text-fuchsia-300/90 leading-relaxed">
                     Welcome to Planet Eden. 歡迎降落伊甸星。<br>
                     請遵循以下航行指令，開啟你的感官體驗：
                 </p>
@@ -347,16 +375,16 @@
                     <div class="space-y-4">
                         <div>
                             <span class="text-white/30 text-[10px] uppercase block mb-1">Location</span>
-                            <p class="text-white font-medium">W Hotel Taipei</p>
+                            W Hotel Taipei
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <span class="text-white/30 text-[10px] uppercase block mb-1">Check-in</span>
-                                <p class="text-white font-medium">2026-08-14</p>
+                                2026-08-14
                             </div>
                             <div>
                                 <span class="text-white/30 text-[10px] uppercase block mb-1">Check-out</span>
-                                <p class="text-white font-medium">whenever the stars fade</p>
+                                whenever the stars fade
                             </div>
                         </div>
                     </div>
@@ -366,13 +394,11 @@
                     <div class="space-y-4">
                         <div>
                             <span class="text-white/30 text-[10px] uppercase block mb-1">Dress code</span>
-                            <p class="text-white font-medium">動物 avatar</p>
+                            動物 avatar
                         </div>
                         <div>
                             <span class="text-white/30 text-[10px] uppercase block mb-1">Service</span>
-                            <p class="text-white font-medium text-sm leading-relaxed">
-                                若需補充酒精或快樂，請前往吧台聯繫「星際管家」。
-                            </p>
+                                若需補充酒精或快樂，請前往吧台聯繫「星際管家」。 
                         </div>
                     </div>
                 </div>
@@ -410,6 +436,22 @@
                 element.scrollIntoView({ behavior: 'smooth' });
             }
         }
+
+function jumpTo(id) {
+    const element = document.getElementById(id);
+    if (element) {
+        document.getElementById('mobile-menu').classList.add('hidden');
+        element.scrollIntoView({ behavior: 'smooth' });
+        
+        // 如果跳轉到地圖，重啟動畫
+        if (id === 'map') {
+            const container = document.getElementById('map-container');
+            container.classList.remove('animate-map-deploy');
+            void container.offsetWidth; // 強制重繪
+            container.classList.add('animate-map-deploy');
+        }
+    }
+}
     </script>
 </body>
 </html>
