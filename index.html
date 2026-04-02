@@ -86,7 +86,7 @@
                 </div>
             </button>
             <div class="hidden items-center gap-4 md:flex">
-                <button onclick="jumpTo('auth-sector')" class="flex items-center gap-2 px-4 py-2 rounded-full text-white/75 hover:bg-white/10 hover:text-white transition-all text-sm">
+                <button onclick="openAuthModal('auth-sector')" class="flex items-center gap-2 px-4 py-2 rounded-full text-white/75 hover:bg-white/10 hover:text-white transition-all text-sm">
                     <i data-lucide="fingerprint" class="w-4 h-4"></i> 身分
                 </button>
                 <button onclick="jumpTo('map')" class="flex items-center gap-2 px-4 py-2 rounded-full text-white/75 hover:bg-white/10 hover:text-white transition-all text-sm">
@@ -107,6 +107,19 @@
     </header>
 
     <main class="mx-auto max-w-md px-4 pb-28 pt-0 lg:max-w-5xl lg:px-6">
+
+<div id="sector-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div onclick="closeModal()" class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+    
+    <div class="relative w-full max-w-lg transform scale-95 transition-all duration-300 bg-[#0d091a] border border-white/20 rounded-[32px] overflow-hidden shadow-[0_0_50px_rgba(192,132,252,0.3)]">
+        <button onclick="closeModal()" class="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 text-white/70 hover:text-white transition-colors">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+
+        <div id="modal-content">
+            </div>
+    </div>
+</div>
         
         <div id="landing" class="landing-snap relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen no-scrollbar">
             <div class="sticky top-0 h-full w-full -z-10">
@@ -124,20 +137,18 @@
                 </div>
             </section>
 
-            <section class="relative flex items-center justify-center text-center px-6">
-                <p class="max-w-sm text-lg leading-9 text-white/90 font-light">2023，我們集結相遇，<br>開啟了故事的扉頁；</p>
+            <section class="relative flex items-center justify-center text-left px-6">
+                <p class="max-w-sm text-lg leading-9 text-white/90 font-light">
+<div class="space-y-4">
+  <p>2023-08-19，<br>我們集結相遇，<br>開啟了故事扉頁。</p>
+  <p>2024-08-10，<br>我們放縱狂歡，<br>在酒與歌中把夜晚點燃。</p>
+  <p>2025-08-02，<br>我們登上冒險船，<br>離開熟悉的海岸，<br>航向未知的前方。</p>
+</div>
+
             </section>
 
             <section class="relative flex items-center justify-center text-center px-6">
-                <p class="max-w-sm text-lg leading-9 text-white/90 font-light">2024，我們放縱狂歡，<br>在音樂與酒精裡把夜晚燃到最亮；</p>
-            </section>
-
-            <section class="relative flex items-center justify-center text-center px-6">
-                <p class="max-w-sm text-lg leading-9 text-white/90 font-light">2025，我們登上冒險船，離開熟悉的海岸，<br>航向未知的前方。</p>
-            </section>
-
-            <section class="relative flex items-center justify-center text-center px-6">
-                <p class="max-w-sm text-lg leading-9 text-white/90 font-light px-4">如今一年又過，經歷漫長等待，我們終於即將登陸迷幻的新世界。<br>2026，伊甸星前進基地已建立，生命的野性正等待甦醒——</p>
+                <p class="max-w-sm text-lg leading-9 text-white/90 font-light px-4">如今一年又過，經歷漫長等待，<br>我們終於即將登陸迷幻的新世界。<br>2026，伊甸星前進基地已建立，<br>生命的野性正等待甦醒——</p>
             </section>
 
             <section class="relative flex items-center justify-center text-center px-6">
@@ -147,14 +158,14 @@
                         <div class="text-[11px] tracking-[0.3em] text-white/50">PG FORWARD BASE</div>
                     </div>
                     <p class="text-white/90 leading-8 text-lg">探索你的動物本能<br>歡迎登陸伊甸星</p>
-                    <button onclick="jumpTo('auth-sector')" class="group relative rounded-2xl bg-fuchsia-600 px-10 py-4 font-bold transition-all hover:bg-fuchsia-500 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(192,132,252,0.3)]">
+                    <button onclick="jumpTo('map'); openAuthModal('auth-sector')" class="group relative rounded-2xl bg-fuchsia-600 px-10 py-4 font-bold transition-all hover:bg-fuchsia-500 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(192,132,252,0.3)]">
                         進入基地系統
                     </button>
                 </div>
             </section>
         </div>
 
-<section id="auth-sector" class="scroll-mt-24 py-16 border-t border-white/10">
+<section id="auth-sector" class="hidden scroll-mt-24 py-16 border-t border-white/10">
     <div class="mb-10 text-center">
         <div class="text-[11px] text-fuchsia-400 uppercase font-bold tracking-[0.4em]">Identity Sync</div>
         <h2 class="text-3xl font-bold text-white mt-2">身份對接系統</h2>
@@ -277,115 +288,31 @@
         <div class="text-[7px] text-white/60">任務日誌</div>
     </button>
 
-    <button onclick="jumpTo('sec-supply')" class="absolute top-[38%] right-[30%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-amber-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(252,189,88,0.3)]">
+    <button onclick="openSector('sec-supply')" class="absolute top-[38%] right-[30%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-amber-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(252,189,88,0.3)]">
         <i data-lucide="wine" class="w-3.5 h-3.5 text-amber-300"></i>
         <div class="mt-1 text-[9px] font-bold text-white">能量補給艙</div>
         <div class="text-[7px] text-white/60">酒水吧檯</div>
     </button>
 
-    <button onclick="jumpTo('sec-swamp')" class="absolute top-[40%] left-[6%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-cyan-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+    <button onclick="openSector('sec-swamp')" class="absolute top-[40%] left-[6%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-cyan-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(34,211,238,0.3)]">
         <i data-lucide="waves" class="w-3.5 h-3.5 text-cyan-300"></i>
         <div class="mt-1 text-[9px] font-bold text-white">迷幻沼澤</div>
         <div class="text-[7px] text-white/60">迷霧浴室區</div>
     </button>
 
-    <button onclick="jumpTo('sec-station')" class="absolute bottom-[33%] left-[22%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-violet-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(167,139,250,0.3)]">
+    <button onclick="openSector('sec-station')" class="absolute bottom-[33%] left-[22%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-violet-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(167,139,250,0.3)]">
         <i data-lucide="moon-star" class="w-3.5 h-3.5 text-violet-300"></i>
         <div class="mt-1 text-[9px] font-bold text-white">引力觀測站</div>
         <div class="text-[7px] text-white/60">私密臥室區</div>
     </button>
 
-    <button onclick="jumpTo('sec-forest')" class="absolute bottom-[17%] right-[19%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-emerald-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+    <button onclick="openSector('sec-forest')" class="absolute bottom-[17%] right-[19%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-emerald-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.3)]">
         <i data-lucide="trees" class="w-3.5 h-3.5 text-emerald-300"></i>
         <div class="mt-1 text-[9px] font-bold text-white">伊甸花園</div>
         <div class="text-[7px] text-white/60">沙發交誼區</div>
     </button>
 </div>    </div>
 </section>
-
-        <section id="sec-forest" class="scroll-mt-24 py-12 border-t border-white/10">
-            <div class="flex items-center gap-4 mb-8">
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="trees" class="text-emerald-300"></i></div>
-                <div>
-                    <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Eden Forest</div>
-                    <h2 class="text-2xl font-bold text-white">伊甸花園</h2>
-                </div>
-            </div>
-            <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl flex flex-col sm:flex-row gap-8 items-center overflow-hidden">
-                <div class="w-full sm:w-1/2 rounded-[24px] border border-white/10 overflow-hidden shrink-0">
-                    <img src="伊甸花園.png" alt="伊甸花園" class="w-full h-full object-cover aspect-[4/3]" />
-                </div>
-                <div class="w-full sm:w-1/2 space-y-4">
-                    <p class="text-white/80 leading-relaxed">柔軟的空氣在這裡停滯，聲音被吸收，節奏自然放慢。你不需要尋找什麼，只需要待著，讓距離逐漸縮短，讓時間變得無關緊要。</p>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold text-emerald-200 uppercase tracking-widest">
-                        <i data-lucide="trees" class="w-3.5 h-3.5"></i> 沙發交誼區
-                    </span>
-                </div>
-            </div>
-        </section>
-
-        <section id="sec-supply" class="scroll-mt-24 py-12 border-t border-white/10">
-            <div class="flex items-center gap-4 mb-8">
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="wine" class="text-amber-300"></i></div>
-                <div>
-                    <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Supply Station</div>
-                    <h2 class="text-2xl font-bold text-white">能量補給艙</h2>
-                </div>
-            </div>
-            <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl flex flex-col sm:flex-row gap-8 items-center overflow-hidden">
-                <div class="w-full sm:w-1/2 rounded-[24px] border border-white/10 overflow-hidden shrink-0">
-                    <img src="能量補給艙.png" alt="能量補給艙" class="w-full h-full object-cover aspect-[4/3]" />
-                </div>
-                <div class="w-full sm:w-1/2 space-y-4">
-                    <p class="text-white/80 leading-relaxed">光線與人群在這裡匯聚，能量不斷流動。每一次停留，都是重新出發前的短暫對接，在喧鬧與目光之間找到自己的位置。</p>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-bold text-amber-200 uppercase tracking-widest">
-                        <i data-lucide="wine" class="w-3.5 h-3.5"></i> 酒水吧檯
-                    </span>
-                </div>
-            </div>
-        </section>
-
-        <section id="sec-station" class="scroll-mt-24 py-12 border-t border-white/10">
-            <div class="flex items-center gap-4 mb-8">
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="moon-star" class="text-violet-300"></i></div>
-                <div>
-                    <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Dark Energy</div>
-                    <h2 class="text-2xl font-bold text-white">引力觀測站</h2>
-                </div>
-            </div>
-            <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl flex flex-col sm:flex-row gap-8 items-center overflow-hidden">
-                <div class="w-full sm:w-1/2 rounded-[24px] border border-white/10 overflow-hidden shrink-0">
-                    <img src="引力觀測站.png" alt="引力觀測站" class="w-full h-full object-cover aspect-[4/3]" />
-                </div>
-                <div class="w-full sm:w-1/2 space-y-4">
-                    <p class="text-white/80 leading-relaxed">光逐漸退去，感官變得敏銳。界線不再清晰，語言也失去必要性。在這裡，存在本身就是回應。</p>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-xs font-bold text-violet-200 uppercase tracking-widest">
-                        <i data-lucide="moon-star" class="w-3.5 h-3.5"></i> 私密臥室區
-                    </span>
-                </div>
-            </div>
-        </section>
-
-        <section id="sec-swamp" class="scroll-mt-24 py-12 border-t border-white/10">
-            <div class="flex items-center gap-4 mb-8">
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="waves" class="text-cyan-300"></i></div>
-                <div>
-                    <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Swamp</div>
-                    <h2 class="text-2xl font-bold text-white">迷幻沼澤</h2>
-                </div>
-            </div>
-            <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl flex flex-col sm:flex-row gap-8 items-center overflow-hidden">
-                <div class="w-full sm:w-1/2 rounded-[24px] border border-white/10 overflow-hidden shrink-0">
-                    <img src="迷幻沼澤.png" alt="迷幻沼澤" class="w-full h-full object-cover aspect-[4/3]" />
-                </div>
-                <div class="w-full sm:w-1/2 space-y-4">
-                    <p class="text-white/80 leading-relaxed">霧氣與水氣交錯，邊界被不斷沖淡。方向不再重要，感受成為唯一的導航，讓自己慢慢沉入其中。</p>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-1.5 text-xs font-bold text-cyan-200 uppercase tracking-widest">
-                        <i data-lucide="waves" class="w-3.5 h-3.5"></i> 迷霧浴室區
-                    </span>
-                </div>
-            </div>
-        </section>
 
         <section id="flow" class="scroll-mt-24 py-16 border-t border-white/10">
             <div class="mb-10">
@@ -529,9 +456,23 @@
 
     </main>
 
+<div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div onclick="closeAuthModal()" class="absolute inset-0 bg-black/90 backdrop-blur-xl"></div>
+    
+    <div class="relative w-full max-w-sm transform scale-95 transition-all duration-300">
+        <button onclick="closeAuthModal()" class="absolute -top-12 right-0 p-2 text-white/50 hover:text-white">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+
+        <div id="modal-auth-container" class="bg-[#0d091a] border border-white/10 rounded-[32px] p-1 shadow-[0_0_50px_rgba(192,132,252,0.2)]">
+            <div id="inner-auth-content"></div>
+        </div>
+    </div>
+</div>
+
     <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#090611]/80 backdrop-blur-2xl md:hidden">
         <div class="mx-auto grid grid-cols-5 px-2 py-3">
-            <button onclick="jumpTo('auth-sector')" class="flex flex-col items-center gap-1.5 py-1 text-[10px] text-white/50 hover:text-fuchsia-300 transition-colors">
+            <button onclick="openAuthModal('auth-sector')" class="flex flex-col items-center gap-1.5 py-1 text-[10px] text-white/50 hover:text-fuchsia-300 transition-colors">
                 <i data-lucide="fingerprint" class="w-5 h-5"></i>身分
             </button>
             <button onclick="jumpTo('map')" class="flex flex-col items-center gap-1.5 py-1 text-[10px] text-white/50 hover:text-fuchsia-300 transition-colors">
@@ -619,6 +560,7 @@ async function submitToEden() {
             name: nameValue,
             animal: animalValue,
             skill: skillValue
+
         };
         localStorage.setItem('eden_guest', JSON.stringify(userData));
 
@@ -661,6 +603,138 @@ function resetIdentity() {
         }, 300);
     }
 }
+
+const sectorData = {
+    'sec-forest': {
+        title: '伊甸花園',
+        subtitle: 'Eden Forest',
+        tag: '沙發交誼區',
+        icon: 'trees',
+        color: 'emerald',
+        img: '伊甸花園.png',
+        desc: '柔軟的空氣在這裡停滯，聲音被吸收，節奏自然放慢。你不需要尋找什麼，只需要待著，讓距離逐漸縮短，讓時間變得無關緊要。'
+    },
+    'sec-supply': {
+        title: '能量補給艙',
+        subtitle: 'Supply Station',
+        tag: '酒水吧檯',
+        icon: 'wine',
+        color: 'amber',
+        img: '能量補給艙.png',
+        desc: '光線與人群在這裡匯聚，能量不斷流動。每一次停留，都是重新出發前的短暫對接，在喧鬧與目光之間找到自己的位置。'
+    },
+    'sec-station': {
+        title: '引力觀測站',
+        subtitle: 'Dark Energy',
+        tag: '私密臥室區',
+        icon: 'moon-star',
+        color: 'violet',
+        img: '引力觀測站.png',
+        desc: '光逐漸退去，感官變得敏銳。界線不再清晰，語言也失去必要性。在這裡，存在本身就是回應。'
+    },
+    'sec-swamp': {
+        title: '迷幻沼澤',
+        subtitle: 'Swamp',
+        tag: '迷霧浴室區',
+        icon: 'waves',
+        color: 'cyan',
+        img: '迷幻沼澤.png',
+        desc: '霧氣與水氣交錯，邊界被不斷沖淡。方向不再重要，感受成為唯一的導航，讓自己慢慢沉入其中。'
+    }
+};
+
+// 打開彈窗
+function openSector(id) {
+    const data = sectorData[id];
+    if (!data) return;
+
+    const modal = document.getElementById('sector-modal');
+    const content = document.getElementById('modal-content');
+
+    // 動態生成 HTML
+    content.innerHTML = `
+        <div class="relative aspect-video w-full overflow-hidden">
+            <img src="${data.img}" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0d091a] to-transparent"></div>
+        </div>
+        <div class="p-8 space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 rounded-xl bg-${data.color}-500/20 border border-${data.color}-500/30">
+                    <i data-lucide="${data.icon}" class="text-${data.color}-400 w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="text-[10px] text-white/40 uppercase font-bold tracking-widest">${data.subtitle}</div>
+                    <h2 class="text-2xl font-bold text-white">${data.title}</h2>
+                </div>
+            </div>
+            <p class="text-white/70 leading-relaxed text-sm">${data.desc}</p>
+            <span class="inline-flex items-center gap-2 rounded-full border border-${data.color}-500/30 bg-${data.color}-500/10 px-4 py-1.5 text-[10px] font-bold text-${data.color}-200 uppercase tracking-widest">
+                ${data.tag}
+            </span>
+        </div>
+    `;
+
+    // 重新初始化 Lucide 圖標
+    lucide.createIcons();
+
+    // 顯示彈窗
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modal.children[1].classList.remove('scale-95');
+    modal.children[1].classList.add('scale-100');
+    document.body.style.overflow = 'hidden'; // 防止背景捲動
+}
+
+// 關閉彈窗
+function closeModal() {
+    const modal = document.getElementById('sector-modal');
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    modal.children[1].classList.remove('scale-100');
+    modal.children[1].classList.add('scale-95');
+    document.body.style.overflow = '';
+}
+
+// 開啟身分彈窗
+function openAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    const innerContent = document.getElementById('inner-auth-content');
+    const form = document.getElementById('guest-form-container');
+    const card = document.getElementById('id-card-container');
+
+    // 將內容移入彈窗（如果還沒移入的話）
+    if (form && form.parentElement.id !== 'inner-auth-content') {
+        innerContent.appendChild(form);
+        innerContent.appendChild(card);
+    }
+
+    // --- 關鍵邏輯：根據是否已有資料來切換顯示 ---
+    const saved = localStorage.getItem('eden_guest');
+    if (saved) {
+        // 已有身分：顯示卡片，隱藏表單
+        form.classList.add('hidden');
+        card.classList.remove('hidden');
+    } else {
+        // 尚未對接：顯示表單，隱藏卡片
+        form.classList.remove('hidden');
+        card.classList.add('hidden');
+    }
+
+    // 顯示彈窗動畫
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modal.querySelector('.relative').classList.remove('scale-95');
+    modal.querySelector('.relative').classList.add('scale-100');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    modal.querySelector('.relative').classList.remove('scale-100');
+    document.body.style.overflow = '';
+}
+
+// 修改原有的 submitToEden 結尾
+// 在提交成功後，不需要跳轉頁面，因為使用者已經在彈窗中看到卡片了。
+
     </script>
 </body>
 </html>
