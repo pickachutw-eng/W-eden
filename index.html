@@ -86,6 +86,9 @@
                 </div>
             </button>
             <div class="hidden items-center gap-4 md:flex">
+                <button onclick="jumpTo('auth-sector')" class="flex items-center gap-2 px-4 py-2 rounded-full text-white/75 hover:bg-white/10 hover:text-white transition-all text-sm">
+                    <i data-lucide="fingerprint" class="w-4 h-4"></i> 身分
+                </button>
                 <button onclick="jumpTo('map')" class="flex items-center gap-2 px-4 py-2 rounded-full text-white/75 hover:bg-white/10 hover:text-white transition-all text-sm">
                     <i data-lucide="map" class="w-4 h-4"></i> 基地
                 </button>
@@ -95,26 +98,12 @@
                 <button onclick="jumpTo('info')" class="flex items-center gap-2 px-4 py-2 rounded-full text-white/75 hover:bg-white/10 hover:text-white transition-all text-sm">
                     <i data-lucide="info" class="w-4 h-4"></i> 座標
                 </button>
+                <button onclick="jumpTo('broadcast')" class="flex items-center gap-2 px-4 py-2 rounded-full text-white/75 hover:bg-white/10 hover:text-white transition-all text-sm"><i data-lucide="radio" class="w-4 h-4"></i> 廣播
+                </button>
             </div>
-            <button onclick="toggleMenu()" class="md:hidden p-2 text-white/80"><i data-lucide="menu" class="w-5 h-5"></i></button>
         </div>
         
-        <div id="mobile-menu" class="hidden border-t border-white/10 md:hidden bg-[#090611]/95 backdrop-blur-2xl">
-            <div class="mx-auto flex max-w-md flex-col gap-2 px-4 py-4">
-                <button onclick="jumpTo('map')" class="flex items-center justify-between rounded-2xl bg-white/5 px-5 py-4 text-sm text-white/80">
-                    <span class="flex items-center gap-3"><i data-lucide="map" class="w-5 h-5 text-fuchsia-300"></i>基地圖系統</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 opacity-40"></i>
-                </button>
-                <button onclick="jumpTo('flow')" class="flex items-center justify-between rounded-2xl bg-white/5 px-5 py-4 text-sm text-white/80">
-                    <span class="flex items-center gap-3"><i data-lucide="clock-3" class="w-5 h-5 text-fuchsia-300"></i>任務日誌</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 opacity-40"></i>
-                </button>
-                <button onclick="jumpTo('info')" class="flex items-center justify-between rounded-2xl bg-white/5 px-5 py-4 text-sm text-white/80">
-                    <span class="flex items-center gap-3"><i data-lucide="info" class="w-5 h-5 text-fuchsia-300"></i>基地座標</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 opacity-40"></i>
-                </button>
-            </div>
-        </div>
+       
     </header>
 
     <main class="mx-auto max-w-md px-4 pb-28 pt-0 lg:max-w-5xl lg:px-6">
@@ -129,8 +118,8 @@
                 <div class="space-y-6">
                     <div class="text-5xl font-bold tracking-tighter text-white drop-shadow-2xl">W-EDEN</div>
                     <div class="space-y-1">
-                        <div class="text-[12px] tracking-[0.5em] text-white/80 uppercase">Logbook</div>
-                        <div class="text-[14px] tracking-[0.6em] text-fuchsia-200/90 font-medium uppercase">Year 04</div>
+                    <div class="text-[10px] tracking-[0.8em] text-white/60 uppercase font-light ml-[0.8em]">Logbook</div>
+                        <div class="text-[13px] tracking-[0.6em] text-fuchsia-200 font-semibold uppercase ml-[0.6em]">Year 04</div>
                     </div>
                 </div>
             </section>
@@ -158,12 +147,108 @@
                         <div class="text-[11px] tracking-[0.3em] text-white/50">PG FORWARD BASE</div>
                     </div>
                     <p class="text-white/90 leading-8 text-lg">探索你的動物本能<br>歡迎登陸伊甸星</p>
-                    <button onclick="jumpTo('map')" class="group relative rounded-2xl bg-fuchsia-600 px-10 py-4 font-bold transition-all hover:bg-fuchsia-500 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(192,132,252,0.3)]">
+                    <button onclick="jumpTo('auth-sector')" class="group relative rounded-2xl bg-fuchsia-600 px-10 py-4 font-bold transition-all hover:bg-fuchsia-500 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(192,132,252,0.3)]">
                         進入基地系統
                     </button>
                 </div>
             </section>
         </div>
+
+<section id="auth-sector" class="scroll-mt-24 py-16 border-t border-white/10">
+    <div class="mb-10 text-center">
+        <div class="text-[11px] text-fuchsia-400 uppercase font-bold tracking-[0.4em]">Identity Sync</div>
+        <h2 class="text-3xl font-bold text-white mt-2">身份對接系統</h2>
+    </div>
+
+<div id="guest-form-container" class="max-w-sm mx-auto rounded-[32px] border border-white/10 bg-white/5 p-8 backdrop-blur-md shadow-2xl">
+    <div class="space-y-5">
+        <div>
+            <label class="block text-[10px] text-fuchsia-400 uppercase tracking-widest mb-2 font-bold">Access ID / 識別碼</label>
+            <input type="text" id="input-id" class="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-fuchsia-500 outline-none transition-all font-mono" placeholder="例: PG-001">
+        </div>
+        
+        <div>
+            <label class="block text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Callsign / 代號</label>
+            <input type="text" id="input-name" class="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-fuchsia-500 outline-none transition-all" placeholder="輸入你的稱呼">
+        </div>
+
+        <div>
+            <label class="block text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Animal Morph / 動物形態</label>
+            <input type="text" id="input-animal" class="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-fuchsia-500 outline-none transition-all" placeholder="例: 雪豹">
+        </div>
+
+        <div>
+            <div class="flex justify-between mb-2">
+                <label class="text-[10px] text-white/40 uppercase tracking-widest font-bold">Skill Level / 能量光譜</label>
+                <span id="skill-value" class="text-xs font-mono text-fuchsia-400">0.5</span>
+            </div>
+            <input type="range" id="input-skill" min="0" max="1" step="0.1" value="0.5" 
+                class="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-fuchsia-500"
+                oninput="document.getElementById('skill-value').innerText = this.value">
+            <div class="flex justify-between text-[8px] text-white/20 mt-1 font-mono">
+                <span>0.0</span>
+                <span>0.1</span>
+                <span>0.2</span>
+                <span>0.3</span>
+                <span>0.4</span>
+                <span>0.5</span>
+                <span>0.6</span>
+                <span>0.7</span>
+                <span>0.8</span>
+                <span>0.9</span>
+                <span>1.0</span>
+            </div>
+        </div>
+            <button onclick="submitToEden()" id="sync-btn" class="w-full py-4 bg-fuchsia-600 rounded-2xl font-black text-sm tracking-[0.2em] hover:bg-fuchsia-500 hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_20px_rgba(192,132,252,0.4)]">
+                啟動身份授權
+            </button>
+        </div>
+    </div>
+
+    <div id="id-card-container" class="hidden max-w-sm mx-auto animate-map-deploy">
+        <div class="relative overflow-hidden rounded-[32px] border border-fuchsia-500/50 bg-gradient-to-br from-fuchsia-950/40 via-[#090611] to-black p-8 shadow-[0_0_40px_rgba(192,132,252,0.2)]">
+            <div class="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-fuchsia-500/40"></div>
+            <div class="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-fuchsia-500/40"></div>
+            
+            <div class="flex justify-between items-start mb-12">
+                <div>
+                    <div class="text-[10px] text-fuchsia-400 font-black tracking-widest mb-1">W-EDEN PASS</div>
+                    <div id="display-name" class="text-3xl font-black italic text-white uppercase tracking-tighter">PILOT</div>
+                </div>
+                    <div id="display-rank" class="px-3 py-1 border border-fuchsia-500/50 rounded-full text-[9px] text-fuchsia-300 font-bold bg-fuchsia-500/10">
+    RANK: GUEST
+                </div>
+            </div>
+
+            <div class="space-y-4 mb-12">
+                <div class="flex justify-between border-b border-white/10 pb-2">
+                    <span class="text-[10px] text-white/40 uppercase">Avatar</span>
+                    <span id="display-animal" class="text-sm font-bold text-fuchsia-200">UNKNOWN</span>
+                </div>
+                <div class="flex justify-between border-b border-white/10 pb-2">
+                    <span class="text-[10px] text-white/40 uppercase">Serial No.</span>
+                    <span id="display-id" class="text-sm font-mono text-fuchsia-200">WEDEN-00000</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="h-12 w-12 bg-white p-1 rounded-lg">
+                   <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=W-EDEN" id="id-qr" class="w-full h-full">
+                </div>
+                <div class="text-[9px] text-white/30 leading-tight">
+                    此憑證由伊甸星前進基地簽發。<br>請於 2026-08-14 抵達 W Hotel 進行對接。
+                </div>
+            </div>
+<div class="mt-8 pt-6 border-t border-white/5 text-center">
+    <button onclick="resetIdentity()" class="text-[10px] text-white/20 hover:text-fuchsia-400 uppercase tracking-[0.3em] transition-colors flex items-center justify-center gap-2 mx-auto">
+        <i data-lucide="log-out" class="w-3 h-3"></i> 
+        解除身份鎖定 / Reset Identity
+    </button>
+</div>
+
+        </div>
+    </div>
+</section>
 
 <section id="map" class="scroll-mt-16 py-12 lg:py-16 h-[calc(100svh-64px)] lg:h-auto overflow-x-auto no-scrollbar relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
     <div class="mb-10 lg:mb-10 px-4 lg:max-w-5xl lg:mx-auto">
@@ -173,44 +258,49 @@
     </div>
     
 <div id="map-container" class="lg:overflow-hidden lg:rounded-[32px] lg:border lg:border-white/10 lg:bg-white/5 lg:p-4 lg:shadow-[0_0_50px_rgba(192,132,252,0.15)] lg:backdrop-blur-sm lg:max-w-5xl lg:mx-auto animate-map-deploy">
-    <div id="map-wrapper" class="relative aspect-[16/9] h-[calc(100svh-180px)] lg:h-auto lg:aspect-[16/9] lg:rounded-[24px] lg:border lg:border-white/10 overflow-hidden bg-cover bg-center shadow-inner scan-effect" style="background-image: url('派對區域圖.png');">
-        
-        <div class="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-fuchsia-400/50"></div>
-        <div class="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-fuchsia-400/50"></div>
-        <div class="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-fuchsia-400/50"></div>
-        <div class="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-fuchsia-400/50"></div>
+<div id="map-wrapper" class="relative aspect-[3/4] h-[calc(100svh-180px)] lg:h-auto lg:aspect-[3/4] lg:rounded-[24px] lg:border lg:border-white/10 overflow-hidden bg-cover bg-center shadow-inner scan-effect" style="background-image: url('基地地圖.png');">
+    
+    <div class="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-fuchsia-400/50"></div>
+    <div class="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-fuchsia-400/50"></div>
+    <div class="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-fuchsia-400/50"></div>
+    <div class="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-fuchsia-400/50"></div>
 
-    <button onclick="jumpTo('flow')" class="absolute top-[8%] right-[25%] w-[10%] h-[12%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-fuchsia-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(192,132,252,0.3)]">
+    <button onclick="jumpTo('broadcast')" class="absolute top-[19%] left-[21%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-fuchsia-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(192,132,252,0.3)]">
+        <i data-lucide="ship" class="w-3.5 h-3.5 text-fuchsia-300"></i>
+        <div class="mt-1 text-[9px] font-bold text-white">W星登陸艇</div>
+        <div class="text-[7px] text-white/60">艦長的話</div>
+    </button>
+
+    <button onclick="jumpTo('flow')" class="absolute top-[21%] right-[26%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-fuchsia-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(192,132,252,0.3)]">
         <i data-lucide="door-open" class="w-3.5 h-3.5 text-fuchsia-300"></i>
-        <div class="mt-1 text-[10px] font-bold text-white">星際之門</div>
-        <div class="text-[8px] text-white/60">任務日誌</div>
+        <div class="mt-1 text-[9px] font-bold text-white">星際之門</div>
+        <div class="text-[7px] text-white/60">任務日誌</div>
     </button>
 
-    <button onclick="jumpTo('sec-supply')" class="absolute top-[23%] left-[43%] w-[10%] h-[12%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-amber-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(252,189,88,0.3)]">
+    <button onclick="jumpTo('sec-supply')" class="absolute top-[38%] right-[30%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-amber-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(252,189,88,0.3)]">
         <i data-lucide="wine" class="w-3.5 h-3.5 text-amber-300"></i>
-        <div class="mt-1 text-[10px] font-bold text-white">補給站</div>
-        <div class="text-[8px] text-white/60">中央酒吧</div>
+        <div class="mt-1 text-[9px] font-bold text-white">能量補給艙</div>
+        <div class="text-[7px] text-white/60">酒水吧檯</div>
     </button>
 
-    <button onclick="jumpTo('sec-forest')" class="absolute bottom-[20%] right-[23%] w-[10%] h-[12%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-emerald-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-        <i data-lucide="trees" class="w-3.5 h-3.5 text-emerald-300"></i>
-        <div class="mt-1 text-[10px] font-bold text-white">伊甸森林</div>
-        <div class="text-[8px] text-white/60">沙發區</div>
-    </button>
-
-    <button onclick="jumpTo('sec-station')" class="absolute bottom-[10%] left-[10%] w-[10%] h-[12%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-violet-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(167,139,250,0.3)]">
-        <i data-lucide="moon-star" class="w-3.5 h-3.5 text-violet-300"></i>
-        <div class="mt-1 text-[10px] font-bold text-white">暗能量觀測所</div>
-        <div class="text-[8px] text-white/60">臥室區</div>
-    </button>
-
-    <button onclick="jumpTo('sec-swamp')" class="absolute top-[42%] left-[6%] w-[10%] h-[12%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-cyan-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+    <button onclick="jumpTo('sec-swamp')" class="absolute top-[40%] left-[6%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-cyan-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(34,211,238,0.3)]">
         <i data-lucide="waves" class="w-3.5 h-3.5 text-cyan-300"></i>
-        <div class="mt-1 text-[10px] font-bold text-white">迷幻沼澤</div>
-        <div class="text-[8px] text-white/60">浴室區</div>
+        <div class="mt-1 text-[9px] font-bold text-white">迷幻沼澤</div>
+        <div class="text-[7px] text-white/60">迷霧浴室區</div>
     </button>
-</div>
-    </div>
+
+    <button onclick="jumpTo('sec-station')" class="absolute bottom-[33%] left-[22%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-violet-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(167,139,250,0.3)]">
+        <i data-lucide="moon-star" class="w-3.5 h-3.5 text-violet-300"></i>
+        <div class="mt-1 text-[9px] font-bold text-white">引力觀測站</div>
+        <div class="text-[7px] text-white/60">私密臥室區</div>
+    </button>
+
+    <button onclick="jumpTo('sec-forest')" class="absolute bottom-[17%] right-[19%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-emerald-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+        <i data-lucide="trees" class="w-3.5 h-3.5 text-emerald-300"></i>
+        <div class="mt-1 text-[9px] font-bold text-white">伊甸花園</div>
+        <div class="text-[7px] text-white/60">沙發交誼區</div>
+    </button>
+</div>    </div>
 </section>
 
         <section id="sec-forest" class="scroll-mt-24 py-12 border-t border-white/10">
@@ -218,17 +308,17 @@
                 <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="trees" class="text-emerald-300"></i></div>
                 <div>
                     <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Eden Forest</div>
-                    <h2 class="text-2xl font-bold text-white">伊甸森林</h2>
+                    <h2 class="text-2xl font-bold text-white">伊甸花園</h2>
                 </div>
             </div>
             <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl flex flex-col sm:flex-row gap-8 items-center overflow-hidden">
                 <div class="w-full sm:w-1/2 rounded-[24px] border border-white/10 overflow-hidden shrink-0">
-                    <img src="伊甸森林.png" alt="伊甸森林" class="w-full h-full object-cover aspect-[4/3]" />
+                    <img src="伊甸花園.png" alt="伊甸花園" class="w-full h-full object-cover aspect-[4/3]" />
                 </div>
                 <div class="w-full sm:w-1/2 space-y-4">
                     <p class="text-white/80 leading-relaxed">柔軟的空氣在這裡停滯，聲音被吸收，節奏自然放慢。你不需要尋找什麼，只需要待著，讓距離逐漸縮短，讓時間變得無關緊要。</p>
                     <span class="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold text-emerald-200 uppercase tracking-widest">
-                        <i data-lucide="trees" class="w-3.5 h-3.5"></i> 沙發休憩區
+                        <i data-lucide="trees" class="w-3.5 h-3.5"></i> 沙發交誼區
                     </span>
                 </div>
             </div>
@@ -239,17 +329,17 @@
                 <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="wine" class="text-amber-300"></i></div>
                 <div>
                     <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Supply Station</div>
-                    <h2 class="text-2xl font-bold text-white">補給站</h2>
+                    <h2 class="text-2xl font-bold text-white">能量補給艙</h2>
                 </div>
             </div>
             <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl flex flex-col sm:flex-row gap-8 items-center overflow-hidden">
                 <div class="w-full sm:w-1/2 rounded-[24px] border border-white/10 overflow-hidden shrink-0">
-                    <img src="能量補給站.png" alt="補給站" class="w-full h-full object-cover aspect-[4/3]" />
+                    <img src="能量補給艙.png" alt="能量補給艙" class="w-full h-full object-cover aspect-[4/3]" />
                 </div>
                 <div class="w-full sm:w-1/2 space-y-4">
                     <p class="text-white/80 leading-relaxed">光線與人群在這裡匯聚，能量不斷流動。每一次停留，都是重新出發前的短暫對接，在喧鬧與目光之間找到自己的位置。</p>
                     <span class="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-bold text-amber-200 uppercase tracking-widest">
-                        <i data-lucide="wine" class="w-3.5 h-3.5"></i> 中央酒吧區
+                        <i data-lucide="wine" class="w-3.5 h-3.5"></i> 酒水吧檯
                     </span>
                 </div>
             </div>
@@ -260,12 +350,12 @@
                 <div class="rounded-2xl border border-white/10 bg-white/5 p-3"><i data-lucide="moon-star" class="text-violet-300"></i></div>
                 <div>
                     <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Dark Energy</div>
-                    <h2 class="text-2xl font-bold text-white">暗能量觀測站</h2>
+                    <h2 class="text-2xl font-bold text-white">引力觀測站</h2>
                 </div>
             </div>
             <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl flex flex-col sm:flex-row gap-8 items-center overflow-hidden">
                 <div class="w-full sm:w-1/2 rounded-[24px] border border-white/10 overflow-hidden shrink-0">
-                    <img src="暗能量觀測站.png" alt="觀測站" class="w-full h-full object-cover aspect-[4/3]" />
+                    <img src="引力觀測站.png" alt="引力觀測站" class="w-full h-full object-cover aspect-[4/3]" />
                 </div>
                 <div class="w-full sm:w-1/2 space-y-4">
                     <p class="text-white/80 leading-relaxed">光逐漸退去，感官變得敏銳。界線不再清晰，語言也失去必要性。在這裡，存在本身就是回應。</p>
@@ -377,16 +467,16 @@
                             <span class="text-white/30 text-[10px] uppercase block mb-1">Location</span>
                             W Hotel Taipei
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <span class="text-white/30 text-[10px] uppercase block mb-1">Check-in</span>
-                                2026-08-14
-                            </div>
-                            <div>
-                                <span class="text-white/30 text-[10px] uppercase block mb-1">Check-out</span>
-                                whenever the stars fade
-                            </div>
+                     
+                        <div>
+                            <span class="text-white/30 text-[10px] uppercase block mb-1">Check-in</span>
+                            2026-08-14
                         </div>
+                        <div>
+                            <span class="text-white/30 text-[10px] uppercase block mb-1">Check-out</span>
+                            whenever the stars fade
+                        </div>
+                        
                     </div>
                 </div>
                 <div class="rounded-[28px] border border-white/10 bg-white/5 p-8 backdrop-blur-sm">
@@ -405,10 +495,45 @@
             </div>
         </section>
 
+<section id="broadcast" class="scroll-mt-24 py-16 border-t border-white/10 mb-20">
+    <div class="mb-10">
+        <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Captain's Broadcast</div>
+        <h2 class="text-3xl font-bold text-white">艦長廣播</h2>
+        <p class="mt-4 text-sm text-fuchsia-300/90 leading-relaxed">來自伊甸星指揮官的加密訊息。</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 lg:gap-8">
+        <div class="aspect-[3/4] overflow-hidden rounded-[24px] border border-white/10 shadow-2xl">
+            <img src="嘟嘟.jpg" alt="Commander Dudu" class="h-full w-full object-cover">
+        </div>
+
+        <div class="flex flex-col justify-center p-4 lg:p-8 rounded-[24px] bg-fuchsia-500/5 border border-fuchsia-500/20 backdrop-blur-sm">
+            <div class="text-fuchsia-300 mb-2 font-black text-xs uppercase tracking-tighter">Captain Dudu</div>
+            <p class="text-white/80 text-sm lg:text-lg leading-relaxed italic">
+                「在無盡的星圖中，唯有此刻的共振是真實的。各位船員，準備好在伊甸星燃燒你們的野性了嗎？」
+            </p>
+        </div>
+
+        <div class="flex flex-col justify-center p-4 lg:p-8 rounded-[24px] bg-violet-500/5 border border-violet-500/20 backdrop-blur-sm text-right">
+            <div class="text-violet-300 mb-2 font-black text-xs uppercase tracking-tighter">Captain Egg</div>
+            <p class="text-white/80 text-sm lg:text-lg leading-relaxed italic">
+                「越過光年的距離，我們不只是相遇，而是重逢。舉起你的補給液，讓酒精成為我們穿越迷霧的燃料。」
+            </p>
+        </div>
+
+        <div class="aspect-[3/4] overflow-hidden rounded-[24px] border border-white/10 shadow-2xl">
+            <img src="蛋蛋.jpg" alt="Commander Egg" class="h-full w-full object-cover">
+        </div>
+    </div>
+</section>
+
     </main>
 
     <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#090611]/80 backdrop-blur-2xl md:hidden">
-        <div class="mx-auto grid grid-cols-3 px-2 py-3">
+        <div class="mx-auto grid grid-cols-4 px-2 py-3">
+            <button onclick="jumpTo('auth-sector')" class="flex flex-col items-center gap-1.5 py-1 text-[10px] text-white/50 hover:text-fuchsia-300 transition-colors">
+                <i data-lucide="fingerprint" class="w-5 h-5"></i>身分
+            </button>
             <button onclick="jumpTo('map')" class="flex flex-col items-center gap-1.5 py-1 text-[10px] text-white/50 hover:text-fuchsia-300 transition-colors">
                 <i data-lucide="map" class="w-5 h-5"></i>基地
             </button>
@@ -422,34 +547,115 @@
     </nav>
 
     <script>
-        function initIcons() { lucide.createIcons(); }
-        window.addEventListener('DOMContentLoaded', initIcons);
-        function toggleMenu() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-            initIcons();
-        }
-        function jumpTo(id) {
-            const element = document.getElementById(id);
-            if (element) {
-                document.getElementById('mobile-menu').classList.add('hidden');
-                element.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
+function initIcons() { lucide.createIcons(); }
+window.addEventListener('DOMContentLoaded', initIcons);
+
 
 function jumpTo(id) {
     const element = document.getElementById(id);
     if (element) {
-        document.getElementById('mobile-menu').classList.add('hidden');
         element.scrollIntoView({ behavior: 'smooth' });
         
-        // 如果跳轉到地圖，重啟動畫
         if (id === 'map') {
             const container = document.getElementById('map-container');
             container.classList.remove('animate-map-deploy');
-            void container.offsetWidth; // 強制重繪
+            void container.offsetWidth; 
             container.classList.add('animate-map-deploy');
         }
+    }
+}
+
+async function submitToEden() {
+    // 1. 抓取數值
+    const idValue = document.getElementById('input-id').value;
+    const nameValue = document.getElementById('input-name').value;
+    const animalValue = document.getElementById('input-animal').value;
+    const skillValue = document.getElementById('input-skill').value;
+    const btn = document.getElementById('sync-btn');
+
+    if (!idValue || !nameValue || !animalValue) return alert("所有協議欄位皆為必填");
+
+    btn.innerText = "UPDATING DATABASE...";
+    btn.disabled = true;
+
+    // 2. 準備傳送到 Google Form
+    const GOOGLE_FORM_URL = "https://docs.google.com/forms/u/0/d/e/1FAIpQLSfJHvKQpLy8qNN3XYi0oYvV6sse8-E2zpLYLlGpuaCxADi5uw/formResponse";
+    const formData = new FormData();
+    formData.append('entry.1008760143', idValue);
+    formData.append('entry.230909862', nameValue);
+    formData.append('entry.610146426', animalValue);
+    formData.append('entry.1755504059', skillValue);
+
+    try {
+        // 執行隱藏提交
+        await fetch(GOOGLE_FORM_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: formData
+        });
+        
+        // 1. 渲染 ID 卡畫面
+        document.getElementById('display-name').innerText = nameValue;
+        document.getElementById('display-animal').innerText = animalValue; 
+        document.getElementById('display-id').innerText = idValue;
+
+        // 2. 更新 RANK 顯示為能量光譜
+        document.getElementById('display-rank').innerText = `Level: ${skillValue}`;
+        
+        // 修正編碼問題：使用 encodeURIComponent 替代 btoa，確保中文不當機
+        const qrContent = encodeURIComponent(`ID:${idValue}|Name:${nameValue}|Type:${animalValue}|Skill:${skillValue}`);
+        document.getElementById('id-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrContent}`;
+
+        // 4. 切換 UI
+        document.getElementById('guest-form-container').classList.add('hidden');
+        document.getElementById('id-card-container').classList.remove('hidden');
+
+        // 5. 儲存狀態 (修正變數名稱錯誤)
+        const userData = {
+            id: idValue,
+            name: nameValue,
+            animal: animalValue,
+            skill: skillValue
+        };
+        localStorage.setItem('eden_guest', JSON.stringify(userData));
+
+    } catch (error) {
+        console.error("Submission error:", error);
+        alert("基地對接失敗，請檢查網路連線");
+        btn.innerText = "重試對接";
+        btn.disabled = false;
+    }
+}
+
+// 頁面載入時自動檢查
+window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('eden_guest');
+    if (saved) {
+        const data = JSON.parse(saved);
+        document.getElementById('display-name').innerText = data.name;
+        document.getElementById('display-animal').innerText = data.animal; // 這裡改回純動物名稱
+        document.getElementById('display-id').innerText = data.id;
+    
+        // 更新 RANK 顯示
+        document.getElementById('display-rank').innerText = `Level: ${data.skill || '0.5'}`;
+
+        const qrContent = encodeURIComponent(`ID:${data.id}|Name:${data.name}|Type:${data.animal}|Skill:${data.skill}`);
+        document.getElementById('id-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrContent}`;
+        
+        document.getElementById('guest-form-container').classList.add('hidden');
+        document.getElementById('id-card-container').classList.remove('hidden');
+    }
+    initIcons();
+});
+
+function resetIdentity() {
+    if (confirm("確定要解除當前身份對接並重新登錄嗎？")) {
+        document.body.style.opacity = "0.5";
+        document.body.style.filter = "brightness(2)";
+        localStorage.removeItem('eden_guest');
+        setTimeout(() => {
+            window.location.reload();
+        }, 300);
     }
 }
     </script>
