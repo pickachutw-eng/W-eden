@@ -540,6 +540,12 @@
                     </div>
                 </div>
                 <p id="scan-result-message" class="text-[11px] text-white/45 leading-relaxed">已讀取該賓客的身份資料。</p>
+                <div id="scan-result-ig-wrap" class="hidden pt-1">
+                    <a id="scan-result-ig-link" href="#" target="_blank" rel="noopener noreferrer" class="flex w-full items-center justify-center gap-2 rounded-2xl border border-fuchsia-500/25 bg-fuchsia-500/10 px-4 py-3 text-sm font-bold text-fuchsia-100 transition-all hover:bg-fuchsia-500/20 hover:border-fuchsia-400/40">
+                        <i data-lucide="instagram" class="w-4 h-4"></i>
+                        <span id="scan-result-ig-text">前往 IG</span>
+                    </a>
+                </div>
             </div>
             <button onclick="closeScanResultModal()" class="w-full px-4 py-3 bg-fuchsia-600 rounded-2xl text-sm font-bold hover:bg-fuchsia-500 transition-all">關閉</button>
         </div>
@@ -605,24 +611,8 @@ function resetIdentity() {
     openResetConfirm();
 }
 
-async function confirmResetIdentity() {
+function confirmResetIdentity() {
     const el = getIdentityElements();
-    const guest = getCurrentGuest();
-
-    try {
-        if (guest?.id) {
-            const currentSector = guest.currentSector || (await db.ref(`users/${guest.id}/currentSector`).once('value')).val();
-            if (currentSector) {
-                await db.ref(`sectorOccupancy/${currentSector}/${guest.id}`).remove();
-            }
-            await db.ref(`users/${guest.id}`).update({
-                currentSector: null,
-                currentSectorUpdatedAt: null
-            });
-        }
-    } catch (error) {
-        console.error('confirmResetIdentity cleanup error:', error);
-    }
 
     localStorage.removeItem('eden_guest');
     localStorage.removeItem('eden_qr');
@@ -691,7 +681,7 @@ function openSector(id) {
             <img src="${data.img}" class="w-full h-full object-cover" alt="${data.title}">
             <div class="absolute inset-0 bg-gradient-to-t from-[#0d091a] to-transparent"></div>
         </div>
-        <div class="p-8 space-y-6">
+        <div class="p-8 space-y-4">
             <div class="flex items-center gap-3">
                 <div class="p-2 rounded-xl bg-${data.color}-500/20 border border-${data.color}-500/30">
                     <i data-lucide="${data.icon}" class="text-${data.color}-400 w-5 h-5"></i>
@@ -705,31 +695,9 @@ function openSector(id) {
             <span class="inline-flex items-center gap-2 rounded-full border border-${data.color}-500/30 bg-${data.color}-500/10 px-4 py-1.5 text-[10px] font-bold text-${data.color}-200 uppercase tracking-widest">
                 ${data.tag}
             </span>
-
-            <div class="space-y-4 rounded-[24px] border border-white/10 bg-white/5 p-5">
-                <div class="flex items-center justify-between gap-3">
-                    <div>
-                        <div class="text-[10px] text-white/40 uppercase font-bold tracking-[0.25em]">Sector Check-in</div>
-                        <div class="text-sm text-white/80 mt-1">可宣告目前所在區域，供其他人查看。</div>
-                    </div>
-                    <button id="sector-claim-btn" onclick="claimSector('${id}')" class="inline-flex items-center gap-2 rounded-2xl bg-fuchsia-600 px-4 py-3 text-xs font-bold text-white hover:bg-fuchsia-500 transition-all shadow-[0_0_20px_rgba(192,132,252,0.2)]">
-                        <i data-lucide="map-pinned" class="w-4 h-4"></i>
-                        <span>進駐此區域</span>
-                    </button>
-                </div>
-                <div id="sector-action-message" class="hidden rounded-2xl border px-4 py-3 text-sm leading-relaxed"></div>
-                <div>
-                    <div class="text-[10px] text-white/40 uppercase font-bold tracking-[0.25em] mb-3">Current Occupants</div>
-                    <div id="sector-occupants-empty" class="rounded-2xl border border-dashed border-white/10 bg-black/20 px-4 py-4 text-sm text-white/45">目前還沒有人進駐這個區域。</div>
-                    <div id="sector-occupants-list" class="flex flex-wrap gap-2"></div>
-                </div>
-            </div>
         </div>
     `;
 
-    bindSectorOccupancy(id);
-    updateSectorClaimButton(id);
-    clearSectorActionMessage();
     initIcons();
     modal.classList.remove('opacity-0', 'pointer-events-none');
     modal.children[1].classList.remove('scale-95');
@@ -741,7 +709,6 @@ function closeModal() {
     const modal = document.getElementById('sector-modal');
     if (!modal) return;
 
-    detachSectorOccupancyListener();
     modal.classList.add('opacity-0', 'pointer-events-none');
     modal.children[1].classList.remove('scale-100');
     modal.children[1].classList.add('scale-95');
@@ -804,164 +771,6 @@ if (!firebase.apps.length) {
 }
 
 const db = firebase.database();
-let activeSectorListener = null;
-let activeSectorListenerPath = '';
-
-function getCurrentGuest() {
-    try {
-        const raw = localStorage.getItem('eden_guest');
-        return raw ? JSON.parse(raw) : null;
-    } catch (error) {
-        console.error('getCurrentGuest error:', error);
-        return null;
-    }
-}
-
-function saveCurrentGuest(guest) {
-    if (!guest) {
-        localStorage.removeItem('eden_guest');
-        return;
-    }
-    localStorage.setItem('eden_guest', JSON.stringify(guest));
-}
-
-function getSectorActionElements() {
-    return {
-        actionBtn: document.getElementById('sector-claim-btn'),
-        actionMessage: document.getElementById('sector-action-message'),
-        occupantsList: document.getElementById('sector-occupants-list'),
-        occupantsEmpty: document.getElementById('sector-occupants-empty')
-    };
-}
-
-function showSectorActionMessage(type, text) {
-    const { actionMessage } = getSectorActionElements();
-    if (!actionMessage) return;
-
-    const styles = {
-        info: 'border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-100',
-        success: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-100',
-        error: 'border-rose-500/30 bg-rose-500/10 text-rose-100'
-    };
-
-    actionMessage.className = `rounded-2xl border px-4 py-3 text-sm leading-relaxed ${styles[type] || styles.info}`;
-    actionMessage.textContent = text;
-    actionMessage.classList.remove('hidden');
-}
-
-function clearSectorActionMessage() {
-    const { actionMessage } = getSectorActionElements();
-    if (!actionMessage) return;
-    actionMessage.textContent = '';
-    actionMessage.classList.add('hidden');
-}
-
-function setSectorButtonState(button, isLoading, idleHtml, loadingHtml) {
-    if (!button) return;
-    button.disabled = isLoading;
-    button.innerHTML = isLoading ? loadingHtml : idleHtml;
-}
-
-function detachSectorOccupancyListener() {
-    if (!activeSectorListenerPath || !activeSectorListener) return;
-    db.ref(activeSectorListenerPath).off('value', activeSectorListener);
-    activeSectorListener = null;
-    activeSectorListenerPath = '';
-}
-
-function renderSectorOccupants(occupants) {
-    const { occupantsList, occupantsEmpty } = getSectorActionElements();
-    if (!occupantsList || !occupantsEmpty) return;
-
-    const entries = Object.values(occupants || {})
-        .filter((item) => item && item.id)
-        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
-    if (!entries.length) {
-        occupantsList.innerHTML = '';
-        occupantsEmpty.classList.remove('hidden');
-        return;
-    }
-
-    occupantsEmpty.classList.add('hidden');
-    occupantsList.innerHTML = entries.map((guest) => `
-        <div class="rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-1.5 text-xs font-bold text-white shadow-[0_0_12px_rgba(192,132,252,0.12)]">${guest.name || guest.id || 'UNKNOWN'}</div>
-    `).join('');
-}
-
-function bindSectorOccupancy(id) {
-    detachSectorOccupancyListener();
-    activeSectorListenerPath = `sectorOccupancy/${id}`;
-    activeSectorListener = (snapshot) => {
-        renderSectorOccupants(snapshot.val());
-    };
-    db.ref(activeSectorListenerPath).on('value', activeSectorListener);
-}
-
-function updateSectorClaimButton(sectorId) {
-    const { actionBtn } = getSectorActionElements();
-    if (!actionBtn) return;
-
-    const guest = getCurrentGuest();
-    const isCurrentSector = guest?.currentSector === sectorId;
-    const idleHtml = isCurrentSector
-        ? '<i data-lucide="map-pinned" class="w-4 h-4"></i><span>已進駐此區域</span>'
-        : '<i data-lucide="map-pinned" class="w-4 h-4"></i><span>進駐此區域</span>';
-
-    actionBtn.disabled = false;
-    actionBtn.innerHTML = idleHtml;
-}
-
-async function claimSector(sectorId) {
-    const guest = getCurrentGuest();
-    const { actionBtn } = getSectorActionElements();
-
-    if (!guest?.id) {
-        showSectorActionMessage('error', '請先完成身份授權，才能進駐區域。');
-        return;
-    }
-
-    const loadingHtml = '<i data-lucide="loader-circle" class="w-4 h-4 animate-spin"></i><span>同步中...</span>';
-    const idleHtml = '<i data-lucide="map-pinned" class="w-4 h-4"></i><span>進駐此區域</span>';
-
-    try {
-        setSectorButtonState(actionBtn, true, idleHtml, loadingHtml);
-        clearSectorActionMessage();
-
-        const userSectorRef = db.ref(`users/${guest.id}/currentSector`);
-        const previousSnapshot = await userSectorRef.once('value');
-        const previousSector = previousSnapshot.val();
-
-        if (previousSector && previousSector !== sectorId) {
-            await db.ref(`sectorOccupancy/${previousSector}/${guest.id}`).remove();
-        }
-
-        const sectorGuestData = {
-            id: guest.id,
-            name: guest.name || '',
-            animal: guest.animal || '',
-            timestamp: Date.now()
-        };
-
-        await db.ref(`sectorOccupancy/${sectorId}/${guest.id}`).set(sectorGuestData);
-        await db.ref(`users/${guest.id}`).update({
-            currentSector: sectorId,
-            currentSectorUpdatedAt: Date.now()
-        });
-
-        const updatedGuest = { ...guest, currentSector: sectorId, currentSectorUpdatedAt: Date.now() };
-        saveCurrentGuest(updatedGuest);
-        updateSectorClaimButton(sectorId);
-        showSectorActionMessage('success', `已進駐 ${sectorData[sectorId]?.title || '此區域'}。`);
-    } catch (error) {
-        console.error('claimSector error:', error);
-        showSectorActionMessage('error', '區域進駐失敗。請檢查 Firebase 權限、連線狀態或資料路徑。');
-    } finally {
-        setSectorButtonState(actionBtn, false, idleHtml, loadingHtml);
-        updateSectorClaimButton(sectorId);
-        initIcons();
-    }
-}
 
 function getIdentityElements() {
     return {
@@ -1034,6 +843,28 @@ function normalizeSkillValue(value) {
     return Math.min(1, Math.max(0, num));
 }
 
+function normalizeInstagramHandle(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const noAt = raw.replace(/^@+/, '').trim();
+    if (!noAt) return '';
+    try {
+        if (/^https?:\/\//i.test(noAt)) {
+            const url = new URL(noAt);
+            const parts = url.pathname.split('/').filter(Boolean);
+            return (parts[0] || '').replace(/^@+/, '').trim();
+        }
+    } catch (error) {
+        console.error('normalizeInstagramHandle error:', error);
+    }
+    return noAt.split(/[?#/]/)[0].trim();
+}
+
+function buildInstagramUrl(value) {
+    const handle = normalizeInstagramHandle(value);
+    return handle ? `https://www.instagram.com/${encodeURIComponent(handle)}/` : '';
+}
+
 function updateSkillDisplay(value) {
     const { skillValue } = getIdentityElements();
     const normalized = normalizeSkillValue(value);
@@ -1088,6 +919,7 @@ async function fetchRegistration() {
         if (inputAnimal) inputAnimal.value = data.animal || '';
         if (inputSkill) inputSkill.value = normalizeSkillValue(data.skill).toFixed(1);
         updateSkillDisplay(inputSkill?.value || 0.5);
+        window.currentRegistrationIG = data.IG || '';
         showAuthMessage('success', '基地檔案對接成功。請確認名稱、動物形態與能量光譜後，再啟動身份授權。');
     } catch (error) {
         console.error('fetchRegistration error:', error);
@@ -1110,16 +942,8 @@ async function confirmAndGenerate() {
         return;
     }
 
-    const currentGuest = getCurrentGuest();
-    const userData = {
-        id,
-        name,
-        animal,
-        skill,
-        timestamp: currentGuest?.timestamp || Date.now(),
-        currentSector: currentGuest?.currentSector || null,
-        currentSectorUpdatedAt: currentGuest?.currentSectorUpdatedAt || null
-    };
+    const registrationIG = window.currentRegistrationIG || '';
+    const userData = { id, name, animal, skill, IG: registrationIG, timestamp: Date.now() };
     const qrSrc = buildQrSrc(id);
 
     try {
@@ -1141,6 +965,8 @@ async function confirmAndGenerate() {
 function renderScannedGuest(guest, sourceLabel = '') {
     const el = getIdentityElements();
     const skill = normalizeSkillValue(guest?.skill);
+    const igHandle = normalizeInstagramHandle(guest?.IG);
+    const igUrl = buildInstagramUrl(guest?.IG);
 
     if (el.scanResultName) el.scanResultName.textContent = guest?.name || 'UNKNOWN';
     if (el.scanResultId) el.scanResultId.textContent = guest?.id || 'PG-000';
@@ -1149,6 +975,17 @@ function renderScannedGuest(guest, sourceLabel = '') {
     if (el.scanResultBar) el.scanResultBar.style.width = `${skill * 100}%`;
     if (el.scanResultMessage) {
         el.scanResultMessage.textContent = sourceLabel ? `已同步 ${sourceLabel} 的身份資料。` : '已同步該賓客的身份資料。';
+    }
+    if (el.scanResultIgWrap && el.scanResultIgLink && el.scanResultIgText) {
+        if (igHandle && igUrl) {
+            el.scanResultIgWrap.classList.remove('hidden');
+            el.scanResultIgLink.href = igUrl;
+            el.scanResultIgText.textContent = `@${igHandle}`;
+        } else {
+            el.scanResultIgWrap.classList.add('hidden');
+            el.scanResultIgLink.removeAttribute('href');
+            el.scanResultIgText.textContent = '前往 IG';
+        }
     }
     openScanResultModal();
 }
@@ -1162,8 +999,14 @@ async function lookupGuest(id, sourceLabel = '') {
         const snapshot = await db.ref(`users/${id}`).once('value');
         const guest = snapshot.val();
         if (guest) {
-            renderScannedGuest({ ...guest, id: guest.id || id }, sourceLabel || id);
-            return guest;
+            let hydratedGuest = { ...guest, id: guest.id || id };
+            if (!normalizeInstagramHandle(hydratedGuest.IG)) {
+                const registrationSnapshot = await db.ref(`registration/${id}/IG`).once('value');
+                const registrationIG = registrationSnapshot.val();
+                if (registrationIG) hydratedGuest.IG = registrationIG;
+            }
+            renderScannedGuest(hydratedGuest, sourceLabel || id);
+            return hydratedGuest;
         }
 
         if (el.scanResultName) el.scanResultName.textContent = 'NOT FOUND';
@@ -1172,6 +1015,9 @@ async function lookupGuest(id, sourceLabel = '') {
         if (el.scanResultSkill) el.scanResultSkill.textContent = '--';
         if (el.scanResultBar) el.scanResultBar.style.width = '0%';
         if (el.scanResultMessage) el.scanResultMessage.textContent = '查無此賓客資料。請確認 QR code 是否有效，或對方是否已完成身份授權。';
+        if (el.scanResultIgWrap) el.scanResultIgWrap.classList.add('hidden');
+        if (el.scanResultIgLink) el.scanResultIgLink.removeAttribute('href');
+        if (el.scanResultIgText) el.scanResultIgText.textContent = '前往 IG';
         openScanResultModal();
         return null;
     } catch (error) {
@@ -1182,6 +1028,9 @@ async function lookupGuest(id, sourceLabel = '') {
         if (el.scanResultSkill) el.scanResultSkill.textContent = '--';
         if (el.scanResultBar) el.scanResultBar.style.width = '0%';
         if (el.scanResultMessage) el.scanResultMessage.textContent = '目前無法讀取該賓客資料。請稍後再試，或檢查 Firebase 權限與連線。';
+        if (el.scanResultIgWrap) el.scanResultIgWrap.classList.add('hidden');
+        if (el.scanResultIgLink) el.scanResultIgLink.removeAttribute('href');
+        if (el.scanResultIgText) el.scanResultIgText.textContent = '前往 IG';
         openScanResultModal();
         return null;
     } finally {
@@ -1312,6 +1161,7 @@ async function openGuestScanner() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    window.currentRegistrationIG = '';
     initIcons();
     updateSkillDisplay(0.5);
 
