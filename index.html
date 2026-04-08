@@ -253,12 +253,11 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 items-start">
+            <div class="space-y-4">
                 <div class="rounded-[24px] border border-white/10 bg-white/5 p-4">
-                    <div class="flex items-center gap-3">
-                        <div class="h-16 w-16 bg-white p-1.5 rounded-xl shrink-0">
-                           <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=W-EDEN" id="id-qr" class="w-full h-full rounded-md">
-                        </div>
+                    <div class="text-[10px] text-fuchsia-300 font-black tracking-[0.25em] uppercase mb-3">Identity QR</div>
+                    <div class="mx-auto w-40 h-40 sm:w-44 sm:h-44 bg-white p-2.5 rounded-[22px] shadow-[0_0_25px_rgba(255,255,255,0.08)]">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=W-EDEN" id="id-qr" class="w-full h-full rounded-[14px] object-cover">
                     </div>
                 </div>
 
@@ -266,17 +265,17 @@
                     <div>
                         <div class="text-[10px] text-fuchsia-300 font-black tracking-[0.25em] uppercase mb-1">Guest Scan</div>
                     </div>
-                    <div id="reader-shell" class="hidden rounded-[18px] border border-white/10 bg-black/40 p-2 overflow-hidden">
-                        <div id="reader" class="overflow-hidden rounded-[14px]"></div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button id="scan-camera-btn" onclick="openGuestScanner()" class="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-fuchsia-600 rounded-2xl text-xs font-bold hover:bg-fuchsia-500 transition-all shadow-[0_0_20px_rgba(192,132,252,0.2)]">
+                    <div class="grid grid-cols-[1fr_auto] gap-2 items-stretch">
+                        <button id="scan-camera-btn" onclick="openGuestScanner()" class="flex items-center justify-center gap-2 px-4 py-3 bg-fuchsia-600 rounded-2xl text-sm font-bold hover:bg-fuchsia-500 transition-all shadow-[0_0_20px_rgba(192,132,252,0.2)]">
                             <i data-lucide="scan-line" class="w-4 h-4"></i>
-                            開啟掃描
+                            啟用掃描
                         </button>
-                        <button id="scan-camera-close-btn" onclick="closeGuestScanner()" class="hidden px-3 py-3 rounded-2xl border border-white/15 bg-white/5 text-white/70 text-xs font-bold hover:bg-white/10 transition-all">
+                        <button id="scan-camera-close-btn" onclick="closeGuestScanner()" class="hidden px-4 py-3 rounded-2xl border border-white/15 bg-white/5 text-white/70 text-xs font-bold hover:bg-white/10 transition-all whitespace-nowrap">
                             關閉
                         </button>
+                    </div>
+                    <div id="reader-shell" class="hidden rounded-[18px] border border-white/10 bg-black/40 p-2 overflow-hidden">
+                        <div id="reader" class="min-h-[220px] overflow-hidden rounded-[14px]"></div>
                     </div>
                 </div>
             </div>
@@ -488,13 +487,13 @@
 <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
     <div onclick="closeAuthModal()" class="absolute inset-0 bg-black/90 backdrop-blur-xl"></div>
     
-    <div class="relative w-full max-w-sm transform scale-95 transition-all duration-300">
+    <div class="relative w-full max-w-sm max-h-[calc(100svh-2rem)] transform scale-95 transition-all duration-300">
         <button onclick="closeAuthModal()" class="absolute -top-12 right-0 p-2 text-white/50 hover:text-white">
             <i data-lucide="x" class="w-6 h-6"></i>
         </button>
 
-        <div id="modal-auth-container" class="bg-[#0d091a] border border-white/10 rounded-[32px] p-1 shadow-[0_0_50px_rgba(192,132,252,0.2)]">
-            <div id="inner-auth-content"></div>
+        <div id="modal-auth-container" class="max-h-[calc(100svh-2rem)] overflow-hidden bg-[#0d091a] border border-white/10 rounded-[32px] p-1 shadow-[0_0_50px_rgba(192,132,252,0.2)]">
+            <div id="inner-auth-content" class="max-h-[calc(100svh-2.5rem)] overflow-y-auto overscroll-contain no-scrollbar"></div>
             <div id="reset-confirm-overlay" class="absolute inset-0 z-20 hidden items-center justify-center rounded-[32px] bg-black/80 backdrop-blur-md p-6">
                 <div class="w-full rounded-[28px] border border-white/10 bg-[#120d22] p-6 shadow-[0_0_40px_rgba(192,132,252,0.18)]">
                     <div class="text-[10px] text-fuchsia-400 uppercase font-bold tracking-[0.35em] mb-3">Confirm Reset</div>
