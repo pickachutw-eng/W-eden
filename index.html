@@ -171,15 +171,15 @@
 
 <div id="guest-form-container" class="space-y-6">
     <div class="p-4 bg-white/5 border border-white/10 rounded-2xl mb-6">
-        <label class="block text-[10px] text-fuchsia-400 font-bold mb-2">ACCESS SERIAL (輸入編號)</label>
+        <label class="block text-[10px] text-fuchsia-400 font-bold mb-2">ACCESS SERIAL (輸入序號)</label>
         <div class="flex gap-2">
             <input type="text" id="input-id" placeholder="例如: PG-001" 
                    class="flex-1 bg-black/40 border border-white/20 rounded-xl px-4 py-2 text-white focus:border-fuchsia-500 outline-none transition-all">
             <button id="fetch-btn" onclick="fetchRegistration()" class="px-4 py-2 bg-fuchsia-600 rounded-xl text-xs font-bold hover:bg-fuchsia-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
-                驗證
+                身分驗證
             </button>
         </div>
-        <p class="text-[10px] text-white/40 mt-2">請輸入邀請函上的序號以同步基地檔案</p>
+        <p class="text-[10px] text-white/40 mt-2">請輸入ID卡上的序號以同步基地檔案</p>
     </div>
 
     <div id="auth-message" class="hidden rounded-2xl border px-4 py-3 text-sm leading-relaxed"></div>
@@ -217,9 +217,20 @@
             <div class="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-fuchsia-500/40"></div>
             <div class="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-fuchsia-500/40"></div>
             
-            <div class="mb-12">
-                <div class="text-[10px] text-fuchsia-400 font-black tracking-widest mb-1">W-EDEN PASS</div>
-                <div id="display-name" class="text-3xl font-black italic text-white uppercase tracking-tighter">PILOT</div>
+            <div class="mb-12 space-y-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="space-y-3 pt-1">
+                        <div class="flex items-center gap-1 pt-1">
+                            <img src="胖宮logo.png" alt="胖宮 Logo" class="h-8 w-auto opacity-90 drop-shadow-[0_0_8px_rgba(192,132,252,0.28)]">
+    
+                            <div class="flex flex-col justify-center border-l border-white/10 pl-1">
+                                <div class="text-[10px] text-fuchsia-400 font-black tracking-widest leading-tight">W-EDEN PASS</div>
+                                <div class="text-[9px] text-white/30 leading-tight">此憑證由胖宮前進基地簽發。</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="display-name" class="text-right text-[2.15rem] leading-none font-black text-white uppercase tracking-tighter">PILOT</div>
+                </div>
             </div>
 
             <div class="space-y-4 mb-12">
@@ -242,25 +253,32 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-4">
-                <div class="h-12 w-12 bg-white p-1 rounded-lg">
-                   <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=W-EDEN" id="id-qr" class="w-full h-full">
+            <div class="grid grid-cols-2 gap-4 items-start">
+                <div class="rounded-[24px] border border-white/10 bg-white/5 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="h-16 w-16 bg-white p-1.5 rounded-xl shrink-0">
+                           <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=W-EDEN" id="id-qr" class="w-full h-full rounded-md">
+                        </div>
+                    </div>
                 </div>
-                <div class="text-[9px] text-white/30 leading-tight">
-                    此憑證由伊甸星前進基地簽發。<br>請於 2026-08-14 抵達 W Hotel 進行對接。
-                </div>
-            </div>
 
-            <div class="mt-8 rounded-[24px] border border-white/10 bg-white/5 p-4 space-y-4">
-                <div>
-                    <div class="text-[10px] text-fuchsia-300 font-black tracking-[0.25em] uppercase mb-1">Guest Scan</div>
-                    <div class="text-[11px] text-white/40 leading-relaxed">開啟鏡頭掃描其他賓客的 QR code，讀取對方的身份資料。</div>
+                <div class="rounded-[24px] border border-white/10 bg-white/5 p-4 space-y-3">
+                    <div>
+                        <div class="text-[10px] text-fuchsia-300 font-black tracking-[0.25em] uppercase mb-1">Guest Scan</div>
+                    </div>
+                    <div id="reader-shell" class="hidden rounded-[18px] border border-white/10 bg-black/40 p-2 overflow-hidden">
+                        <div id="reader" class="overflow-hidden rounded-[14px]"></div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="scan-camera-btn" onclick="openGuestScanner()" class="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-fuchsia-600 rounded-2xl text-xs font-bold hover:bg-fuchsia-500 transition-all shadow-[0_0_20px_rgba(192,132,252,0.2)]">
+                            <i data-lucide="scan-line" class="w-4 h-4"></i>
+                            開啟掃描
+                        </button>
+                        <button id="scan-camera-close-btn" onclick="closeGuestScanner()" class="hidden px-3 py-3 rounded-2xl border border-white/15 bg-white/5 text-white/70 text-xs font-bold hover:bg-white/10 transition-all">
+                            關閉
+                        </button>
+                    </div>
                 </div>
-                <button id="scan-camera-btn" onclick="openGuestScanner()" class="w-full flex items-center justify-center gap-2 px-4 py-4 bg-fuchsia-600 rounded-2xl text-sm font-bold hover:bg-fuchsia-500 transition-all shadow-[0_0_20px_rgba(192,132,252,0.2)]">
-                    <i data-lucide="scan-line" class="w-4 h-4"></i>
-                    開啟鏡頭掃描
-                </button>
-                <p class="text-[10px] text-white/35">掃描成功後，對方資料會以浮框顯示。</p>
             </div>
 <div class="mt-8 pt-6 border-t border-white/5 text-center">
     <button onclick="resetIdentity()" class="text-[10px] text-white/20 hover:text-fuchsia-400 uppercase tracking-[0.3em] transition-colors flex items-center justify-center gap-2 mx-auto">
@@ -277,7 +295,6 @@
     <div class="mb-10 lg:mb-10 px-4 lg:max-w-5xl lg:mx-auto">
         <div class="text-[11px] tracking-[0.3em] text-fuchsia-400/80 uppercase font-bold">Base Map</div>
         <h2 class="mt-2 text-3xl font-bold text-white">基地地圖</h2>
-        <div class="text-xs text-white/50 mt-1 lg:hidden">(請左右滑動地圖)</div>
     </div>
     
 <div id="map-container" class="lg:overflow-hidden lg:rounded-[32px] lg:border lg:border-white/10 lg:bg-white/5 lg:p-4 lg:shadow-[0_0_50px_rgba(192,132,252,0.15)] lg:backdrop-blur-sm lg:max-w-5xl lg:mx-auto animate-map-deploy">
@@ -427,7 +444,7 @@
                         </div>
                         <div>
                             <span class="text-white/30 text-[10px] uppercase block mb-1">Service</span>
-                                若需補充酒精或快樂，請前往吧台聯繫「星際管家」。 
+                                若需補充酒精或快樂，請前往補給艙聯繫「星際管家」。 
                         </div>
                     </div>
                 </div>
@@ -438,7 +455,7 @@
     <div class="mb-10">
         <div class="text-[11px] text-white/40 uppercase font-bold tracking-widest">Captain's Broadcast</div>
         <h2 class="text-3xl font-bold text-white">艦長廣播</h2>
-        <p class="mt-4 text-sm text-fuchsia-300/90 leading-relaxed">來自伊甸星指揮官的加密訊息。</p>
+        <p class="mt-4 text-sm text-fuchsia-300/90 leading-relaxed">來自登陸艇指揮官的加密訊息。</p>
     </div>
 
     <div class="grid grid-cols-2 gap-4 lg:gap-8">
@@ -449,7 +466,7 @@
         <div class="flex flex-col justify-center p-4 lg:p-8 rounded-[24px] bg-fuchsia-500/5 border border-fuchsia-500/20 backdrop-blur-sm">
             <div class="text-fuchsia-300 mb-2 font-black text-xs uppercase tracking-tighter">Captain Dudu</div>
             <p class="text-white/80 text-sm lg:text-lg leading-relaxed italic">
-                「在無盡的星圖中，唯有此刻的共振是真實的。各位船員，準備好在伊甸星燃燒你們的野性了嗎？」
+                「在無盡的星圖中，唯有此刻的共振是真實的。各位探險者，準備好在伊甸星燃燒你們的野性了嗎？」
             </p>
         </div>
 
@@ -493,27 +510,6 @@
     </div>
 </div>
 
-<div id="scan-modal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
-    <div onclick="closeGuestScanner()" class="absolute inset-0 bg-black/85 backdrop-blur-xl"></div>
-    <div class="relative w-full max-w-md transform scale-95 transition-all duration-300">
-        <button onclick="closeGuestScanner()" class="absolute -top-12 right-0 p-2 text-white/50 hover:text-white">
-            <i data-lucide="x" class="w-6 h-6"></i>
-        </button>
-        <div class="bg-[#0d091a] border border-white/10 rounded-[32px] p-5 shadow-[0_0_50px_rgba(192,132,252,0.2)] space-y-4">
-            <div>
-                <div class="text-[10px] text-fuchsia-300 font-black tracking-[0.25em] uppercase mb-1">Guest Scan</div>
-                <div class="text-white text-lg font-bold">鏡頭掃描中</div>
-                <p id="scan-modal-message" class="text-[11px] text-white/40 mt-2 leading-relaxed">請將其他賓客的 QR code 對準框內。掃描成功後會自動顯示資料。</p>
-            </div>
-            <div class="rounded-[24px] border border-white/10 bg-black/40 p-3">
-                <div id="reader" class="overflow-hidden rounded-[18px]"></div>
-            </div>
-            <div class="flex gap-3">
-                <button onclick="closeGuestScanner()" class="flex-1 px-4 py-3 rounded-2xl border border-white/15 bg-white/5 text-white/80 text-sm font-bold hover:bg-white/10 transition-all">取消</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <div id="scan-result-modal" class="fixed inset-0 z-[75] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
     <div onclick="closeScanResultModal()" class="absolute inset-0 bg-black/85 backdrop-blur-xl"></div>
@@ -609,8 +605,24 @@ function resetIdentity() {
     openResetConfirm();
 }
 
-function confirmResetIdentity() {
+async function confirmResetIdentity() {
     const el = getIdentityElements();
+    const guest = getCurrentGuest();
+
+    try {
+        if (guest?.id) {
+            const currentSector = guest.currentSector || (await db.ref(`users/${guest.id}/currentSector`).once('value')).val();
+            if (currentSector) {
+                await db.ref(`sectorOccupancy/${currentSector}/${guest.id}`).remove();
+            }
+            await db.ref(`users/${guest.id}`).update({
+                currentSector: null,
+                currentSectorUpdatedAt: null
+            });
+        }
+    } catch (error) {
+        console.error('confirmResetIdentity cleanup error:', error);
+    }
 
     localStorage.removeItem('eden_guest');
     localStorage.removeItem('eden_qr');
@@ -679,7 +691,7 @@ function openSector(id) {
             <img src="${data.img}" class="w-full h-full object-cover" alt="${data.title}">
             <div class="absolute inset-0 bg-gradient-to-t from-[#0d091a] to-transparent"></div>
         </div>
-        <div class="p-8 space-y-4">
+        <div class="p-8 space-y-6">
             <div class="flex items-center gap-3">
                 <div class="p-2 rounded-xl bg-${data.color}-500/20 border border-${data.color}-500/30">
                     <i data-lucide="${data.icon}" class="text-${data.color}-400 w-5 h-5"></i>
@@ -693,9 +705,31 @@ function openSector(id) {
             <span class="inline-flex items-center gap-2 rounded-full border border-${data.color}-500/30 bg-${data.color}-500/10 px-4 py-1.5 text-[10px] font-bold text-${data.color}-200 uppercase tracking-widest">
                 ${data.tag}
             </span>
+
+            <div class="space-y-4 rounded-[24px] border border-white/10 bg-white/5 p-5">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <div class="text-[10px] text-white/40 uppercase font-bold tracking-[0.25em]">Sector Check-in</div>
+                        <div class="text-sm text-white/80 mt-1">可宣告目前所在區域，供其他人查看。</div>
+                    </div>
+                    <button id="sector-claim-btn" onclick="claimSector('${id}')" class="inline-flex items-center gap-2 rounded-2xl bg-fuchsia-600 px-4 py-3 text-xs font-bold text-white hover:bg-fuchsia-500 transition-all shadow-[0_0_20px_rgba(192,132,252,0.2)]">
+                        <i data-lucide="map-pinned" class="w-4 h-4"></i>
+                        <span>進駐此區域</span>
+                    </button>
+                </div>
+                <div id="sector-action-message" class="hidden rounded-2xl border px-4 py-3 text-sm leading-relaxed"></div>
+                <div>
+                    <div class="text-[10px] text-white/40 uppercase font-bold tracking-[0.25em] mb-3">Current Occupants</div>
+                    <div id="sector-occupants-empty" class="rounded-2xl border border-dashed border-white/10 bg-black/20 px-4 py-4 text-sm text-white/45">目前還沒有人進駐這個區域。</div>
+                    <div id="sector-occupants-list" class="flex flex-wrap gap-2"></div>
+                </div>
+            </div>
         </div>
     `;
 
+    bindSectorOccupancy(id);
+    updateSectorClaimButton(id);
+    clearSectorActionMessage();
     initIcons();
     modal.classList.remove('opacity-0', 'pointer-events-none');
     modal.children[1].classList.remove('scale-95');
@@ -707,6 +741,7 @@ function closeModal() {
     const modal = document.getElementById('sector-modal');
     if (!modal) return;
 
+    detachSectorOccupancyListener();
     modal.classList.add('opacity-0', 'pointer-events-none');
     modal.children[1].classList.remove('scale-100');
     modal.children[1].classList.add('scale-95');
@@ -769,6 +804,164 @@ if (!firebase.apps.length) {
 }
 
 const db = firebase.database();
+let activeSectorListener = null;
+let activeSectorListenerPath = '';
+
+function getCurrentGuest() {
+    try {
+        const raw = localStorage.getItem('eden_guest');
+        return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+        console.error('getCurrentGuest error:', error);
+        return null;
+    }
+}
+
+function saveCurrentGuest(guest) {
+    if (!guest) {
+        localStorage.removeItem('eden_guest');
+        return;
+    }
+    localStorage.setItem('eden_guest', JSON.stringify(guest));
+}
+
+function getSectorActionElements() {
+    return {
+        actionBtn: document.getElementById('sector-claim-btn'),
+        actionMessage: document.getElementById('sector-action-message'),
+        occupantsList: document.getElementById('sector-occupants-list'),
+        occupantsEmpty: document.getElementById('sector-occupants-empty')
+    };
+}
+
+function showSectorActionMessage(type, text) {
+    const { actionMessage } = getSectorActionElements();
+    if (!actionMessage) return;
+
+    const styles = {
+        info: 'border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-100',
+        success: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-100',
+        error: 'border-rose-500/30 bg-rose-500/10 text-rose-100'
+    };
+
+    actionMessage.className = `rounded-2xl border px-4 py-3 text-sm leading-relaxed ${styles[type] || styles.info}`;
+    actionMessage.textContent = text;
+    actionMessage.classList.remove('hidden');
+}
+
+function clearSectorActionMessage() {
+    const { actionMessage } = getSectorActionElements();
+    if (!actionMessage) return;
+    actionMessage.textContent = '';
+    actionMessage.classList.add('hidden');
+}
+
+function setSectorButtonState(button, isLoading, idleHtml, loadingHtml) {
+    if (!button) return;
+    button.disabled = isLoading;
+    button.innerHTML = isLoading ? loadingHtml : idleHtml;
+}
+
+function detachSectorOccupancyListener() {
+    if (!activeSectorListenerPath || !activeSectorListener) return;
+    db.ref(activeSectorListenerPath).off('value', activeSectorListener);
+    activeSectorListener = null;
+    activeSectorListenerPath = '';
+}
+
+function renderSectorOccupants(occupants) {
+    const { occupantsList, occupantsEmpty } = getSectorActionElements();
+    if (!occupantsList || !occupantsEmpty) return;
+
+    const entries = Object.values(occupants || {})
+        .filter((item) => item && item.id)
+        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+    if (!entries.length) {
+        occupantsList.innerHTML = '';
+        occupantsEmpty.classList.remove('hidden');
+        return;
+    }
+
+    occupantsEmpty.classList.add('hidden');
+    occupantsList.innerHTML = entries.map((guest) => `
+        <div class="rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-1.5 text-xs font-bold text-white shadow-[0_0_12px_rgba(192,132,252,0.12)]">${guest.name || guest.id || 'UNKNOWN'}</div>
+    `).join('');
+}
+
+function bindSectorOccupancy(id) {
+    detachSectorOccupancyListener();
+    activeSectorListenerPath = `sectorOccupancy/${id}`;
+    activeSectorListener = (snapshot) => {
+        renderSectorOccupants(snapshot.val());
+    };
+    db.ref(activeSectorListenerPath).on('value', activeSectorListener);
+}
+
+function updateSectorClaimButton(sectorId) {
+    const { actionBtn } = getSectorActionElements();
+    if (!actionBtn) return;
+
+    const guest = getCurrentGuest();
+    const isCurrentSector = guest?.currentSector === sectorId;
+    const idleHtml = isCurrentSector
+        ? '<i data-lucide="map-pinned" class="w-4 h-4"></i><span>已進駐此區域</span>'
+        : '<i data-lucide="map-pinned" class="w-4 h-4"></i><span>進駐此區域</span>';
+
+    actionBtn.disabled = false;
+    actionBtn.innerHTML = idleHtml;
+}
+
+async function claimSector(sectorId) {
+    const guest = getCurrentGuest();
+    const { actionBtn } = getSectorActionElements();
+
+    if (!guest?.id) {
+        showSectorActionMessage('error', '請先完成身份授權，才能進駐區域。');
+        return;
+    }
+
+    const loadingHtml = '<i data-lucide="loader-circle" class="w-4 h-4 animate-spin"></i><span>同步中...</span>';
+    const idleHtml = '<i data-lucide="map-pinned" class="w-4 h-4"></i><span>進駐此區域</span>';
+
+    try {
+        setSectorButtonState(actionBtn, true, idleHtml, loadingHtml);
+        clearSectorActionMessage();
+
+        const userSectorRef = db.ref(`users/${guest.id}/currentSector`);
+        const previousSnapshot = await userSectorRef.once('value');
+        const previousSector = previousSnapshot.val();
+
+        if (previousSector && previousSector !== sectorId) {
+            await db.ref(`sectorOccupancy/${previousSector}/${guest.id}`).remove();
+        }
+
+        const sectorGuestData = {
+            id: guest.id,
+            name: guest.name || '',
+            animal: guest.animal || '',
+            timestamp: Date.now()
+        };
+
+        await db.ref(`sectorOccupancy/${sectorId}/${guest.id}`).set(sectorGuestData);
+        await db.ref(`users/${guest.id}`).update({
+            currentSector: sectorId,
+            currentSectorUpdatedAt: Date.now()
+        });
+
+        const updatedGuest = { ...guest, currentSector: sectorId, currentSectorUpdatedAt: Date.now() };
+        saveCurrentGuest(updatedGuest);
+        updateSectorClaimButton(sectorId);
+        showSectorActionMessage('success', `已進駐 ${sectorData[sectorId]?.title || '此區域'}。`);
+    } catch (error) {
+        console.error('claimSector error:', error);
+        showSectorActionMessage('error', '區域進駐失敗。請檢查 Firebase 權限、連線狀態或資料路徑。');
+    } finally {
+        setSectorButtonState(actionBtn, false, idleHtml, loadingHtml);
+        updateSectorClaimButton(sectorId);
+        initIcons();
+    }
+}
 
 function getIdentityElements() {
     return {
@@ -786,8 +979,9 @@ function getIdentityElements() {
         displaySkillBar: document.getElementById('display-skill-bar'),
         qrImage: document.getElementById('id-qr'),
         scanCameraBtn: document.getElementById('scan-camera-btn'),
-        scanModal: document.getElementById('scan-modal'),
-        scanModalMessage: document.getElementById('scan-modal-message'),
+        scanCameraCloseBtn: document.getElementById('scan-camera-close-btn'),
+        readerShell: document.getElementById('reader-shell'),
+        scanInlineMessage: document.getElementById('scan-inline-message'),
         scanResultModal: document.getElementById('scan-result-modal'),
         scanResultName: document.getElementById('scan-result-name'),
         scanResultId: document.getElementById('scan-result-id'),
@@ -916,7 +1110,16 @@ async function confirmAndGenerate() {
         return;
     }
 
-    const userData = { id, name, animal, skill, timestamp: Date.now() };
+    const currentGuest = getCurrentGuest();
+    const userData = {
+        id,
+        name,
+        animal,
+        skill,
+        timestamp: currentGuest?.timestamp || Date.now(),
+        currentSector: currentGuest?.currentSector || null,
+        currentSectorUpdatedAt: currentGuest?.currentSectorUpdatedAt || null
+    };
     const qrSrc = buildQrSrc(id);
 
     try {
@@ -1031,12 +1234,13 @@ async function stopGuestScanner() {
 
 async function closeGuestScanner() {
     await stopGuestScanner();
-    const { scanModal, scanModalMessage, scanCameraBtn } = getIdentityElements();
-    toggleModalVisibility(scanModal, false);
-    if (scanModalMessage) {
-        scanModalMessage.textContent = '請將其他賓客的 QR code 對準框內。掃描成功後會自動顯示資料。';
+    const { scanCameraBtn, scanCameraCloseBtn, readerShell, scanInlineMessage } = getIdentityElements();
+    if (readerShell) readerShell.classList.add('hidden');
+    if (scanInlineMessage) {
+        scanInlineMessage.textContent = '開啟鏡頭掃描其他賓客的 QR code，掃描成功後會以浮框顯示結果。';
     }
-    setButtonState(scanCameraBtn, false, '開啟鏡頭掃描', '啟動中...');
+    setButtonState(scanCameraBtn, false, '開啟掃描', '啟動中...');
+    if (scanCameraCloseBtn) scanCameraCloseBtn.classList.add('hidden');
 }
 
 async function openGuestScanner() {
@@ -1047,10 +1251,11 @@ async function openGuestScanner() {
     }
 
     try {
-        setButtonState(el.scanCameraBtn, true, '開啟鏡頭掃描', '啟動中...');
-        toggleModalVisibility(el.scanModal, true);
-        if (el.scanModalMessage) {
-            el.scanModalMessage.textContent = '正在啟動鏡頭，請稍候。';
+        setButtonState(el.scanCameraBtn, true, '開啟掃描', '啟動中...');
+        if (el.readerShell) el.readerShell.classList.remove('hidden');
+        if (el.scanCameraCloseBtn) el.scanCameraCloseBtn.classList.remove('hidden');
+        if (el.scanInlineMessage) {
+            el.scanInlineMessage.textContent = '正在啟動鏡頭，請稍候。';
         }
         initIcons();
 
@@ -1060,7 +1265,7 @@ async function openGuestScanner() {
 
         await guestScanner.start(
             { facingMode: 'environment' },
-            { fps: 10, qrbox: { width: 220, height: 220 } },
+            { fps: 10, qrbox: { width: 140, height: 140 } },
             async (decodedText) => {
                 const parsedId = (() => {
                     const value = String(decodedText || '').trim();
@@ -1080,14 +1285,14 @@ async function openGuestScanner() {
                 })();
 
                 if (!parsedId) {
-                    if (el.scanModalMessage) {
-                        el.scanModalMessage.textContent = 'QR code 內容無法辨識，請再試一次。';
+                    if (el.scanInlineMessage) {
+                        el.scanInlineMessage.textContent = 'QR code 內容無法辨識，請再試一次。';
                     }
                     return;
                 }
 
-                if (el.scanModalMessage) {
-                    el.scanModalMessage.textContent = `已辨識到 ${parsedId}，正在讀取身份資料。`;
+                if (el.scanInlineMessage) {
+                    el.scanInlineMessage.textContent = `已辨識到 ${parsedId}，正在讀取身份資料。`;
                 }
                 await closeGuestScanner();
                 await lookupGuest(parsedId, parsedId);
@@ -1096,8 +1301,8 @@ async function openGuestScanner() {
         );
 
         guestScannerActive = true;
-        if (el.scanModalMessage) {
-            el.scanModalMessage.textContent = '請將其他賓客的 QR code 對準框內。掃描成功後會自動顯示資料。';
+        if (el.scanInlineMessage) {
+            el.scanInlineMessage.textContent = '請將其他賓客的 QR code 對準鏡頭。掃描成功後會自動顯示資料。';
         }
     } catch (error) {
         console.error('openGuestScanner error:', error);
