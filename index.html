@@ -171,50 +171,33 @@
         <h2 class="text-3xl font-bold text-white mt-2">身份對接系統</h2>
     </div>
 
-<div id="guest-form-container" class="max-w-sm mx-auto rounded-[32px] border border-white/10 bg-white/5 p-8 backdrop-blur-md shadow-2xl">
-    <div class="space-y-5">
-        <div>
-            <label class="block text-[10px] text-fuchsia-400 uppercase tracking-widest mb-2 font-bold">Access ID / 識別碼</label>
-            <input type="text" id="input-id" class="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-fuchsia-500 outline-none transition-all font-mono" placeholder="例: PG-001">
-        </div>
-        
-        <div>
-            <label class="block text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Callsign / 代號</label>
-            <input type="text" id="input-name" class="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-fuchsia-500 outline-none transition-all" placeholder="輸入你的稱呼">
-        </div>
-
-        <div>
-            <label class="block text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Animal Morph / 動物形態</label>
-            <input type="text" id="input-animal" class="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-fuchsia-500 outline-none transition-all" placeholder="例: 雪豹">
-        </div>
-
-        <div>
-            <div class="flex justify-between mb-2">
-                <label class="text-[10px] text-white/40 uppercase tracking-widest font-bold">Skill Level / 能量光譜</label>
-                <span id="skill-value" class="text-xs font-mono text-fuchsia-400">0.5</span>
-            </div>
-            <input type="range" id="input-skill" min="0" max="1" step="0.1" value="0.5" 
-                class="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-fuchsia-500"
-                oninput="document.getElementById('skill-value').innerText = this.value">
-            <div class="flex justify-between text-[8px] text-white/20 mt-1 font-mono">
-                <span>0.0</span>
-                <span>0.1</span>
-                <span>0.2</span>
-                <span>0.3</span>
-                <span>0.4</span>
-                <span>0.5</span>
-                <span>0.6</span>
-                <span>0.7</span>
-                <span>0.8</span>
-                <span>0.9</span>
-                <span>1.0</span>
-            </div>
-        </div>
-            <button onclick="submitToEden()" id="sync-btn" class="w-full py-4 bg-fuchsia-600 rounded-2xl font-black text-sm tracking-[0.2em] hover:bg-fuchsia-500 hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_20px_rgba(192,132,252,0.4)]">
-                啟動身份授權
+<div id="guest-form-container" class="space-y-6">
+    <div class="p-4 bg-white/5 border border-white/10 rounded-2xl mb-6">
+        <label class="block text-[10px] text-fuchsia-400 font-bold mb-2">ACCESS SERIAL (輸入編號)</label>
+        <div class="flex gap-2">
+            <input type="text" id="input-id" placeholder="例如: PG-001" 
+                   class="flex-1 bg-black/40 border border-white/20 rounded-xl px-4 py-2 text-white focus:border-fuchsia-500 outline-none transition-all">
+            <button onclick="fetchRegistration()" class="px-4 py-2 bg-fuchsia-600 rounded-xl text-xs font-bold hover:bg-fuchsia-500 transition-all">
+                驗證
             </button>
         </div>
+        <p class="text-[10px] text-white/40 mt-2">請輸入邀請函上的序號以同步基地檔案</p>
     </div>
+
+    <div class="space-y-4">
+        <div>
+            <label class="block text-[10px] text-white/60 mb-2">GUEST NAME (識別名稱)</label>
+            <input type="text" id="input-name" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white">
+        </div>
+        <div>
+            <label class="block text-[10px] text-white/60 mb-2">ANIMAL FORM (動物形態)</label>
+            <input type="text" id="input-animal" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white">
+        </div>
+        <button onclick="confirmAndGenerate()" class="w-full py-4 bg-fuchsia-600 rounded-2xl font-bold tracking-widest hover:bg-fuchsia-500 transition-all">
+            啟動身份授權
+        </button>
+    </div>
+</div>
 
     <div id="id-card-container" class="hidden max-w-sm mx-auto animate-map-deploy">
         <div class="relative overflow-hidden rounded-[32px] border border-fuchsia-500/50 bg-gradient-to-br from-fuchsia-950/40 via-[#090611] to-black p-8 shadow-[0_0_40px_rgba(192,132,252,0.2)]">
@@ -736,5 +719,117 @@ function closeAuthModal() {
 // 在提交成功後，不需要跳轉頁面，因為使用者已經在彈窗中看到卡片了。
 
     </script>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<script>
+  // 2. 貼上你剛剛在第一階段複製的 Config 資料
+  const firebaseConfig = {
+  apiKey: "AIzaSyCTDQarFW9zAEqO7YM-tyjRM5Kw1Ec88Pc",
+  authDomain: "w-eden.firebaseapp.com",
+  projectId: "w-eden",
+  storageBucket: "w-eden-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  messagingSenderId: "449710392489",
+  appId: "1:449710392489:web:784936cf80816f744615b8",
+  measurementId: "G-G5RD8GGM88"
+  };
+
+  // 3. 初始化 Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  
+// --- 2. 驗證編號並抓取資料 ---
+async function fetchRegistration() {
+    const id = document.getElementById('input-id').value.toUpperCase().trim();
+    if (!id) return alert("請輸入編號");
+
+    try {
+        const snapshot = await db.ref('registration/' + id).once('value');
+        const data = snapshot.val();
+
+        if (data) {
+            document.getElementById('input-name').value = data.name || "";
+            document.getElementById('input-animal').value = data.animal || "";
+            alert("基地檔案對接成功！請確認資料。");
+        } else {
+            alert("未偵測到此編號，請手動輸入或檢查輸入是否有誤。");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("衛星連線異常，請稍後再試。");
+    }
+}
+
+// --- 3. 確認資料、儲存並生成 QR Code ---
+async function confirmAndGenerate() {
+    const id = document.getElementById('input-id').value.toUpperCase().trim();
+    const name = document.getElementById('input-name').value;
+    const animal = document.getElementById('input-animal').value;
+
+    if (!id || !name) return alert("資訊不完整，無法授權");
+
+    const userData = { id, name, animal, timestamp: Date.now() };
+
+    // A. 存入 Firebase 正式名單
+    await db.ref('users/' + id).set(userData);
+
+    // B. 生成包含個人 ID 的 QR Code URL
+    const queryUrl = `${window.location.origin}${window.location.pathname}?scanId=${id}`;
+    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(queryUrl)}&color=d946ef&bgcolor=000000`;
+    
+    // C. 存入本地瀏覽器
+    localStorage.setItem('eden_guest', JSON.stringify(userData));
+    localStorage.setItem('eden_qr', qrSrc);
+
+    // D. 渲染身分卡並切換顯示
+    renderIdCard(userData, qrSrc);
+}
+
+// --- 4. 渲染身分卡函式 ---
+function renderIdCard(data, qrSrc) {
+    // 這裡對應你原本 id-card-container 裡的顯示欄位
+    document.getElementById('card-name-display').innerText = data.name;
+    document.getElementById('card-animal-display').innerText = data.animal;
+    document.getElementById('card-qr-display').src = qrSrc; // 確保你的 img 標籤有這個 ID
+
+    document.getElementById('guest-form-container').classList.add('hidden');
+    document.getElementById('id-card-container').classList.remove('hidden');
+}
+
+// --- 5. 處理掃描他人 QR Code 的邏輯 ---
+function checkUrlForScan() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const scanId = urlParams.get('scanId');
+    if (scanId) {
+        // 如果偵測到 URL 有 scanId，自動開啟對方的身分資料
+        lookupGuest(scanId);
+    }
+}
+
+async function lookupGuest(id) {
+    const snapshot = await db.ref('users/' + id).once('value');
+    const guest = snapshot.val();
+    if (guest) {
+        // 你可以彈出一個視窗顯示：偵測到 ${guest.name}
+        alert(`偵測到生物信號：\n名稱：${guest.name}\n形態：${guest.animal}`);
+    }
+}
+
+// 初始化檢查
+window.onload = () => {
+    checkUrlForScan();
+    const saved = localStorage.getItem('eden_guest');
+    const savedQr = localStorage.getItem('eden_qr');
+    if (saved && savedQr) {
+        renderIdCard(JSON.parse(saved), savedQr);
+    }
+};
+</script>
+
+
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
 </body>
 </html>
