@@ -66,6 +66,29 @@
                 max-width: none;
             }
         }
+
+        @keyframes scan-result-pop {
+            0% { transform: scale(0.88) translateY(18px); opacity: 0; filter: blur(10px); }
+            65% { transform: scale(1.02) translateY(-3px); opacity: 1; filter: blur(0); }
+            100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); }
+        }
+
+        @keyframes scan-result-pulse {
+            0%, 100% { opacity: 0.35; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.08); }
+        }
+
+        .scan-result-panel {
+            transform-origin: center;
+        }
+
+        .scan-result-panel.is-opening {
+            animation: scan-result-pop 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .scan-result-glow {
+            animation: scan-result-pulse 2.4s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="selection:bg-fuchsia-300/30">
@@ -193,6 +216,11 @@
             <label class="block text-[10px] text-white/60 mb-2">ANIMAL FORM (動物形態)</label>
             <input type="text" id="input-animal" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white">
         </div>
+        <div>
+            <label class="block text-[10px] text-white/60 mb-2">INSTAGRAM (確認用，不顯示於身分卡)</label>
+            <input type="text" id="input-ig" readonly class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/75 placeholder:text-white/25">
+            <p class="text-[10px] text-white/35 mt-2">此欄位僅供你在啟動授權前確認，生成後的身分卡不會顯示。</p>
+        </div>
         <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
             <div class="flex items-center justify-between mb-3">
                 <label for="input-skill" class="block text-[10px] text-white/60">ENERGY SPECTRUM (能量光譜)</label>
@@ -202,7 +230,7 @@
                    oninput="updateSkillDisplay(this.value)"
                    class="w-full h-2 rounded-full appearance-none cursor-pointer bg-white/10 accent-fuchsia-500">
             <div class="mt-2 flex justify-between text-[10px] text-white/35">
-                <span>Calm</span>
+                <span>Cute</span>
                 <span>Wild</span>
             </div>
         </div>
@@ -260,7 +288,6 @@
                         <div class="h-52 w-52 max-w-full bg-white p-3 rounded-[24px] shrink-0 shadow-[0_0_24px_rgba(255,255,255,0.08)]">
                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=PG-000&color=000000&bgcolor=ffffff&qzone=2" id="id-qr" class="w-full h-full rounded-xl object-contain" alt="Identity QR Code">
                         </div>
-                        <div class="text-[11px] text-white/45 font-mono tracking-[0.2em]">請以正面、適中距離掃描</div>
                     </div>
                 </div>
 
@@ -390,7 +417,7 @@
                         <strong class="text-white text-lg block mb-1">能量補充：食物與狂歡</strong>
                         <span class="text-fuchsia-200/50 text-[10px] uppercase tracking-wider block mb-2">Fueling Station: Feast & Revelry</span>
                         <p class="text-white/60 text-sm leading-relaxed">
-                            補給艙門開啟，供應各類高能量物資（主食與美酒）。此時引力失效，請隨音樂盡情漂浮，進入派對狂歡模式。
+                            補給艙門開啟，供應各類高能量物資。此時引力失效，請隨音樂盡情漂浮，進入派對狂歡模式。
                         </p>
                     </div>
                 </div>
@@ -515,7 +542,7 @@
 
 <div id="scan-result-modal" class="fixed inset-0 z-[75] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
     <div onclick="closeScanResultModal()" class="absolute inset-0 bg-black/85 backdrop-blur-xl"></div>
-    <div class="relative w-full max-w-sm transform scale-95 transition-all duration-300">
+    <div class="scan-result-panel relative w-full max-w-sm transform scale-95 transition-all duration-300">
         <button onclick="closeScanResultModal()" class="absolute -top-12 right-0 p-2 text-white/50 hover:text-white">
             <i data-lucide="x" class="w-6 h-6"></i>
         </button>
@@ -542,6 +569,10 @@
                     </div>
                 </div>
                 <p id="scan-result-message" class="text-[11px] text-white/45 leading-relaxed">已讀取該賓客的身份資料。</p>
+                <a id="scan-result-ig-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden w-full items-center justify-center gap-2 rounded-2xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-4 py-3 text-sm font-bold text-fuchsia-100 transition-all hover:border-fuchsia-300/45 hover:bg-fuchsia-500/18 hover:text-white">
+                    <i data-lucide="instagram" class="w-4 h-4"></i>
+                    前往 IG 檔案
+                </a>
             </div>
             <button onclick="closeScanResultModal()" class="w-full px-4 py-3 bg-fuchsia-600 rounded-2xl text-sm font-bold hover:bg-fuchsia-500 transition-all">關閉</button>
         </div>
@@ -711,12 +742,13 @@ function openSector(id) {
             <div class="space-y-4 rounded-[24px] border border-white/10 bg-white/5 p-5">
                 <div class="flex items-center justify-between gap-3">
                     <div>
-                    <button id="sector-claim-btn" onclick="claimSector('${id}')" class="inline-flex items-center gap-2 rounded-2xl bg-fuchsia-600 px-4 py-3 text-xs font-bold text-white hover:bg-fuchsia-500 transition-all shadow-[0_0_20px_rgba(192,132,252,0.2)]">
+
+<button id="sector-claim-btn" onclick="claimSector('${id}')" class="inline-flex items-center gap-2 rounded-2xl bg-fuchsia-600 px-4 py-3 text-xs font-bold text-white hover:bg-fuchsia-500 transition-all shadow-[0_0_20px_rgba(192,132,252,0.2)]">
                         <i data-lucide="map-pinned" class="w-4 h-4"></i>
                         <span>進駐此區域</span>
                     </button>
                     </div>
-
+                    
                 </div>
                 <div id="sector-action-message" class="hidden rounded-2xl border px-4 py-3 text-sm leading-relaxed"></div>
                 <div>
@@ -971,6 +1003,7 @@ function getIdentityElements() {
         inputId: document.getElementById('input-id'),
         inputName: document.getElementById('input-name'),
         inputAnimal: document.getElementById('input-animal'),
+        inputIg: document.getElementById('input-ig'),
         inputSkill: document.getElementById('input-skill'),
         skillValue: document.getElementById('skill-value'),
         displayName: document.getElementById('display-name'),
@@ -990,6 +1023,7 @@ function getIdentityElements() {
         scanResultSkill: document.getElementById('scan-result-skill'),
         scanResultBar: document.getElementById('scan-result-bar'),
         scanResultMessage: document.getElementById('scan-result-message'),
+        scanResultIgLink: document.getElementById('scan-result-ig-link'),
         message: document.getElementById('auth-message'),
         fetchBtn: document.getElementById('fetch-btn'),
         confirmBtn: document.getElementById('confirm-btn')
@@ -1063,7 +1097,7 @@ function renderIdCard(data, qrSrc) {
 }
 
 async function fetchRegistration() {
-    const { inputId, inputName, inputAnimal, inputSkill, fetchBtn } = getIdentityElements();
+    const { inputId, inputName, inputAnimal, inputIg, inputSkill, fetchBtn } = getIdentityElements();
     const id = inputId?.value.toUpperCase().trim();
     clearAuthMessage();
 
@@ -1087,9 +1121,11 @@ async function fetchRegistration() {
 
         if (inputName) inputName.value = data.name || '';
         if (inputAnimal) inputAnimal.value = data.animal || '';
+        if (inputIg) inputIg.value = data.IG || '';
         if (inputSkill) inputSkill.value = normalizeSkillValue(data.skill).toFixed(1);
+        localStorage.setItem('eden_registration_ig', data.IG || '');
         updateSkillDisplay(inputSkill?.value || 0.5);
-        showAuthMessage('success', '基地檔案對接成功。請確認名稱、動物形態與能量光譜後，再啟動身份授權。');
+        showAuthMessage('success', '基地檔案對接成功。請確認名稱、動物形態、IG 與能量光譜後，再啟動身份授權。');
     } catch (error) {
         console.error('fetchRegistration error:', error);
         showAuthMessage('error', '目前無法連線到 Firebase。請檢查網路、資料庫規則或路徑是否正確。');
@@ -1099,10 +1135,11 @@ async function fetchRegistration() {
 }
 
 async function confirmAndGenerate() {
-    const { inputId, inputName, inputAnimal, inputSkill, confirmBtn } = getIdentityElements();
+    const { inputId, inputName, inputAnimal, inputIg, inputSkill, confirmBtn } = getIdentityElements();
     const id = inputId?.value.toUpperCase().trim();
     const name = inputName?.value.trim();
     const animal = inputAnimal?.value.trim();
+    const ig = inputIg?.value.trim();
     const skill = normalizeSkillValue(inputSkill?.value);
     clearAuthMessage();
 
@@ -1112,11 +1149,13 @@ async function confirmAndGenerate() {
     }
 
     const currentGuest = getCurrentGuest();
+    const storedIg = localStorage.getItem('eden_registration_ig') || '';
     const userData = {
         id,
         name,
         animal,
         skill,
+        IG: ig || currentGuest?.IG || storedIg || '',
         timestamp: currentGuest?.timestamp || Date.now(),
         currentSector: currentGuest?.currentSector || null,
         currentSectorUpdatedAt: currentGuest?.currentSectorUpdatedAt || null
@@ -1133,15 +1172,36 @@ async function confirmAndGenerate() {
         renderIdCard(userData, qrSrc);
     } catch (error) {
         console.error('confirmAndGenerate error:', error);
-        showAuthMessage('error', '身份授權失敗。常見原因是 Firebase 權限規則未開放寫入，或 users 路徑設定不正確。');
+        showAuthMessage('error', '身份授權失敗。');
     } finally {
         setButtonState(confirmBtn, false, '啟動身份授權', '授權中...');
     }
 }
 
+function normalizeInstagramHandle(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const withoutAt = raw.replace(/^@+/, '');
+    try {
+        const url = new URL(withoutAt.startsWith('http') ? withoutAt : `https://${withoutAt}`);
+        if (/instagram\.com$/i.test(url.hostname) || /www\.instagram\.com$/i.test(url.hostname)) {
+            const segments = url.pathname.split('/').filter(Boolean);
+            return segments[0] ? segments[0].replace(/^@+/, '') : '';
+        }
+    } catch (error) {
+    }
+    return withoutAt.split(/[/?#]/)[0].trim();
+}
+
+function getInstagramProfileUrl(value) {
+    const handle = normalizeInstagramHandle(value);
+    return handle ? `https://www.instagram.com/${encodeURIComponent(handle)}/` : '';
+}
+
 function renderScannedGuest(guest, sourceLabel = '') {
     const el = getIdentityElements();
     const skill = normalizeSkillValue(guest?.skill);
+    const igUrl = getInstagramProfileUrl(guest?.ig || guest?.IG);
 
     if (el.scanResultName) el.scanResultName.textContent = guest?.name || 'UNKNOWN';
     if (el.scanResultId) el.scanResultId.textContent = guest?.id || 'PG-000';
@@ -1149,7 +1209,18 @@ function renderScannedGuest(guest, sourceLabel = '') {
     if (el.scanResultSkill) el.scanResultSkill.textContent = skill.toFixed(1);
     if (el.scanResultBar) el.scanResultBar.style.width = `${skill * 100}%`;
     if (el.scanResultMessage) {
-        el.scanResultMessage.textContent = sourceLabel ? `已同步 ${sourceLabel} 的身份資料。` : '已同步該賓客的身份資料。';
+        el.scanResultMessage.textContent = sourceLabel ? `已同步 ${sourceLabel} 的身份資料。` : '已同步該探險者的身份資料。';
+    }
+    if (el.scanResultIgLink) {
+        if (igUrl) {
+            el.scanResultIgLink.href = igUrl;
+            el.scanResultIgLink.classList.remove('hidden');
+            el.scanResultIgLink.classList.add('inline-flex');
+        } else {
+            el.scanResultIgLink.href = '#';
+            el.scanResultIgLink.classList.add('hidden');
+            el.scanResultIgLink.classList.remove('inline-flex');
+        }
     }
     openScanResultModal();
 }
@@ -1172,7 +1243,12 @@ async function lookupGuest(id, sourceLabel = '') {
         if (el.scanResultAnimal) el.scanResultAnimal.textContent = '--';
         if (el.scanResultSkill) el.scanResultSkill.textContent = '--';
         if (el.scanResultBar) el.scanResultBar.style.width = '0%';
-        if (el.scanResultMessage) el.scanResultMessage.textContent = '查無此賓客資料。請確認 QR code 是否有效，或對方是否已完成身份授權。';
+        if (el.scanResultMessage) el.scanResultMessage.textContent = '查無此探險者資料。請確認對方是否已完成身份授權。';
+        if (el.scanResultIgLink) {
+            el.scanResultIgLink.href = '#';
+            el.scanResultIgLink.classList.add('hidden');
+            el.scanResultIgLink.classList.remove('inline-flex');
+        }
         openScanResultModal();
         return null;
     } catch (error) {
@@ -1182,7 +1258,12 @@ async function lookupGuest(id, sourceLabel = '') {
         if (el.scanResultAnimal) el.scanResultAnimal.textContent = '--';
         if (el.scanResultSkill) el.scanResultSkill.textContent = '--';
         if (el.scanResultBar) el.scanResultBar.style.width = '0%';
-        if (el.scanResultMessage) el.scanResultMessage.textContent = '目前無法讀取該賓客資料。請稍後再試，或檢查 Firebase 權限與連線。';
+        if (el.scanResultMessage) el.scanResultMessage.textContent = '目前無法讀取該探險者資料。請稍後再試。';
+        if (el.scanResultIgLink) {
+            el.scanResultIgLink.href = '#';
+            el.scanResultIgLink.classList.add('hidden');
+            el.scanResultIgLink.classList.remove('inline-flex');
+        }
         openScanResultModal();
         return null;
     } finally {
@@ -1208,12 +1289,30 @@ function toggleModalVisibility(modal, isOpen) {
 
 function openScanResultModal() {
     const { scanResultModal } = getIdentityElements();
+    if (!scanResultModal) return;
+    const panel = scanResultModal.querySelector('.scan-result-panel');
+    const message = scanResultModal.querySelector('#scan-result-message');
     toggleModalVisibility(scanResultModal, true);
+    if (panel) {
+        panel.classList.remove('is-opening');
+        void panel.offsetWidth;
+        panel.classList.add('is-opening');
+    }
+    if (message) {
+        message.classList.remove('scan-result-glow');
+        void message.offsetWidth;
+        message.classList.add('scan-result-glow');
+    }
     initIcons();
 }
 
 function closeScanResultModal() {
     const { scanResultModal } = getIdentityElements();
+    if (!scanResultModal) return;
+    const panel = scanResultModal.querySelector('.scan-result-panel');
+    const message = scanResultModal.querySelector('#scan-result-message');
+    if (panel) panel.classList.remove('is-opening');
+    if (message) message.classList.remove('scan-result-glow');
     toggleModalVisibility(scanResultModal, false);
 }
 
@@ -1238,7 +1337,7 @@ async function closeGuestScanner() {
     const { scanCameraBtn, scanCameraCloseBtn, readerShell, scanInlineMessage } = getIdentityElements();
     if (readerShell) readerShell.classList.add('hidden');
     if (scanInlineMessage) {
-        scanInlineMessage.textContent = '開啟鏡頭掃描其他賓客的 QR code，掃描成功後會以浮框顯示結果。';
+        scanInlineMessage.textContent = '開啟鏡頭確認其他探險者身分';
     }
     setButtonState(scanCameraBtn, false, '開啟掃描', '啟動中...');
     if (scanCameraCloseBtn) scanCameraCloseBtn.classList.add('hidden');
