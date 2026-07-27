@@ -208,20 +208,24 @@
 
 <div id="guest-form-container" class="space-y-6 max-h-[78svh] overflow-y-auto no-scrollbar overscroll-contain px-1">
     <div class="p-4 bg-white/5 border border-white/10 rounded-2xl mb-6">
-        <label class="block text-[10px] text-fuchsia-400 font-bold mb-2">ACCESS SERIAL (輸入序號)</label>
-        <div class="flex gap-2 min-w-0">
-            <input type="text" id="input-id" placeholder="例如: PG-001" 
-                   class="flex-1 bg-black/40 border border-white/20 rounded-xl px-4 py-2 text-white focus:border-fuchsia-500 outline-none transition-all">
-            <button id="fetch-btn" onclick="fetchRegistration()" class="px-4 py-2 bg-fuchsia-600 rounded-xl text-xs font-bold hover:bg-fuchsia-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
-                身分驗證
-            </button>
+        <label class="block text-[10px] text-fuchsia-400 font-bold mb-3">LINE IDENTITY (LINE 身分同步)</label>
+        <div id="line-auth-profile" class="hidden items-center gap-3 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3">
+            <img id="line-profile-picture" class="hidden h-11 w-11 rounded-full border border-white/20 object-cover" alt="LINE profile">
+            <div class="min-w-0 flex-1">
+                <div class="text-[10px] uppercase tracking-[0.2em] text-emerald-200/70">Connected</div>
+                <div id="line-profile-name" class="truncate text-sm font-bold text-white">LINE 使用者</div>
+            </div>
+            <i data-lucide="badge-check" class="h-5 w-5 shrink-0 text-emerald-300"></i>
         </div>
-        <p class="text-[10px] text-white/40 mt-2">請輸入ID卡上的序號以同步基地檔案</p>
+        <button id="line-login-btn" onclick="startLineLogin()" class="w-full rounded-2xl bg-[#06C755] px-4 py-3 text-sm font-bold text-white transition-all hover:bg-[#05b84f] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
+            使用 LINE 登入
+        </button>
+        <p id="line-auth-hint" class="text-[10px] text-white/40 mt-3">首次登入後填寫身分資料，系統會依序配發 WEDEN 流水號。</p>
     </div>
 
     <div id="auth-message" class="hidden rounded-2xl border px-4 py-3 text-sm leading-relaxed"></div>
 
-    <div class="space-y-4">
+    <div id="identity-fields" class="hidden space-y-4">
         <div>
             <label class="block text-[10px] text-white/60 mb-2">GUEST NAME (識別名稱)</label>
             <input type="text" id="input-name" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white">
@@ -249,7 +253,7 @@
             </div>
         </div>
         <button id="confirm-btn" onclick="confirmAndGenerate()" class="w-full py-4 bg-fuchsia-600 rounded-2xl font-bold tracking-widest hover:bg-fuchsia-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
-            啟動身份授權
+            建立基地身分
         </button>
     </div>
 </div>
@@ -282,7 +286,7 @@
                 </div>
                 <div class="flex justify-between border-b border-white/10 pb-2">
                     <span class="text-[10px] text-white/40 uppercase">Serial No.</span>
-                    <span id="display-id" class="text-sm font-mono text-fuchsia-200">WEDEN-00000</span>
+                    <span id="display-id" class="text-sm font-mono text-fuchsia-200">WEDEN-260814000</span>
                 </div>
                 <div class="pt-1">
                     <div class="mb-2 flex justify-between">
@@ -300,7 +304,7 @@
                     <div class="flex flex-col items-center gap-4">
                         <div class="text-[10px] text-fuchsia-300 font-black tracking-[0.25em] uppercase">Identity QR</div>
                         <div class="h-52 w-52 max-w-full bg-white p-3 rounded-[24px] shrink-0 shadow-[0_0_24px_rgba(255,255,255,0.08)]">
-                           <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=PG-000&color=000000&bgcolor=ffffff&qzone=2" id="id-qr" class="w-full h-full rounded-xl object-contain" alt="Identity QR Code">
+                           <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=WEDEN-260814000&color=000000&bgcolor=ffffff&qzone=2" id="id-qr" class="w-full h-full rounded-xl object-contain" alt="Identity QR Code">
                         </div>
                     </div>
                 </div>
@@ -326,7 +330,7 @@
 <div class="mt-8 pt-6 border-t border-white/5 text-center">
     <button onclick="resetIdentity()" class="text-[10px] text-white/20 hover:text-fuchsia-400 uppercase tracking-[0.3em] transition-colors flex items-center justify-center gap-2 mx-auto">
         <i data-lucide="log-out" class="w-3 h-3"></i> 
-        解除身份鎖定 / Reset Identity
+        切換 LINE 帳號 / Switch Account
     </button>
 </div>
 
@@ -540,12 +544,12 @@
             <div id="inner-auth-content" class="max-h-[calc(90svh-8px)] overflow-y-auto no-scrollbar overscroll-contain p-1"></div>
             <div id="reset-confirm-overlay" class="absolute inset-0 z-20 hidden items-center justify-center rounded-[32px] bg-black/80 backdrop-blur-md p-6">
                 <div class="w-full rounded-[28px] border border-white/10 bg-[#120d22] p-6 shadow-[0_0_40px_rgba(192,132,252,0.18)]">
-                    <div class="text-[10px] text-fuchsia-400 uppercase font-bold tracking-[0.35em] mb-3">Confirm Reset</div>
-                    <h3 class="text-xl font-bold text-white mb-3">解除目前身份？</h3>
-                    <p class="text-sm leading-relaxed text-white/70 mb-6">確認後將清除這台裝置暫存的身份資料，並回到身分驗證頁重新對接。</p>
+                    <div class="text-[10px] text-fuchsia-400 uppercase font-bold tracking-[0.35em] mb-3">Switch Account</div>
+                    <h3 class="text-xl font-bold text-white mb-3">切換 LINE 帳號？</h3>
+                    <p class="text-sm leading-relaxed text-white/70 mb-6">確認後會登出這台裝置；你的 WEDEN 編號與身分資料仍會保留，下次使用同一 LINE 帳號登入即可取回。</p>
                     <div class="grid grid-cols-2 gap-3">
                         <button type="button" onclick="closeResetConfirm()" class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white">取消</button>
-                        <button type="button" onclick="confirmResetIdentity()" class="rounded-2xl bg-rose-500/90 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-rose-400">確認解除</button>
+                        <button type="button" onclick="confirmResetIdentity()" class="rounded-2xl bg-rose-500/90 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-rose-400">確認登出</button>
                     </div>
                 </div>
             </div>
@@ -568,7 +572,7 @@
                 <div class="text-[10px] text-fuchsia-300 uppercase tracking-[0.25em] font-bold">Scan Result</div>
                 <div class="mt-1 flex items-end gap-2 min-w-0">
                     <div id="scan-result-name" class="min-w-0 text-2xl font-black italic text-white uppercase tracking-tight truncate">UNKNOWN</div>
-                    <div id="scan-result-id" class="shrink-0 text-[10px] font-mono text-fuchsia-200 border border-fuchsia-500/20 rounded-full px-3 py-1 bg-fuchsia-500/10 leading-none">PG-000</div>
+                    <div id="scan-result-id" class="shrink-0 text-[10px] font-mono text-fuchsia-200 border border-fuchsia-500/20 rounded-full px-3 py-1 bg-fuchsia-500/10 leading-none">WEDEN-260814000</div>
                 </div>
             </div>
             <div class="space-y-3">
@@ -672,17 +676,25 @@ async function confirmResetIdentity() {
 
     localStorage.removeItem('eden_guest');
     localStorage.removeItem('eden_qr');
+    currentIdentity = null;
 
-    if (el.inputId) el.inputId.value = '';
     if (el.inputName) el.inputName.value = '';
     if (el.inputAnimal) el.inputAnimal.value = '';
+    if (el.inputIg) el.inputIg.value = '';
 
     el.card?.classList.add('hidden');
     el.form?.classList.remove('hidden');
+    el.identityFields?.classList.add('hidden');
+    el.lineAuthProfile?.classList.add('hidden');
+    el.lineAuthProfile?.classList.remove('flex');
+    el.lineLoginBtn?.classList.remove('hidden');
 
     closeResetConfirm();
-    showAuthMessage('info', '身份已解除，請重新輸入編號並進行驗證。');
-    el.inputId?.focus();
+    await firebase.auth().signOut();
+    if (window.liff?.isLoggedIn?.()) {
+        liff.logout();
+    }
+    showAuthMessage('info', '已登出這台裝置。使用同一 LINE 帳號登入可取回原身分與編號。');
 }
 
 const sectorData = {
@@ -806,9 +818,8 @@ function openAuthModal() {
         innerContent.appendChild(card);
     }
 
-    const saved = localStorage.getItem('eden_guest');
-    form.classList.toggle('hidden', !!saved);
-    card.classList.toggle('hidden', !saved);
+    form.classList.toggle('hidden', !!currentIdentity);
+    card.classList.toggle('hidden', !currentIdentity);
 
     modal.classList.remove('opacity-0', 'pointer-events-none');
     const panel = modal.querySelector('.relative');
@@ -831,7 +842,11 @@ function closeAuthModal() {
     </script>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="app-config.js"></script>
 
 <script>
 const firebaseConfig = {
@@ -850,10 +865,19 @@ if (!firebase.apps.length) {
 }
 
 const db = firebase.database();
+const auth = firebase.auth();
+const functions = firebase.app().functions(window.WEDEN_CONFIG?.functionsRegion || 'asia-east1');
+const lineLoginCallable = functions.httpsCallable('lineLogin');
+const getMyIdentityCallable = functions.httpsCallable('getMyIdentity');
+const saveIdentityCallable = functions.httpsCallable('saveIdentity');
 let activeSectorListener = null;
 let activeSectorListenerPath = '';
+let currentIdentity = null;
+let currentLineProfile = null;
+let liffInitialized = false;
 
 function getCurrentGuest() {
+    if (currentIdentity) return currentIdentity;
     try {
         const raw = localStorage.getItem('eden_guest');
         return raw ? JSON.parse(raw) : null;
@@ -865,10 +889,14 @@ function getCurrentGuest() {
 
 function saveCurrentGuest(guest) {
     if (!guest) {
+        currentIdentity = null;
         localStorage.removeItem('eden_guest');
+        localStorage.removeItem('eden_qr');
         return;
     }
+    currentIdentity = guest;
     localStorage.setItem('eden_guest', JSON.stringify(guest));
+    localStorage.setItem('eden_qr', buildQrSrc(guest.id));
 }
 
 function getSectorActionElements() {
@@ -1013,7 +1041,12 @@ function getIdentityElements() {
     return {
         form: document.getElementById('guest-form-container'),
         card: document.getElementById('id-card-container'),
-        inputId: document.getElementById('input-id'),
+        identityFields: document.getElementById('identity-fields'),
+        lineLoginBtn: document.getElementById('line-login-btn'),
+        lineAuthProfile: document.getElementById('line-auth-profile'),
+        lineProfilePicture: document.getElementById('line-profile-picture'),
+        lineProfileName: document.getElementById('line-profile-name'),
+        lineAuthHint: document.getElementById('line-auth-hint'),
         inputName: document.getElementById('input-name'),
         inputAnimal: document.getElementById('input-animal'),
         inputIg: document.getElementById('input-ig'),
@@ -1038,7 +1071,6 @@ function getIdentityElements() {
         scanResultMessage: document.getElementById('scan-result-message'),
         scanResultIgLink: document.getElementById('scan-result-ig-link'),
         message: document.getElementById('auth-message'),
-        fetchBtn: document.getElementById('fetch-btn'),
         confirmBtn: document.getElementById('confirm-btn')
     };
 }
@@ -1090,6 +1122,142 @@ function updateSkillDisplay(value) {
     }
 }
 
+function isLiffConfigured() {
+    const liffId = String(window.WEDEN_CONFIG?.liffId || '');
+    return liffId && !liffId.includes('REPLACE_');
+}
+
+function renderLineProfile(profile) {
+    const el = getIdentityElements();
+    currentLineProfile = profile || null;
+
+    if (el.lineProfileName) {
+        el.lineProfileName.textContent = profile?.displayName || 'LINE 使用者';
+    }
+    if (el.lineProfilePicture) {
+        if (profile?.pictureUrl) {
+            el.lineProfilePicture.src = profile.pictureUrl;
+            el.lineProfilePicture.classList.remove('hidden');
+        } else {
+            el.lineProfilePicture.classList.add('hidden');
+        }
+    }
+    el.lineAuthProfile?.classList.remove('hidden');
+    el.lineAuthProfile?.classList.add('flex');
+    el.lineLoginBtn?.classList.add('hidden');
+    if (el.lineAuthHint) {
+        el.lineAuthHint.textContent = 'LINE 身分已驗證；同一帳號會固定取回同一組 WEDEN 編號。';
+    }
+    initIcons();
+}
+
+function showIdentityEditor(identity = null) {
+    const el = getIdentityElements();
+    el.form?.classList.remove('hidden');
+    el.card?.classList.add('hidden');
+    el.identityFields?.classList.remove('hidden');
+
+    if (el.inputName && !el.inputName.value) {
+        el.inputName.value = identity?.name || currentLineProfile?.displayName || '';
+    }
+    if (el.inputAnimal) el.inputAnimal.value = identity?.animal || el.inputAnimal.value || '';
+    if (el.inputIg) el.inputIg.value = identity?.IG || identity?.ig || el.inputIg.value || '';
+    if (el.inputSkill) {
+        el.inputSkill.value = normalizeSkillValue(identity?.skill).toFixed(1);
+        updateSkillDisplay(el.inputSkill.value);
+    }
+    if (el.confirmBtn) {
+        el.confirmBtn.textContent = identity ? '更新基地身分' : '建立基地身分';
+    }
+}
+
+async function restoreIdentityFromServer() {
+    const result = await getMyIdentityCallable();
+    const identity = result.data?.identity || null;
+    if (!identity?.id) {
+        saveCurrentGuest(null);
+        showIdentityEditor();
+        showAuthMessage('success', 'LINE 身分驗證完成。填寫資料後，系統將配發第一個可用流水號。');
+        return null;
+    }
+
+    saveCurrentGuest(identity);
+    renderIdCard(identity, buildQrSrc(identity.id));
+    return identity;
+}
+
+async function exchangeLineIdentity() {
+    const idToken = liff.getIDToken();
+    if (!idToken) {
+        throw new Error('LINE 未提供 ID Token，請確認 LIFF 已啟用 openid scope。');
+    }
+
+    const [loginResult, profileResult] = await Promise.all([
+        lineLoginCallable({ idToken }),
+        liff.getProfile().catch(() => null)
+    ]);
+    const customToken = loginResult.data?.customToken;
+    if (!customToken) throw new Error('LINE 登入驗證失敗，後端未回傳 Firebase token。');
+
+    await auth.signInWithCustomToken(customToken);
+    renderLineProfile(profileResult || loginResult.data?.profile || null);
+    await restoreIdentityFromServer();
+}
+
+async function initializeLineSession() {
+    const el = getIdentityElements();
+    if (!isLiffConfigured()) {
+        el.lineLoginBtn?.setAttribute('disabled', 'disabled');
+        showAuthMessage('error', '尚未設定 LIFF ID。請先完成 README 的 LINE Developers 與 Firebase 部署步驟。');
+        return;
+    }
+    if (!window.liff) {
+        showAuthMessage('error', 'LINE 登入模組載入失敗，請重新整理頁面。');
+        return;
+    }
+
+    try {
+        if (!liffInitialized) {
+            await liff.init({ liffId: window.WEDEN_CONFIG.liffId });
+            liffInitialized = true;
+        }
+        if (!liff.isLoggedIn()) {
+            el.lineLoginBtn?.classList.remove('hidden');
+            return;
+        }
+
+        setButtonState(el.lineLoginBtn, true, '使用 LINE 登入', '同步中...');
+        showAuthMessage('info', '正在驗證 LINE 身分並同步基地檔案。');
+        await exchangeLineIdentity();
+    } catch (error) {
+        console.error('initializeLineSession error:', error);
+        showAuthMessage('error', error?.message || 'LINE 登入失敗，請稍後再試。');
+    } finally {
+        setButtonState(el.lineLoginBtn, false, '使用 LINE 登入', '同步中...');
+    }
+}
+
+async function startLineLogin() {
+    const el = getIdentityElements();
+    try {
+        setButtonState(el.lineLoginBtn, true, '使用 LINE 登入', '連線中...');
+        if (!liffInitialized) {
+            await liff.init({ liffId: window.WEDEN_CONFIG.liffId });
+            liffInitialized = true;
+        }
+        if (!liff.isLoggedIn()) {
+            liff.login({ redirectUri: window.location.href.split('#')[0] });
+            return;
+        }
+        await exchangeLineIdentity();
+    } catch (error) {
+        console.error('startLineLogin error:', error);
+        showAuthMessage('error', error?.message || 'LINE 登入失敗，請稍後再試。');
+    } finally {
+        setButtonState(el.lineLoginBtn, false, '使用 LINE 登入', '連線中...');
+    }
+}
+
 function renderIdCard(data, qrSrc) {
     const el = getIdentityElements();
     if (!el.displayName || !el.displayAnimal || !el.displayId || !el.qrImage) return;
@@ -1098,7 +1266,7 @@ function renderIdCard(data, qrSrc) {
 
     el.displayName.innerText = data.name || 'PILOT';
     el.displayAnimal.innerText = data.animal || 'UNKNOWN';
-    el.displayId.innerText = data.id || 'WEDEN-00000';
+    el.displayId.innerText = data.id || 'WEDEN-260814000';
     if (el.displaySkillText) el.displaySkillText.innerText = skill.toFixed(1);
     if (el.displaySkillBar) el.displaySkillBar.style.width = `${skill * 100}%`;
     el.qrImage.src = qrSrc;
@@ -1109,85 +1277,40 @@ function renderIdCard(data, qrSrc) {
     initIcons();
 }
 
-async function fetchRegistration() {
-    const { inputId, inputName, inputAnimal, inputIg, inputSkill, fetchBtn } = getIdentityElements();
-    const id = inputId?.value.toUpperCase().trim();
-    clearAuthMessage();
-
-    if (!id) {
-        showAuthMessage('error', '請先輸入邀請函上的編號。');
-        inputId?.focus();
-        return;
-    }
-
-    try {
-        setButtonState(fetchBtn, true, '驗證', '驗證中...');
-        showAuthMessage('info', '正在對接基地檔案，請稍候。');
-
-        const snapshot = await db.ref(`registration/${id}`).once('value');
-        const data = snapshot.val();
-
-        if (!data) {
-            showAuthMessage('error', '查無此編號。請確認是否輸入正確，或直接手動填寫下方資料。');
-            return;
-        }
-
-        if (inputName) inputName.value = data.name || '';
-        if (inputAnimal) inputAnimal.value = data.animal || '';
-        if (inputIg) inputIg.value = data.IG || '';
-        if (inputSkill) inputSkill.value = normalizeSkillValue(data.skill).toFixed(1);
-        localStorage.setItem('eden_registration_ig', data.IG || '');
-        updateSkillDisplay(inputSkill?.value || 0.5);
-        showAuthMessage('success', '基地檔案對接成功。請確認名稱、動物形態、IG（可修改）與能量光譜後，再啟動身份授權。');
-    } catch (error) {
-        console.error('fetchRegistration error:', error);
-        showAuthMessage('error', '目前無法連線到 Firebase。請檢查網路、資料庫規則或路徑是否正確。');
-    } finally {
-        setButtonState(fetchBtn, false, '驗證', '驗證中...');
-    }
-}
-
 async function confirmAndGenerate() {
-    const { inputId, inputName, inputAnimal, inputIg, inputSkill, confirmBtn } = getIdentityElements();
-    const id = inputId?.value.toUpperCase().trim();
+    const { inputName, inputAnimal, inputIg, inputSkill, confirmBtn } = getIdentityElements();
     const name = inputName?.value.trim();
     const animal = inputAnimal?.value.trim();
     const ig = inputIg?.value.trim();
     const skill = normalizeSkillValue(inputSkill?.value);
     clearAuthMessage();
 
-    if (!id || !name || !animal) {
-        showAuthMessage('error', '資訊不完整。請確認編號、名稱與動物形態都已填寫。');
+    if (!auth.currentUser) {
+        showAuthMessage('error', '請先使用 LINE 登入。');
         return;
     }
 
-    const currentGuest = getCurrentGuest();
-    const storedIg = localStorage.getItem('eden_registration_ig') || '';
-    const userData = {
-        id,
-        name,
-        animal,
-        skill,
-        IG: ig || currentGuest?.IG || storedIg || '',
-        timestamp: currentGuest?.timestamp || Date.now(),
-        currentSector: currentGuest?.currentSector || null,
-        currentSectorUpdatedAt: currentGuest?.currentSectorUpdatedAt || null
-    };
-    const qrSrc = buildQrSrc(id);
+    if (!name || !animal) {
+        showAuthMessage('error', '資訊不完整。請確認名稱與動物形態都已填寫。');
+        return;
+    }
 
     try {
-        setButtonState(confirmBtn, true, '啟動身份授權', '授權中...');
-        showAuthMessage('info', '正在寫入身份資料並生成通行憑證。');
+        setButtonState(confirmBtn, true, currentIdentity ? '更新基地身分' : '建立基地身分', '同步中...');
+        showAuthMessage('info', currentIdentity ? '正在更新身份資料。' : '正在配發流水號並建立通行憑證。');
 
-        await db.ref(`users/${id}`).set(userData);
-        localStorage.setItem('eden_guest', JSON.stringify(userData));
-        localStorage.setItem('eden_qr', qrSrc);
-        renderIdCard(userData, qrSrc);
+        const result = await saveIdentityCallable({ name, animal, IG: ig, skill });
+        const userData = result.data?.identity;
+        if (!userData?.id) throw new Error('Backend returned no identity');
+
+        saveCurrentGuest(userData);
+        renderIdCard(userData, buildQrSrc(userData.id));
     } catch (error) {
         console.error('confirmAndGenerate error:', error);
-        showAuthMessage('error', '身份授權失敗。');
+        const message = error?.message?.replace(/^FirebaseError:\s*/i, '') || '身份授權失敗。';
+        showAuthMessage('error', message);
     } finally {
-        setButtonState(confirmBtn, false, '啟動身份授權', '授權中...');
+        setButtonState(confirmBtn, false, currentIdentity ? '更新基地身分' : '建立基地身分', '同步中...');
     }
 }
 
@@ -1217,7 +1340,7 @@ function renderScannedGuest(guest, sourceLabel = '') {
     const igUrl = getInstagramProfileUrl(guest?.ig || guest?.IG);
 
     if (el.scanResultName) el.scanResultName.textContent = guest?.name || 'UNKNOWN';
-    if (el.scanResultId) el.scanResultId.textContent = guest?.id || 'PG-000';
+    if (el.scanResultId) el.scanResultId.textContent = guest?.id || 'WEDEN-260814000';
     if (el.scanResultAnimal) el.scanResultAnimal.textContent = guest?.animal || 'UNKNOWN';
     if (el.scanResultSkill) el.scanResultSkill.textContent = skill.toFixed(1);
     if (el.scanResultBar) el.scanResultBar.style.width = `${skill * 100}%`;
@@ -1424,21 +1547,10 @@ async function openGuestScanner() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initIcons();
     updateSkillDisplay(0.5);
-
-    const saved = localStorage.getItem('eden_guest');
-    const savedQr = localStorage.getItem('eden_qr');
-    if (saved && savedQr) {
-        try {
-            renderIdCard(JSON.parse(saved), savedQr);
-        } catch (error) {
-            console.error('restore identity error:', error);
-            localStorage.removeItem('eden_guest');
-            localStorage.removeItem('eden_qr');
-        }
-    }
+    await initializeLineSession();
 });
 </script>
 
