@@ -25,17 +25,30 @@ test('allocates consecutive unique serials', () => {
     assert.notEqual(second.id, first.id);
 });
 
-test('respects registrationOpen and maxGuests', () => {
+test('respects registrationOpen', () => {
     assert.throws(
         () => allocateIdentity({ config: { registrationOpen: false } }, 'line_user_a'),
         /未開放/
     );
+});
 
-    const registry = {
-        config: { registrationOpen: true, maxGuests: 1 },
-        nextNumber: 2,
-        byUid: { line_user_a: 'WEDEN-260814001' },
-        reservations: { 'WEDEN-260814001': { uid: 'line_user_a', number: 1 } }
-    };
-    assert.throws(() => allocateIdentity(registry, 'line_user_b'), /名額已滿/);
+test('continues allocating beyond 45 guests', () => {
+    const reservations = {};
+    const byUid = {};
+    for (let number = 1; number <= 45; number += 1) {
+        const id = `WEDEN-260814${String(number).padStart(3, '0')}`;
+        reservations[id] = { uid: `line_user_${number}`, number };
+        byUid[`line_user_${number}`] = id;
+    }
+
+    const result = allocateIdentity({
+        config: { registrationOpen: true, maxGuests: 45 },
+        nextNumber: 46,
+        byUid,
+        reservations
+    }, 'line_user_46');
+
+    assert.equal(result.id, 'WEDEN-260814046');
+    assert.equal(result.registry.nextNumber, 47);
+    assert.equal('maxGuests' in result.registry.config, false);
 });
