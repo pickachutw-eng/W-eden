@@ -1,7 +1,6 @@
 'use strict';
 
 const SERIAL_PREFIX = 'WEDEN-260814';
-const DEFAULT_MAX_GUESTS = 45;
 
 class AllocationError extends Error {
     constructor(code, message) {
@@ -23,8 +22,7 @@ function allocateIdentity(currentRegistry, uid) {
         ? currentRegistry
         : {};
     const config = {
-        registrationOpen: current.config?.registrationOpen !== false,
-        maxGuests: normalizePositiveInteger(current.config?.maxGuests, DEFAULT_MAX_GUESTS)
+        registrationOpen: current.config?.registrationOpen !== false
     };
     const byUid = { ...(current.byUid || {}) };
     const reservations = { ...(current.reservations || {}) };
@@ -46,10 +44,6 @@ function allocateIdentity(currentRegistry, uid) {
     while (reservations[id]) {
         nextNumber += 1;
         id = `${SERIAL_PREFIX}${String(nextNumber).padStart(3, '0')}`;
-    }
-
-    if (nextNumber > config.maxGuests) {
-        throw new AllocationError('resource-exhausted', '基地身分名額已滿。');
     }
 
     byUid[uid] = id;
@@ -74,7 +68,6 @@ function allocateIdentity(currentRegistry, uid) {
 
 module.exports = {
     AllocationError,
-    DEFAULT_MAX_GUESTS,
     SERIAL_PREFIX,
     allocateIdentity
 };
