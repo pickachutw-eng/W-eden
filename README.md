@@ -44,13 +44,9 @@ firebase deploy --only functions,database
 
 ```text
 identityRegistry/config/registrationOpen = true
-identityRegistry/config/maxGuests = 45
 ```
 
-管理者可在 Firebase Console 修改這兩個值：
-
-- `registrationOpen = false`：停止建立新身分，既有使用者仍可登入。
-- `maxGuests`：流水號上限；預設 45。
+管理者可在 Firebase Console 將 `registrationOpen` 設為 `false`，停止建立新身分；既有使用者仍可登入。註冊人數不設上限，流水號會依建立順序持續遞增。
 
 ## 本機檢查
 
