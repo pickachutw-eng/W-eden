@@ -59,7 +59,7 @@ jobs:
         run: printf '%s\n' 'LINE_CHANNEL_ID=2010878499' > functions/.env.w-eden
 
       - name: Deploy Cloud Functions
-        run: npx --yes firebase-tools@latest deploy --only functions --project w-eden --non-interactive
+        run: npx --yes firebase-tools@latest deploy --only functions --project w-eden --non-interactive --force
 
       - name: Report deployment result
         if: always()
