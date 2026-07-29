@@ -2,9 +2,9 @@ name: Deploy Firebase Functions
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     branches:
-      - agent/line-login-auto-serial
+      - main
     paths:
       - ".github/workflows/firebase-functions-deploy.yml"
       - "functions/**"
@@ -20,8 +20,8 @@ concurrency:
 
 jobs:
   deploy:
-    # Repository setup must explicitly enable production deployment.
-    if: ${{ vars.ENABLE_FIREBASE_DEPLOY == 'true' }}
+    # Initial deployment is restricted to the owner-controlled login branch.
+    if: ${{ vars.ENABLE_FIREBASE_DEPLOY == 'true' && (github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/line-login-auto-serial') }}
     runs-on: ubuntu-latest
     environment: firebase-production
 
