@@ -18,7 +18,7 @@ W-EDEN 活動網站以 GitHub Pages 提供前端，並以 LINE Login、LIFF、Fi
 1. 建立 LINE Login Channel。
 2. 建立 LIFF App，Endpoint URL 設為 GitHub Pages 正式網址。
 3. Scope 至少勾選 `openid` 與 `profile`。
-4. 將 LIFF ID 寫入 [`app-config.js`](./app-config.js) 的 `liffId`。
+4. 本專案的 LIFF ID 已寫入 [`app-config.js`](./app-config.js)：`2010878499-ibrTU601`。
 
 LIFF ID 與 Channel ID 可以公開；Channel Secret 不可寫進倉庫。本實作驗證 ID Token 不需要 Channel Secret。
 
@@ -36,7 +36,7 @@ firebase use w-eden
 firebase deploy --only functions,database
 ```
 
-第一次部署時，Firebase CLI 會要求提供 `LINE_CHANNEL_ID`；請填入 LINE Login Channel 的 Channel ID。此參數保存在 Firebase 環境，不會提交到 GitHub。
+LINE Login Channel ID `2010878499` 已設為 Functions 參數的非機密預設值，部署時不需再次輸入。Channel Secret 未使用，也不得提交到 GitHub。
 
 ### 3. 註冊控制
 
