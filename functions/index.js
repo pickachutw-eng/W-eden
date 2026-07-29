@@ -11,7 +11,7 @@ const { AllocationError, allocateIdentity } = require('./identity-registry');
 initializeApp();
 setGlobalOptions({ region: 'asia-east1', maxInstances: 10 });
 
-const LINE_CHANNEL_ID = defineString('LINE_CHANNEL_ID');
+const LINE_CHANNEL_ID = defineString('LINE_CHANNEL_ID', { default: '2010878499' });
 
 function requireText(value, fieldName, maxLength) {
     const text = String(value || '').trim();
