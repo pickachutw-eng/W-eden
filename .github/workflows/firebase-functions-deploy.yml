@@ -55,6 +55,9 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_W_EDEN }}
           project_id: w-eden
 
+      - name: Prepare public function parameters
+        run: printf '%s\n' 'LINE_CHANNEL_ID=2010878499' > functions/.env.w-eden
+
       - name: Deploy Cloud Functions
         run: npx --yes firebase-tools@latest deploy --only functions --project w-eden --non-interactive
 
