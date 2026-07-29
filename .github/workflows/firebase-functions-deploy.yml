@@ -2,9 +2,9 @@ name: Deploy Firebase Functions
 
 on:
   workflow_dispatch:
-  pull_request:
+  push:
     branches:
-      - main
+      - agent/line-login-auto-serial
     paths:
       - ".github/workflows/firebase-functions-deploy.yml"
       - "functions/**"
@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: firebase-functions-w-eden
@@ -20,12 +21,18 @@ concurrency:
 
 jobs:
   deploy:
-    # Initial deployment is restricted to the owner-controlled login branch.
-    if: ${{ vars.ENABLE_FIREBASE_DEPLOY == 'true' && (github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/line-login-auto-serial') }}
     runs-on: ubuntu-latest
     environment: firebase-production
 
     steps:
+      - name: Check deployment configuration
+        env:
+          ENABLE_FIREBASE_DEPLOY: ${{ vars.ENABLE_FIREBASE_DEPLOY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_W_EDEN }}
+        run: |
+          test "$ENABLE_FIREBASE_DEPLOY" = "true"
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+
       - name: Check out repository
         uses: actions/checkout@v6
 
@@ -50,3 +57,34 @@ jobs:
 
       - name: Deploy Cloud Functions
         run: npx --yes firebase-tools@latest deploy --only functions --project w-eden --non-interactive
+
+      - name: Report deployment result
+        if: always()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const succeeded = '${{ job.status }}' === 'success';
+            const marker = '<!-- firebase-functions-deploy-result -->';
+            const body = `${marker}\n${succeeded ? '✅' : '❌'} Firebase Functions deployment ${succeeded ? 'succeeded' : 'failed'} for commit \`${context.sha.slice(0, 7)}\`.\n\n[View GitHub Actions run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: 1,
+              per_page: 100
+            });
+            const previous = comments.find(comment => comment.user?.type === 'Bot' && comment.body?.includes(marker));
+            if (previous) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: previous.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: 1,
+                body
+              });
+            }
