@@ -1,0 +1,51 @@
+name: Deploy Firebase Functions
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/line-login-auto-serial
+    paths:
+      - ".github/workflows/firebase-functions-deploy.yml"
+      - "functions/**"
+      - "firebase.json"
+      - ".firebaserc"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-functions-w-eden
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ vars.ENABLE_FIREBASE_DEPLOY == 'true' }}
+    runs-on: ubuntu-latest
+    environment: firebase-production
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefix functions
+
+      - name: Run tests
+        run: npm test --prefix functions
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_W_EDEN }}
+          project_id: w-eden
+
+      - name: Deploy Cloud Functions
+        run: npx --yes firebase-tools@latest deploy --only functions --project w-eden --non-interactive
