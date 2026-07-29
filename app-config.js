@@ -1,4 +1,4 @@
 window.WEDEN_CONFIG = Object.freeze({
-    liffId: 'REPLACE_WITH_LIFF_ID',
+    liffId: '2010878499-ibrTU601',
     functionsRegion: 'asia-east1'
 });
