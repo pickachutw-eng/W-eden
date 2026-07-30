@@ -1520,6 +1520,8 @@ function isLiffConfigured() {
 const LINE_INIT_TIMEOUT_MS = 15000;
 const LINE_STEP_TIMEOUT_MS = 20000;
 const LINE_PROFILE_TIMEOUT_MS = 8000;
+const LINE_REAUTH_GUARD_KEY = 'weden_line_reauth_in_progress';
+const LINE_TOKEN_EXPIRY_SKEW_SECONDS = 30;
 const LINE_CALLBACK_PARAMS = [
     'code',
     'state',
@@ -1531,6 +1533,34 @@ const LINE_CALLBACK_PARAMS = [
     'liff.state',
     'liff.referrer'
 ];
+
+function isLineCredentialError(error) {
+    const code = String(error?.code || '').toLowerCase();
+    const message = String(error?.message || '');
+    return code.includes('unauthenticated')
+        || message.includes('LINE 登入憑證無效或已過期');
+}
+
+function isLineIdTokenExpired() {
+    const payload = liff.getDecodedIDToken?.();
+    const expiresAt = Number(payload?.exp || 0);
+    if (!expiresAt) return false;
+    return expiresAt <= Math.floor(Date.now() / 1000) + LINE_TOKEN_EXPIRY_SKEW_SECONDS;
+}
+
+async function resetInvalidLineSession() {
+    if (sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) === '1') return false;
+
+    sessionStorage.setItem(LINE_REAUTH_GUARD_KEY, '1');
+    await auth.signOut().catch(() => {});
+    if (window.liff?.isLoggedIn?.()) {
+        liff.logout();
+    }
+
+    window.location.replace(getLineRedirectUri());
+    await new Promise(() => {});
+    return true;
+}
 
 function withLineTimeout(promise, timeoutMs, message) {
     let timer;
@@ -1653,6 +1683,9 @@ async function exchangeLineIdentity() {
     if (!idToken) {
         throw new Error('LINE 未提供 ID Token，請確認 LIFF 已啟用 openid scope。');
     }
+    if (isLineIdTokenExpired()) {
+        throw new Error('LINE 登入憑證無效或已過期。');
+    }
 
     const profilePromise = withLineTimeout(
         liff.getProfile(),
@@ -1679,6 +1712,7 @@ async function exchangeLineIdentity() {
         LINE_STEP_TIMEOUT_MS,
         '基地身分同步逾時，請再試一次。'
     );
+    sessionStorage.removeItem(LINE_REAUTH_GUARD_KEY);
 }
 
 
@@ -1698,6 +1732,9 @@ async function initializeLineSession() {
         await ensureLiffInitialized();
         if (!liff.isLoggedIn()) {
             el.lineLoginBtn?.classList.remove('hidden');
+            if (sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) === '1') {
+                showAuthMessage('info', '已清除失效的 LINE 登入狀態，請重新按一次「使用 LINE 登入」。');
+            }
             return;
         }
 
@@ -1706,6 +1743,10 @@ async function initializeLineSession() {
         await exchangeLineIdentity();
     } catch (error) {
         console.error('initializeLineSession error:', error);
+        if (isLineCredentialError(error) && sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) !== '1') {
+            await resetInvalidLineSession();
+            return;
+        }
         el.lineLoginBtn?.classList.remove('hidden');
         showAuthMessage('error', error?.message || 'LINE 登入失敗，請稍後再試。');
     } finally {
@@ -1728,6 +1769,10 @@ async function startLineLogin() {
         await exchangeLineIdentity();
     } catch (error) {
         console.error('startLineLogin error:', error);
+        if (isLineCredentialError(error) && sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) !== '1') {
+            await resetInvalidLineSession();
+            return;
+        }
         el.lineLoginBtn?.classList.remove('hidden');
         showAuthMessage('error', error?.message || 'LINE 登入失敗，請稍後再試。');
     } finally {
