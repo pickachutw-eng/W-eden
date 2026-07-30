@@ -1081,7 +1081,9 @@ const LINE_CALLBACK_PARAMS = [
     'error',
     'error_description',
     'liffClientId',
-    'liffRedirectUri'
+    'liffRedirectUri',
+    'liff.state',
+    'liff.referrer'
 ];
 
 function withLineTimeout(promise, timeoutMs, message) {
@@ -1110,7 +1112,9 @@ function clearLineCallbackParams() {
     const url = new URL(window.location.href);
     let changed = false;
     LINE_CALLBACK_PARAMS.forEach((key) => {
-        if (url.searchParams.delete(key)) changed = true;
+        if (!url.searchParams.has(key)) return;
+        url.searchParams.delete(key);
+        changed = true;
     });
     if (!changed) return;
     const cleanPath = url.pathname + (url.search ? url.search : '') + (url.hash ? url.hash : '');
