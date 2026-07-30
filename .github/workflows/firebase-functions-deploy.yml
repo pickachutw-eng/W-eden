@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - agent/line-login-auto-serial
+      - agent/best-costume-voting
     paths:
       - ".github/workflows/firebase-functions-deploy.yml"
       - "functions/**"
@@ -67,12 +67,25 @@ jobs:
         with:
           script: |
             const succeeded = '${{ job.status }}' === 'success';
+            const branch = context.ref.replace('refs/heads/', '');
+            const pulls = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              state: 'open',
+              per_page: 100
+            });
+            if (!pulls.length) {
+              core.info(`No open pull request found for ${branch}; skipping PR comment.`);
+              return;
+            }
+            const issueNumber = pulls[0].number;
             const marker = '<!-- firebase-functions-deploy-result -->';
             const body = `${marker}\n${succeeded ? '✅' : '❌'} Firebase Functions deployment ${succeeded ? 'succeeded' : 'failed'} for commit \`${context.sha.slice(0, 7)}\`.\n\n[View GitHub Actions run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: 1,
+              issue_number: issueNumber,
               per_page: 100
             });
             const previous = comments.find(comment => comment.user?.type === 'Bot' && comment.body?.includes(marker));
@@ -87,7 +100,7 @@ jobs:
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: 1,
+                issue_number: issueNumber,
                 body
               });
             }
