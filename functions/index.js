@@ -7,11 +7,18 @@ const { defineString } = require('firebase-functions/params');
 const { HttpsError, onCall } = require('firebase-functions/v2/https');
 const { setGlobalOptions } = require('firebase-functions/v2/options');
 const { AllocationError, allocateIdentity } = require('./identity-registry');
+const {
+    VOTING_OPENS_AT,
+    VOTING_CLOSES_AT,
+    buildLeaderboard,
+    getVotingPhase
+} = require('./costume-voting');
 
 initializeApp();
 setGlobalOptions({ region: 'asia-east1', maxInstances: 10 });
 
 const LINE_CHANNEL_ID = defineString('LINE_CHANNEL_ID', { default: '2010878499' });
+const DEFAULT_SECTOR_ID = 'sec-forest';
 
 function requireText(value, fieldName, maxLength) {
     const text = String(value || '').trim();
@@ -38,6 +45,14 @@ function normalizeSkill(value) {
     return Math.round(skill * 10) / 10;
 }
 
+function normalizeIdentityId(value, fieldName) {
+    const id = requireText(value, fieldName, 40);
+    if (!/^WEDEN-260814\d{3,}$/.test(id)) {
+        throw new HttpsError('invalid-argument', `${fieldName}格式無效。`);
+    }
+    return id;
+}
+
 async function verifyLineIdToken(idToken) {
     const params = new URLSearchParams({
         id_token: idToken,
@@ -59,6 +74,58 @@ async function verifyLineIdToken(idToken) {
         throw new HttpsError('unauthenticated', 'LINE 登入憑證無效或已過期。');
     }
     return result;
+}
+
+async function getIdentityIdForUid(db, uid) {
+    const bindingSnapshot = await db.ref(`lineBindings/${uid}`).get();
+    if (bindingSnapshot.exists()) return bindingSnapshot.val();
+    const registrySnapshot = await db.ref(`identityRegistry/byUid/${uid}`).get();
+    return registrySnapshot.val() || null;
+}
+
+async function ensureDefaultSector(db, identity) {
+    if (!identity?.id || identity.currentSector) return identity;
+
+    const assignedAt = Date.now();
+    const updatedIdentity = {
+        ...identity,
+        currentSector: DEFAULT_SECTOR_ID,
+        currentSectorUpdatedAt: assignedAt
+    };
+    await db.ref().update({
+        [`users/${identity.id}/currentSector`]: DEFAULT_SECTOR_ID,
+        [`users/${identity.id}/currentSectorUpdatedAt`]: assignedAt,
+        [`sectorOccupancy/${DEFAULT_SECTOR_ID}/${identity.id}`]: {
+            id: identity.id,
+            name: identity.name || '',
+            animal: identity.animal || '',
+            timestamp: assignedAt
+        }
+    });
+    return updatedIdentity;
+}
+
+async function buildVotingState(db, voterId, now = Date.now()) {
+    const [votesSnapshot, usersSnapshot] = await Promise.all([
+        db.ref('costumeVoting/votesByVoter').get(),
+        db.ref('users').get()
+    ]);
+    const votesByVoter = votesSnapshot.val() || {};
+    const users = usersSnapshot.val() || {};
+    const phase = getVotingPhase(now);
+    const ranking = phase === 'upcoming'
+        ? { totalVotes: 0, leaderboard: [] }
+        : buildLeaderboard(votesByVoter, users);
+
+    return {
+        phase,
+        opensAt: VOTING_OPENS_AT,
+        closesAt: VOTING_CLOSES_AT,
+        serverTime: now,
+        totalVotes: ranking.totalVotes,
+        leaderboard: ranking.leaderboard,
+        currentVoteCandidateId: votesByVoter[voterId]?.candidateId || null
+    };
 }
 
 exports.lineLogin = onCall({ cors: true }, async (request) => {
@@ -83,15 +150,12 @@ exports.getMyIdentity = onCall({ cors: true }, async (request) => {
 
     const db = getDatabase();
     const uid = request.auth.uid;
-    const bindingSnapshot = await db.ref(`lineBindings/${uid}`).get();
-    const registrySnapshot = bindingSnapshot.exists()
-        ? null
-        : await db.ref(`identityRegistry/byUid/${uid}`).get();
-    const id = bindingSnapshot.val() || registrySnapshot?.val();
+    const id = await getIdentityIdForUid(db, uid);
     if (!id) return { identity: null };
 
     const identitySnapshot = await db.ref(`users/${id}`).get();
-    return { identity: identitySnapshot.val() || null };
+    const identity = await ensureDefaultSector(db, identitySnapshot.val() || null);
+    return { identity };
 });
 
 exports.saveIdentity = onCall({ cors: true }, async (request) => {
@@ -130,19 +194,79 @@ exports.saveIdentity = onCall({ cors: true }, async (request) => {
     const id = allocation.id;
     const existingSnapshot = await db.ref(`users/${id}`).get();
     const existing = existingSnapshot.val() || {};
+    const currentSector = existing.currentSector || DEFAULT_SECTOR_ID;
+    const sectorUpdatedAt = existing.currentSectorUpdatedAt || Date.now();
     const identity = {
         id,
         ...profile,
         timestamp: existing.timestamp || Date.now(),
-        currentSector: existing.currentSector || null,
-        currentSectorUpdatedAt: existing.currentSectorUpdatedAt || null,
+        currentSector,
+        currentSectorUpdatedAt: sectorUpdatedAt,
         updatedAt: Date.now()
     };
 
     await db.ref().update({
         [`lineBindings/${uid}`]: id,
-        [`users/${id}`]: identity
+        [`users/${id}`]: identity,
+        [`sectorOccupancy/${currentSector}/${id}`]: {
+            id,
+            name: identity.name,
+            animal: identity.animal,
+            timestamp: sectorUpdatedAt
+        }
     });
 
     return { identity, created: allocation.created };
+});
+
+exports.getCostumeVotingState = onCall({ cors: true }, async (request) => {
+    if (!request.auth?.uid) throw new HttpsError('unauthenticated', '請先使用 LINE 登入。');
+
+    const db = getDatabase();
+    const voterId = await getIdentityIdForUid(db, request.auth.uid);
+    if (!voterId) throw new HttpsError('failed-precondition', '請先建立 W-EDEN 身分。');
+
+    return buildVotingState(db, voterId);
+});
+
+exports.castCostumeVote = onCall({ cors: true }, async (request) => {
+    if (!request.auth?.uid) throw new HttpsError('unauthenticated', '請先使用 LINE 登入。');
+
+    const now = Date.now();
+    const phase = getVotingPhase(now);
+    if (phase === 'upcoming') {
+        throw new HttpsError('failed-precondition', '最佳服裝投票將於 20:30 開放。');
+    }
+    if (phase === 'closed') {
+        throw new HttpsError('failed-precondition', '最佳服裝投票已於 22:15 結束。');
+    }
+
+    const candidateId = normalizeIdentityId(request.data?.candidateId, '候選人');
+    const db = getDatabase();
+    const voterId = await getIdentityIdForUid(db, request.auth.uid);
+    if (!voterId) throw new HttpsError('failed-precondition', '請先建立 W-EDEN 身分。');
+    if (candidateId === voterId) {
+        throw new HttpsError('invalid-argument', '不能投票給自己。');
+    }
+
+    const [voterSnapshot, candidateSnapshot] = await Promise.all([
+        db.ref(`users/${voterId}`).get(),
+        db.ref(`users/${candidateId}`).get()
+    ]);
+    if (!voterSnapshot.exists()) throw new HttpsError('failed-precondition', '找不到你的 W-EDEN 身分。');
+    if (!candidateSnapshot.exists()) throw new HttpsError('not-found', '找不到這位冒險者。');
+
+    const voteRef = db.ref(`costumeVoting/votesByVoter/${voterId}`);
+    const previousSnapshot = await voteRef.get();
+    const previousCandidateId = previousSnapshot.val()?.candidateId || null;
+    await voteRef.set({
+        candidateId,
+        updatedAt: now
+    });
+
+    return {
+        ...(await buildVotingState(db, voterId, now)),
+        previousCandidateId,
+        changed: Boolean(previousCandidateId && previousCandidateId !== candidateId)
+    };
 });
