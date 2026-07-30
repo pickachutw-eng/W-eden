@@ -1070,6 +1070,107 @@ function isLiffConfigured() {
     return liffId && !liffId.includes('REPLACE_');
 }
 
+
+const LINE_INIT_TIMEOUT_MS = 15000;
+const LINE_STEP_TIMEOUT_MS = 20000;
+const LINE_PROFILE_TIMEOUT_MS = 8000;
+const LINE_REAUTH_GUARD_KEY = 'weden_line_reauth_in_progress';
+const LINE_TOKEN_EXPIRY_SKEW_SECONDS = 30;
+const LINE_CALLBACK_PARAMS = [
+    'code',
+    'state',
+    'friendship_status_changed',
+    'error',
+    'error_description',
+    'liffClientId',
+    'liffRedirectUri',
+    'liff.state',
+    'liff.referrer'
+];
+
+function isLineCredentialError(error) {
+    const code = String(error?.code || '').toLowerCase();
+    const message = String(error?.message || '');
+    return code.includes('unauthenticated')
+        || message.includes('LINE 登入憑證無效或已過期');
+}
+
+function isLineIdTokenExpired() {
+    const payload = liff.getDecodedIDToken?.();
+    const expiresAt = Number(payload?.exp || 0);
+    if (!expiresAt) return false;
+    return expiresAt <= Math.floor(Date.now() / 1000) + LINE_TOKEN_EXPIRY_SKEW_SECONDS;
+}
+
+async function resetInvalidLineSession() {
+    if (sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) === '1') return false;
+
+    sessionStorage.setItem(LINE_REAUTH_GUARD_KEY, '1');
+    await auth.signOut().catch(() => {});
+    if (window.liff?.isLoggedIn?.()) {
+        liff.logout();
+    }
+
+    window.location.replace(getLineRedirectUri());
+    await new Promise(() => {});
+    return true;
+}
+
+function withLineTimeout(promise, timeoutMs, message) {
+    let timer;
+    return Promise.race([
+        Promise.resolve(promise),
+        new Promise((_, reject) => {
+            timer = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+        })
+    ]).finally(() => window.clearTimeout(timer));
+}
+
+function getLineRedirectUri() {
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.hash = '';
+    return url.toString();
+}
+
+function hasLineCallbackParams() {
+    const params = new URL(window.location.href).searchParams;
+    return LINE_CALLBACK_PARAMS.some((key) => params.has(key));
+}
+
+function clearLineCallbackParams() {
+    const url = new URL(window.location.href);
+    let changed = false;
+    LINE_CALLBACK_PARAMS.forEach((key) => {
+        if (!url.searchParams.has(key)) return;
+        url.searchParams.delete(key);
+        changed = true;
+    });
+    if (!changed) return;
+    const cleanPath = url.pathname + (url.search ? url.search : '') + (url.hash ? url.hash : '');
+    window.history.replaceState({}, document.title, cleanPath);
+}
+
+async function ensureLiffInitialized() {
+    if (liffInitialized) return;
+
+    try {
+        await withLineTimeout(
+            liff.init({ liffId: window.WEDEN_CONFIG.liffId }),
+            LINE_INIT_TIMEOUT_MS,
+            'LINE 登入初始化逾時，請重新整理後再試。'
+        );
+        liffInitialized = true;
+        clearLineCallbackParams();
+    } catch (error) {
+        if (hasLineCallbackParams()) {
+            window.location.replace(getLineRedirectUri());
+            await new Promise(() => {});
+        }
+        throw error;
+    }
+}
+
 function renderLineProfile(profile) {
     const el = getIdentityElements();
     currentLineProfile = profile || null;
@@ -1129,23 +1230,44 @@ async function restoreIdentityFromServer() {
     return identity;
 }
 
+
 async function exchangeLineIdentity() {
     const idToken = liff.getIDToken();
     if (!idToken) {
         throw new Error('LINE 未提供 ID Token，請確認 LIFF 已啟用 openid scope。');
     }
+    if (isLineIdTokenExpired()) {
+        throw new Error('LINE 登入憑證無效或已過期。');
+    }
 
-    const [loginResult, profileResult] = await Promise.all([
+    const profilePromise = withLineTimeout(
+        liff.getProfile(),
+        LINE_PROFILE_TIMEOUT_MS,
+        'LINE 個人資料讀取逾時。'
+    ).catch(() => null);
+    const loginResult = await withLineTimeout(
         lineLoginCallable({ idToken }),
-        liff.getProfile().catch(() => null)
-    ]);
+        LINE_STEP_TIMEOUT_MS,
+        'LINE 身分驗證逾時，請再試一次。'
+    );
+    const profileResult = await profilePromise;
     const customToken = loginResult.data?.customToken;
     if (!customToken) throw new Error('LINE 登入驗證失敗，後端未回傳 Firebase token。');
 
-    await auth.signInWithCustomToken(customToken);
+    await withLineTimeout(
+        auth.signInWithCustomToken(customToken),
+        LINE_STEP_TIMEOUT_MS,
+        'Firebase 登入逾時，請再試一次。'
+    );
     renderLineProfile(profileResult || loginResult.data?.profile || null);
-    await restoreIdentityFromServer();
+    await withLineTimeout(
+        restoreIdentityFromServer(),
+        LINE_STEP_TIMEOUT_MS,
+        '基地身分同步逾時，請再試一次。'
+    );
+    sessionStorage.removeItem(LINE_REAUTH_GUARD_KEY);
 }
+
 
 async function initializeLineSession() {
     const el = getIdentityElements();
@@ -1160,12 +1282,12 @@ async function initializeLineSession() {
     }
 
     try {
-        if (!liffInitialized) {
-            await liff.init({ liffId: window.WEDEN_CONFIG.liffId });
-            liffInitialized = true;
-        }
+        await ensureLiffInitialized();
         if (!liff.isLoggedIn()) {
             el.lineLoginBtn?.classList.remove('hidden');
+            if (sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) === '1') {
+                showAuthMessage('info', '已清除失效的 LINE 登入狀態，請重新按一次「使用 LINE 登入」。');
+            }
             return;
         }
 
@@ -1174,27 +1296,37 @@ async function initializeLineSession() {
         await exchangeLineIdentity();
     } catch (error) {
         console.error('initializeLineSession error:', error);
+        if (isLineCredentialError(error) && sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) !== '1') {
+            await resetInvalidLineSession();
+            return;
+        }
+        el.lineLoginBtn?.classList.remove('hidden');
         showAuthMessage('error', error?.message || 'LINE 登入失敗，請稍後再試。');
     } finally {
         setButtonState(el.lineLoginBtn, false, '使用 LINE 登入', '同步中...');
     }
 }
 
+
 async function startLineLogin() {
     const el = getIdentityElements();
+    clearAuthMessage();
     try {
         setButtonState(el.lineLoginBtn, true, '使用 LINE 登入', '連線中...');
-        if (!liffInitialized) {
-            await liff.init({ liffId: window.WEDEN_CONFIG.liffId });
-            liffInitialized = true;
-        }
+        await ensureLiffInitialized();
         if (!liff.isLoggedIn()) {
-            liff.login({ redirectUri: window.location.href.split('#')[0] });
+            liff.login({ redirectUri: getLineRedirectUri() });
             return;
         }
+        showAuthMessage('info', '正在驗證 LINE 身分並同步基地檔案。');
         await exchangeLineIdentity();
     } catch (error) {
         console.error('startLineLogin error:', error);
+        if (isLineCredentialError(error) && sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) !== '1') {
+            await resetInvalidLineSession();
+            return;
+        }
+        el.lineLoginBtn?.classList.remove('hidden');
         showAuthMessage('error', error?.message || 'LINE 登入失敗，請稍後再試。');
     } finally {
         setButtonState(el.lineLoginBtn, false, '使用 LINE 登入', '連線中...');
