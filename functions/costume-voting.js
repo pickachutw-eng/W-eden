@@ -2,10 +2,18 @@
 
 const VOTING_OPENS_AT = Date.parse('2026-08-14T20:30:00+08:00');
 const VOTING_CLOSES_AT = Date.parse('2026-08-14T22:15:00+08:00');
+const TEST_VOTING_OPENS_AT = Date.parse('2026-07-31T11:30:00+08:00');
+const TEST_VOTING_CLOSES_AT = Date.parse('2026-08-02T23:59:00+08:00');
 
-function getVotingPhase(now = Date.now()) {
-    if (now < VOTING_OPENS_AT) return 'upcoming';
-    if (now < VOTING_CLOSES_AT) return 'open';
+function getVotingWindow(testMode = false) {
+    return testMode
+        ? { opensAt: TEST_VOTING_OPENS_AT, closesAt: TEST_VOTING_CLOSES_AT }
+        : { opensAt: VOTING_OPENS_AT, closesAt: VOTING_CLOSES_AT };
+}
+
+function getVotingPhase(now = Date.now(), window = getVotingWindow()) {
+    if (now < window.opensAt) return 'upcoming';
+    if (now < window.closesAt) return 'open';
     return 'closed';
 }
 
@@ -52,6 +60,9 @@ function buildLeaderboard(votesByVoter, users) {
 module.exports = {
     VOTING_OPENS_AT,
     VOTING_CLOSES_AT,
+    TEST_VOTING_OPENS_AT,
+    TEST_VOTING_CLOSES_AT,
     buildLeaderboard,
-    getVotingPhase
+    getVotingPhase,
+    getVotingWindow
 };

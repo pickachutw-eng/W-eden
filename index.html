@@ -1043,23 +1043,33 @@ function renderVotingState() {
 
     if (el.total) el.total.textContent = state.phase === 'upcoming' ? '—' : `${state.totalVotes} 人`;
     if (state.phase === 'upcoming') {
-        if (el.phaseLabel) el.phaseLabel.textContent = 'Voting Scheduled';
+        if (el.phaseLabel) el.phaseLabel.textContent = state.testMode ? 'Test Scheduled' : 'Voting Scheduled';
         if (el.panelTitle) el.panelTitle.textContent = '最佳服裝投票';
-        if (el.description) el.description.textContent = '2026/8/14 20:30 開放投票，22:15 截止。';
+        if (el.description) el.description.textContent = state.testMode
+            ? '這是測試環境，尚未進入測試時段。'
+            : '2026/8/14 20:30 開放投票，22:15 截止。';
         if (el.entryTitle) el.entryTitle.textContent = '最佳服裝投票';
-        if (el.entryMeta) el.entryMeta.textContent = '8/14 20:30 開放';
+        if (el.entryMeta) el.entryMeta.textContent = state.testMode ? '測試尚未開放' : '8/14 20:30 開放';
     } else if (state.phase === 'open') {
-        if (el.phaseLabel) el.phaseLabel.textContent = 'Live Voting';
-        if (el.panelTitle) el.panelTitle.textContent = '最佳服裝即時戰況';
-        if (el.description) el.description.textContent = '前五名依全部有效票計算；你可以在任一冒險者身分卡上投票或改票。';
-        if (el.entryTitle) el.entryTitle.textContent = '最佳服裝｜投票進行中';
-        if (el.entryMeta) el.entryMeta.textContent = `${state.totalVotes} 人已投票`;
+        if (el.phaseLabel) el.phaseLabel.textContent = state.testMode ? 'Test Voting' : 'Live Voting';
+        if (el.panelTitle) el.panelTitle.textContent = state.testMode ? '最佳服裝｜流程測試中' : '最佳服裝即時戰況';
+        if (el.description) el.description.textContent = state.testMode
+            ? '這是測試票，不會作為 8/14 正式結果；請測試首次投票與改票流程。'
+            : '前五名依全部有效票計算；你可以在任一冒險者身分卡上投票或改票。';
+        if (el.entryTitle) el.entryTitle.textContent = state.testMode ? '最佳服裝｜測試中' : '最佳服裝｜投票進行中';
+        if (el.entryMeta) el.entryMeta.textContent = state.testMode
+            ? `測試模式 · ${state.totalVotes} 人已投票`
+            : `${state.totalVotes} 人已投票`;
     } else {
-        if (el.phaseLabel) el.phaseLabel.textContent = 'Final Result';
-        if (el.panelTitle) el.panelTitle.textContent = '最佳服裝開票結果';
-        if (el.description) el.description.textContent = '投票已鎖定；並列者顯示相同名次。';
-        if (el.entryTitle) el.entryTitle.textContent = '最佳服裝｜開票結果';
-        if (el.entryMeta) el.entryMeta.textContent = `共 ${state.totalVotes} 人投票`;
+        if (el.phaseLabel) el.phaseLabel.textContent = state.testMode ? 'Test Result' : 'Final Result';
+        if (el.panelTitle) el.panelTitle.textContent = state.testMode ? '最佳服裝｜測試結果' : '最佳服裝開票結果';
+        if (el.description) el.description.textContent = state.testMode
+            ? '本輪測試票已鎖定；這不是 8/14 正式結果。'
+            : '投票已鎖定；並列者顯示相同名次。';
+        if (el.entryTitle) el.entryTitle.textContent = state.testMode ? '最佳服裝｜測試結果' : '最佳服裝｜開票結果';
+        if (el.entryMeta) el.entryMeta.textContent = state.testMode
+            ? `測試共 ${state.totalVotes} 人投票`
+            : `共 ${state.totalVotes} 人投票`;
     }
 
     updateVotingCountdown();

@@ -5,8 +5,11 @@ const assert = require('node:assert/strict');
 const {
     VOTING_OPENS_AT,
     VOTING_CLOSES_AT,
+    TEST_VOTING_OPENS_AT,
+    TEST_VOTING_CLOSES_AT,
     buildLeaderboard,
-    getVotingPhase
+    getVotingPhase,
+    getVotingWindow
 } = require('./costume-voting');
 
 const users = {
@@ -22,6 +25,16 @@ test('uses the Taipei event voting window', () => {
     assert.equal(getVotingPhase(VOTING_OPENS_AT), 'open');
     assert.equal(getVotingPhase(VOTING_CLOSES_AT - 1), 'open');
     assert.equal(getVotingPhase(VOTING_CLOSES_AT), 'closed');
+});
+
+test('uses a separate temporary window in test mode', () => {
+    const window = getVotingWindow(true);
+    assert.equal(window.opensAt, TEST_VOTING_OPENS_AT);
+    assert.equal(window.closesAt, TEST_VOTING_CLOSES_AT);
+    assert.equal(getVotingPhase(TEST_VOTING_OPENS_AT, window), 'open');
+    assert.equal(getVotingPhase(TEST_VOTING_CLOSES_AT, window), 'closed');
+    assert.equal(getVotingWindow(false).opensAt, VOTING_OPENS_AT);
+    assert.equal(getVotingWindow(false).closesAt, VOTING_CLOSES_AT);
 });
 
 test('builds percentages using all valid votes as the denominator', () => {

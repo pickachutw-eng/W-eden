@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - agent/best-costume-voting
     paths:
       - ".github/workflows/firebase-functions-deploy.yml"
       - "functions/**"
@@ -56,7 +57,13 @@ jobs:
           project_id: w-eden
 
       - name: Prepare public function parameters
-        run: printf '%s\n' 'LINE_CHANNEL_ID=2010878499' > functions/.env.w-eden
+        run: |
+          printf '%s\n' 'LINE_CHANNEL_ID=2010878499' > functions/.env.w-eden
+          if [ "$GITHUB_REF_NAME" = "agent/best-costume-voting" ]; then
+            printf '%s\n' 'COSTUME_VOTING_TEST_MODE=true' >> functions/.env.w-eden
+          else
+            printf '%s\n' 'COSTUME_VOTING_TEST_MODE=false' >> functions/.env.w-eden
+          fi
 
       - name: Deploy Cloud Functions
         run: npx --yes firebase-tools@latest deploy --only functions --project w-eden --non-interactive --force

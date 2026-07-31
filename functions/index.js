@@ -8,10 +8,9 @@ const { HttpsError, onCall } = require('firebase-functions/v2/https');
 const { setGlobalOptions } = require('firebase-functions/v2/options');
 const { AllocationError, allocateIdentity } = require('./identity-registry');
 const {
-    VOTING_OPENS_AT,
-    VOTING_CLOSES_AT,
     buildLeaderboard,
-    getVotingPhase
+    getVotingPhase,
+    getVotingWindow
 } = require('./costume-voting');
 
 initializeApp();
@@ -19,6 +18,8 @@ setGlobalOptions({ region: 'asia-east1', maxInstances: 10 });
 
 const LINE_CHANNEL_ID = defineString('LINE_CHANNEL_ID', { default: '2010878499' });
 const DEFAULT_SECTOR_ID = 'sec-forest';
+const VOTING_TEST_MODE = process.env.COSTUME_VOTING_TEST_MODE === 'true';
+const ACTIVE_VOTING_WINDOW = getVotingWindow(VOTING_TEST_MODE);
 
 function requireText(value, fieldName, maxLength) {
     const text = String(value || '').trim();
@@ -112,15 +113,16 @@ async function buildVotingState(db, voterId, now = Date.now()) {
     ]);
     const votesByVoter = votesSnapshot.val() || {};
     const users = usersSnapshot.val() || {};
-    const phase = getVotingPhase(now);
+    const phase = getVotingPhase(now, ACTIVE_VOTING_WINDOW);
     const ranking = phase === 'upcoming'
         ? { totalVotes: 0, leaderboard: [] }
         : buildLeaderboard(votesByVoter, users);
 
     return {
         phase,
-        opensAt: VOTING_OPENS_AT,
-        closesAt: VOTING_CLOSES_AT,
+        opensAt: ACTIVE_VOTING_WINDOW.opensAt,
+        closesAt: ACTIVE_VOTING_WINDOW.closesAt,
+        testMode: VOTING_TEST_MODE,
         serverTime: now,
         totalVotes: ranking.totalVotes,
         leaderboard: ranking.leaderboard,
@@ -233,12 +235,18 @@ exports.castCostumeVote = onCall({ cors: true }, async (request) => {
     if (!request.auth?.uid) throw new HttpsError('unauthenticated', '請先使用 LINE 登入。');
 
     const now = Date.now();
-    const phase = getVotingPhase(now);
+    const phase = getVotingPhase(now, ACTIVE_VOTING_WINDOW);
     if (phase === 'upcoming') {
-        throw new HttpsError('failed-precondition', '最佳服裝投票將於 20:30 開放。');
+        throw new HttpsError(
+            'failed-precondition',
+            VOTING_TEST_MODE ? '最佳服裝投票測試尚未開放。' : '最佳服裝投票將於 20:30 開放。'
+        );
     }
     if (phase === 'closed') {
-        throw new HttpsError('failed-precondition', '最佳服裝投票已於 22:15 結束。');
+        throw new HttpsError(
+            'failed-precondition',
+            VOTING_TEST_MODE ? '本輪最佳服裝投票測試已結束。' : '最佳服裝投票已於 22:15 結束。'
+        );
     }
 
     const candidateId = normalizeIdentityId(request.data?.candidateId, '候選人');
