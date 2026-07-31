@@ -936,6 +936,14 @@
     </div>
 </div>
 
+<div id="identity-sync-status" role="status" aria-live="polite" class="fixed bottom-24 left-1/2 z-[60] hidden w-[min(92vw,24rem)] -translate-x-1/2 rounded-2xl border border-fuchsia-400/25 bg-[#120d22]/95 p-4 shadow-[0_0_35px_rgba(217,70,239,0.18)] backdrop-blur-xl">
+    <div class="flex items-center gap-3">
+        <i data-lucide="loader-circle" class="h-4 w-4 shrink-0 animate-spin text-fuchsia-300"></i>
+        <p id="identity-sync-status-text" class="min-w-0 flex-1 text-xs leading-relaxed text-white/75">正在背景同步身分…</p>
+        <button id="identity-sync-retry" type="button" onclick="retryLineSession()" class="hidden shrink-0 rounded-xl border border-fuchsia-300/25 bg-fuchsia-500/15 px-3 py-2 text-[11px] font-bold text-fuchsia-100 transition-colors hover:bg-fuchsia-500/25">重新嘗試</button>
+    </div>
+</div>
+
 
     <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#090611]/80 backdrop-blur-2xl md:hidden">
         <div class="mx-auto grid grid-cols-5 px-2 py-3">
@@ -1601,8 +1609,13 @@ function isLiffConfigured() {
 const LINE_INIT_TIMEOUT_MS = 15000;
 const LINE_STEP_TIMEOUT_MS = 20000;
 const LINE_PROFILE_TIMEOUT_MS = 8000;
+const FIREBASE_SESSION_TIMEOUT_MS = 3000;
+const IDENTITY_SYNC_SLOW_MS = 7000;
+const LINE_RETRY_DELAY_MS = 700;
 const LINE_REAUTH_GUARD_KEY = 'weden_line_reauth_in_progress';
 const LINE_TOKEN_EXPIRY_SKEW_SECONDS = 30;
+let lineSessionPromise = null;
+let identitySyncSlowTimer = null;
 const LINE_CALLBACK_PARAMS = [
     'code',
     'state',
@@ -1653,6 +1666,74 @@ function withLineTimeout(promise, timeoutMs, message) {
     ]).finally(() => window.clearTimeout(timer));
 }
 
+function delay(milliseconds) {
+    return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+function isRetryableLineError(error) {
+    const code = String(error?.code || '').toLowerCase();
+    return !isLineCredentialError(error)
+        && !code.includes('invalid-argument')
+        && !code.includes('failed-precondition')
+        && !code.includes('permission-denied');
+}
+
+async function withLineRetry(task) {
+    try {
+        return await task();
+    } catch (error) {
+        if (!isRetryableLineError(error)) throw error;
+        await delay(LINE_RETRY_DELAY_MS);
+        return task();
+    }
+}
+
+function setIdentitySyncStatus(text, options = {}) {
+    const status = document.getElementById('identity-sync-status');
+    const statusText = document.getElementById('identity-sync-status-text');
+    const retry = document.getElementById('identity-sync-retry');
+    const icon = status?.querySelector('[data-lucide]');
+    if (!status || !statusText || !retry) return;
+
+    statusText.textContent = text;
+    retry.classList.toggle('hidden', !options.retry);
+    icon?.classList.toggle('animate-spin', !options.retry);
+    if (icon) icon.setAttribute('data-lucide', options.retry ? 'triangle-alert' : 'loader-circle');
+    status.classList.remove('hidden');
+    initIcons();
+}
+
+function beginIdentitySyncStatus() {
+    window.clearTimeout(identitySyncSlowTimer);
+    identitySyncSlowTimer = window.setTimeout(() => {
+        setIdentitySyncStatus('身分同步比平常久，網站仍可繼續瀏覽。系統正在自動重試。');
+    }, IDENTITY_SYNC_SLOW_MS);
+}
+
+function hideIdentitySyncStatus() {
+    window.clearTimeout(identitySyncSlowTimer);
+    identitySyncSlowTimer = null;
+    document.getElementById('identity-sync-status')?.classList.add('hidden');
+}
+
+function waitForFirebaseSession() {
+    if (auth.currentUser) return Promise.resolve(auth.currentUser);
+
+    return new Promise((resolve) => {
+        let settled = false;
+        let unsubscribe = () => {};
+        const finish = (user) => {
+            if (settled) return;
+            settled = true;
+            window.clearTimeout(timer);
+            unsubscribe();
+            resolve(user || null);
+        };
+        const timer = window.setTimeout(() => finish(auth.currentUser), FIREBASE_SESSION_TIMEOUT_MS);
+        unsubscribe = auth.onAuthStateChanged(finish, () => finish(auth.currentUser));
+    });
+}
+
 function getLineRedirectUri() {
     const url = new URL(window.location.href);
     url.search = '';
@@ -1681,21 +1762,13 @@ function clearLineCallbackParams() {
 async function ensureLiffInitialized() {
     if (liffInitialized) return;
 
-    try {
-        await withLineTimeout(
-            liff.init({ liffId: window.WEDEN_CONFIG.liffId }),
-            LINE_INIT_TIMEOUT_MS,
-            'LINE 登入初始化逾時，請重新整理後再試。'
-        );
-        liffInitialized = true;
-        clearLineCallbackParams();
-    } catch (error) {
-        if (hasLineCallbackParams()) {
-            window.location.replace(getLineRedirectUri());
-            await new Promise(() => {});
-        }
-        throw error;
-    }
+    await withLineRetry(() => withLineTimeout(
+        liff.init({ liffId: window.WEDEN_CONFIG.liffId }),
+        LINE_INIT_TIMEOUT_MS,
+        'LINE 登入初始化逾時。'
+    ));
+    liffInitialized = true;
+    clearLineCallbackParams();
 }
 
 function renderLineProfile(profile) {
@@ -1776,69 +1849,107 @@ async function exchangeLineIdentity() {
         LINE_PROFILE_TIMEOUT_MS,
         'LINE 個人資料讀取逾時。'
     ).catch(() => null);
-    const loginResult = await withLineTimeout(
+    const loginResult = await withLineRetry(() => withLineTimeout(
         lineLoginCallable({ idToken }),
         LINE_STEP_TIMEOUT_MS,
-        'LINE 身分驗證逾時，請再試一次。'
-    );
+        'LINE 身分驗證逾時。'
+    ));
     const profileResult = await profilePromise;
     const customToken = loginResult.data?.customToken;
     if (!customToken) throw new Error('LINE 登入驗證失敗，後端未回傳 Firebase token。');
 
-    await withLineTimeout(
+    await withLineRetry(() => withLineTimeout(
         auth.signInWithCustomToken(customToken),
         LINE_STEP_TIMEOUT_MS,
-        'Firebase 登入逾時，請再試一次。'
-    );
+        'Firebase 登入逾時。'
+    ));
     renderLineProfile(profileResult || loginResult.data?.profile || null);
-    const identity = await withLineTimeout(
+    const identity = await withLineRetry(() => withLineTimeout(
         restoreIdentityFromServer(),
         LINE_STEP_TIMEOUT_MS,
-        '基地身分同步逾時，請再試一次。'
-    );
+        '基地身分同步逾時。'
+    ));
     sessionStorage.removeItem(LINE_REAUTH_GUARD_KEY);
     return identity;
 }
 
 
-async function initializeLineSession() {
+async function runLineSessionInitialization(options = {}) {
     const el = getIdentityElements();
-    if (!isLiffConfigured()) {
-        el.lineLoginBtn?.setAttribute('disabled', 'disabled');
-        showAuthMessage('error', '尚未設定 LIFF ID。請先完成 README 的 LINE Developers 與 Firebase 部署步驟。');
-        return { lineLoggedIn: false, identity: null };
-    }
-    if (!window.liff) {
-        showAuthMessage('error', 'LINE 登入模組載入失敗，請重新整理頁面。');
-        return { lineLoggedIn: false, identity: null };
-    }
-
+    beginIdentitySyncStatus();
     try {
+        if (!options.forceLineExchange) {
+            const existingUser = await waitForFirebaseSession();
+            if (existingUser) {
+                showAuthMessage('info', '正在取回已登入的基地身分。');
+                const identity = await withLineRetry(() => withLineTimeout(
+                    restoreIdentityFromServer(),
+                    LINE_STEP_TIMEOUT_MS,
+                    '基地身分同步逾時。'
+                ));
+                renderLineProfile(null);
+                sessionStorage.removeItem(LINE_REAUTH_GUARD_KEY);
+                hideIdentitySyncStatus();
+                return { lineLoggedIn: true, identity };
+            }
+        }
+
+        if (!isLiffConfigured()) {
+            el.lineLoginBtn?.setAttribute('disabled', 'disabled');
+            showAuthMessage('error', '尚未設定 LIFF ID。請先完成 README 的 LINE Developers 與 Firebase 部署步驟。');
+            setIdentitySyncStatus('LINE 登入尚未完成設定。', { retry: true });
+            return { lineLoggedIn: false, identity: null };
+        }
+        if (!window.liff) {
+            showAuthMessage('error', 'LINE 登入模組載入失敗，請稍後重新嘗試。');
+            setIdentitySyncStatus('LINE 登入模組載入失敗。', { retry: true });
+            return { lineLoggedIn: false, identity: null };
+        }
+
         await ensureLiffInitialized();
         if (!liff.isLoggedIn()) {
             el.lineLoginBtn?.classList.remove('hidden');
             if (sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) === '1') {
                 showAuthMessage('info', '已清除失效的 LINE 登入狀態，請重新按一次「使用 LINE 登入」。');
             }
+            hideIdentitySyncStatus();
             return { lineLoggedIn: false, identity: null };
         }
 
         setButtonState(el.lineLoginBtn, true, '使用 LINE 登入', '同步中...');
         showAuthMessage('info', '正在驗證 LINE 身分並同步基地檔案。');
         const identity = await exchangeLineIdentity();
+        hideIdentitySyncStatus();
         return { lineLoggedIn: true, identity };
     } catch (error) {
-        console.error('initializeLineSession error:', error);
+        console.error('runLineSessionInitialization error:', error);
         if (isLineCredentialError(error) && sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) !== '1') {
             await resetInvalidLineSession();
             return { lineLoggedIn: false, identity: null };
         }
         el.lineLoginBtn?.classList.remove('hidden');
-        showAuthMessage('error', error?.message || 'LINE 登入失敗，請稍後再試。');
+        const message = error?.message || 'LINE 登入失敗，請稍後再試。';
+        showAuthMessage('error', `${message} 可按「重新嘗試」，不必重新整理整個網頁。`);
+        setIdentitySyncStatus(message, { retry: true });
         return { lineLoggedIn: false, identity: null };
     } finally {
         setButtonState(el.lineLoginBtn, false, '使用 LINE 登入', '同步中...');
     }
+}
+
+function initializeLineSession(options = {}) {
+    if (lineSessionPromise) return lineSessionPromise;
+    lineSessionPromise = runLineSessionInitialization(options)
+        .finally(() => {
+            lineSessionPromise = null;
+        });
+    return lineSessionPromise;
+}
+
+function retryLineSession() {
+    clearAuthMessage();
+    setIdentitySyncStatus('正在重新同步 LINE 與基地身分…');
+    return initializeLineSession();
 }
 
 
@@ -1847,6 +1958,7 @@ async function startLineLogin() {
     clearAuthMessage();
     try {
         setButtonState(el.lineLoginBtn, true, '使用 LINE 登入', '連線中...');
+        beginIdentitySyncStatus();
         await ensureLiffInitialized();
         if (!liff.isLoggedIn()) {
             liff.login({ redirectUri: getLineRedirectUri() });
@@ -1854,6 +1966,7 @@ async function startLineLogin() {
         }
         showAuthMessage('info', '正在驗證 LINE 身分並同步基地檔案。');
         await exchangeLineIdentity();
+        hideIdentitySyncStatus();
     } catch (error) {
         console.error('startLineLogin error:', error);
         if (isLineCredentialError(error) && sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) !== '1') {
@@ -1861,7 +1974,9 @@ async function startLineLogin() {
             return;
         }
         el.lineLoginBtn?.classList.remove('hidden');
-        showAuthMessage('error', error?.message || 'LINE 登入失敗，請稍後再試。');
+        const message = error?.message || 'LINE 登入失敗，請稍後再試。';
+        showAuthMessage('error', `${message} 可按「重新嘗試」，不必重新整理整個網頁。`);
+        setIdentitySyncStatus(message, { retry: true });
     } finally {
         setButtonState(el.lineLoginBtn, false, '使用 LINE 登入', '連線中...');
     }
@@ -1930,26 +2045,25 @@ async function confirmAndGenerate() {
 }
 
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     initIcons();
     updateSkillDisplay(0.5);
     initializeIntroCarousel();
-    const session = await initializeLineSession();
-
-    if (session?.lineLoggedIn && session.identity?.id) {
-        jumpToBaseImmediately();
-        openIdentityCardModal(session.identity, {
-            greeting: `歡迎回來，${session.identity.name || '冒險者'}。基地已恢復你的身分。`
-        });
-    } else if (session?.lineLoggedIn) {
-        jumpToBaseImmediately();
-        openAuthModal();
-        showAuthMessage('success', '歡迎抵達伊甸星。完成身分資料後，基地將配發你的 WEDEN 流水號。');
-    } else {
-        setIntroSlide(0);
-    }
-
+    setIntroSlide(0);
     dismissEntryGate();
+
+    initializeLineSession().then((session) => {
+        if (session?.lineLoggedIn && session.identity?.id) {
+            jumpToBaseImmediately();
+            openIdentityCardModal(session.identity, {
+                greeting: `歡迎回來，${session.identity.name || '冒險者'}。基地已恢復你的身分。`
+            });
+        } else if (session?.lineLoggedIn) {
+            jumpToBaseImmediately();
+            openAuthModal();
+            showAuthMessage('success', '歡迎抵達伊甸星。完成身分資料後，基地將配發你的 WEDEN 流水號。');
+        }
+    });
 });
 </script>
 
