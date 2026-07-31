@@ -354,9 +354,37 @@
             -webkit-overflow-scrolling: touch;
         }
         @media (max-width: 1023px) {
+            #map {
+                height: auto;
+                overflow-x: hidden;
+            }
+
+            #map-container {
+                padding-inline: 1rem;
+            }
+
             #map-wrapper {
-                width: 177.78vh; 
-                max-width: none;
+                width: 100%;
+                max-width: 28rem;
+                height: auto;
+                margin-inline: auto;
+                aspect-ratio: 3 / 4;
+            }
+
+            #map-wrapper > button {
+                width: 22%;
+                height: auto;
+                min-height: 3rem;
+                padding: 0.45rem;
+            }
+
+            #map-wrapper > button > div:first-of-type {
+                margin-top: 0.25rem;
+                line-height: 1.15;
+            }
+
+            #map-wrapper > button > div:last-of-type {
+                display: none;
             }
         }
 
