@@ -20,6 +20,7 @@ const LINE_CHANNEL_ID = defineString('LINE_CHANNEL_ID', { default: '2010878499' 
 const DEFAULT_SECTOR_ID = 'sec-forest';
 const VOTING_TEST_MODE = process.env.COSTUME_VOTING_TEST_MODE === 'true';
 const ACTIVE_VOTING_WINDOW = getVotingWindow(VOTING_TEST_MODE);
+const VOTING_DATA_ROOT = VOTING_TEST_MODE ? 'costumeVotingTest' : 'costumeVoting';
 
 function requireText(value, fieldName, maxLength) {
     const text = String(value || '').trim();
@@ -108,7 +109,7 @@ async function ensureDefaultSector(db, identity) {
 
 async function buildVotingState(db, voterId, now = Date.now()) {
     const [votesSnapshot, usersSnapshot] = await Promise.all([
-        db.ref('costumeVoting/votesByVoter').get(),
+        db.ref(`${VOTING_DATA_ROOT}/votesByVoter`).get(),
         db.ref('users').get()
     ]);
     const votesByVoter = votesSnapshot.val() || {};
@@ -264,7 +265,7 @@ exports.castCostumeVote = onCall({ cors: true }, async (request) => {
     if (!voterSnapshot.exists()) throw new HttpsError('failed-precondition', '找不到你的 W-EDEN 身分。');
     if (!candidateSnapshot.exists()) throw new HttpsError('not-found', '找不到這位冒險者。');
 
-    const voteRef = db.ref(`costumeVoting/votesByVoter/${voterId}`);
+    const voteRef = db.ref(`${VOTING_DATA_ROOT}/votesByVoter/${voterId}`);
     const previousSnapshot = await voteRef.get();
     const previousCandidateId = previousSnapshot.val()?.candidateId || null;
     await voteRef.set({
