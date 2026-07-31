@@ -10,6 +10,16 @@ W-EDEN 活動網站以 GitHub Pages 提供前端，並以 LINE Login、LIFF、Fi
 4. 使用者填寫識別名稱、動物形態、Instagram 與能量光譜。
 5. `saveIdentity` 以 Realtime Database transaction 配發 `WEDEN-260814001` 起的流水號。
 6. 同一 LINE 帳號日後登入會取回原身分；流水號不重複、不回收。
+7. 新身分與尚未選擇區域的既有身分，登入後預設進駐「伊甸花園」。
+
+## 最佳服裝投票
+
+- 投票期間固定為 2026/8/14 20:30–22:15（Asia/Taipei），由 Cloud Functions 的伺服器時間判定。
+- 每個 W-EDEN 身分只有一張有效票，可改票、不可投自己。
+- 原始票存於 `costumeVoting/votesByVoter`，Realtime Database 規則不允許前端直接讀寫。
+- `getCostumeVotingState` 僅回傳本人目前選擇、已投總人數，以及前五名的公開身分與得票比例。
+- `castCostumeVote` 驗證 Firebase 登入身分、候選人與投票時段，再覆寫投票者唯一的一筆票。
+- 前五名以全部有效票為分母；同票顯示相同名次，截止後同一畫面鎖定為開票結果。
 
 ## 首次部署設定
 

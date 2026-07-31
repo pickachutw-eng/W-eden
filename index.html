@@ -661,6 +661,7 @@
     </div>
 </div>
 
+
     <div id="id-card-container" class="hidden max-w-sm mx-auto animate-map-deploy max-h-[78svh] overflow-y-auto no-scrollbar overscroll-contain px-1">
         <div id="id-card-greeting" class="mb-3 hidden rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-center">
             <div class="text-[9px] font-bold uppercase tracking-[0.28em] text-emerald-200/70">Identity Restored</div>
@@ -706,6 +707,17 @@
                 </div>
             </div>
 
+            <div id="identity-vote-actions" class="hidden rounded-2xl border border-fuchsia-400/20 bg-fuchsia-500/10 p-4">
+                <div class="mb-3 flex items-center gap-2">
+                    <i data-lucide="trophy" class="h-4 w-4 text-fuchsia-300"></i>
+                    <div class="text-[10px] font-black uppercase tracking-[0.25em] text-fuchsia-200">Best Costume</div>
+                </div>
+                <button id="identity-vote-btn" type="button" onclick="prepareCostumeVote()" class="w-full rounded-2xl bg-fuchsia-600 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-fuchsia-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
+                    投給這位冒險者
+                </button>
+                <p id="identity-vote-message" class="mt-3 text-center text-[10px] leading-relaxed text-white/45"></p>
+            </div>
+
             <div id="identity-owner-actions" class="mt-8 pt-6 border-t border-white/5 text-center">
     <button onclick="resetIdentity()" class="text-[10px] text-white/20 hover:text-fuchsia-400 uppercase tracking-[0.3em] transition-colors flex items-center justify-center gap-2 mx-auto">
         <i data-lucide="log-out" class="w-3 h-3"></i> 
@@ -718,9 +730,23 @@
 </section>
 
 <section id="map" class="scroll-mt-16 py-12 lg:py-16 h-[calc(100svh-64px)] lg:h-auto overflow-x-auto no-scrollbar relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
-    <div class="mb-10 lg:mb-10 px-4 lg:max-w-5xl lg:mx-auto">
-        <div class="text-[11px] tracking-[0.3em] text-fuchsia-400/80 uppercase font-bold">Base Map</div>
-        <h2 class="mt-2 text-3xl font-bold text-white">基地地圖</h2>
+    <div class="mb-10 px-4 lg:mx-auto lg:max-w-5xl">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <div class="text-[11px] tracking-[0.3em] text-fuchsia-400/80 uppercase font-bold">Base Map</div>
+                <h2 class="mt-2 text-3xl font-bold text-white">基地地圖</h2>
+            </div>
+            <button id="voting-status-entry" type="button" onclick="openVotingModal()" class="flex w-full items-center justify-between gap-4 rounded-2xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-4 py-3 text-left shadow-[0_0_20px_rgba(217,70,239,0.12)] transition-all hover:border-fuchsia-300/50 hover:bg-fuchsia-500/15 sm:w-auto sm:min-w-64">
+                <span class="flex items-center gap-3">
+                    <span class="rounded-xl bg-fuchsia-500/20 p-2 text-fuchsia-200"><i data-lucide="trophy" class="h-4 w-4"></i></span>
+                    <span>
+                        <span id="voting-entry-title" class="block text-xs font-black text-white">最佳服裝投票</span>
+                        <span id="voting-entry-meta" class="mt-1 block text-[10px] text-white/45">登入後查看投票狀態</span>
+                    </span>
+                </span>
+                <i data-lucide="chevron-right" class="h-4 w-4 shrink-0 text-fuchsia-300/60"></i>
+            </button>
+        </div>
     </div>
     
 <div id="map-container" class="lg:overflow-hidden lg:rounded-[32px] lg:border lg:border-white/10 lg:bg-white/5 lg:p-4 lg:shadow-[0_0_50px_rgba(192,132,252,0.15)] lg:backdrop-blur-sm lg:max-w-5xl lg:mx-auto animate-map-deploy">
@@ -911,6 +937,44 @@
 
     </main>
 
+<div id="voting-modal" class="fixed inset-0 z-[60] flex items-end justify-center p-0 opacity-0 pointer-events-none transition-all duration-300 sm:items-center sm:p-4">
+    <div onclick="closeVotingModal()" class="absolute inset-0 bg-black/85 backdrop-blur-xl"></div>
+    <div class="relative w-full max-w-lg max-h-[88svh] translate-y-6 overflow-hidden rounded-t-[32px] border border-white/15 bg-[#0d091a] shadow-[0_0_60px_rgba(217,70,239,0.25)] transition-all duration-300 sm:translate-y-0 sm:scale-95 sm:rounded-[32px]">
+        <button onclick="closeVotingModal()" class="absolute right-4 top-4 z-10 rounded-full bg-black/40 p-2 text-white/60 transition-colors hover:text-white" aria-label="關閉最佳服裝投票">
+            <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+        <div class="max-h-[88svh] overflow-y-auto p-6 no-scrollbar sm:p-8">
+            <div class="mb-6 pr-10">
+                <div id="voting-phase-label" class="text-[10px] font-black uppercase tracking-[0.35em] text-fuchsia-400">Best Costume</div>
+                <h2 id="voting-panel-title" class="mt-2 text-2xl font-black text-white">最佳服裝投票</h2>
+                <p id="voting-panel-description" class="mt-3 text-sm leading-relaxed text-white/55">登入後即可查看投票狀態。</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/35">Participation</div>
+                    <div id="voting-total" class="mt-2 text-xl font-black text-white">—</div>
+                    <div class="mt-1 text-[10px] text-white/35">已投總人數</div>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/35">Countdown</div>
+                    <div id="voting-countdown" class="mt-2 text-xl font-black text-fuchsia-200">—</div>
+                    <div id="voting-countdown-label" class="mt-1 text-[10px] text-white/35">距離開放</div>
+                </div>
+            </div>
+            <div id="voting-panel-message" class="mt-4 hidden rounded-2xl border px-4 py-3 text-sm leading-relaxed"></div>
+            <div class="mt-6">
+                <div class="mb-3 flex items-center justify-between">
+                    <div class="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">Top Five</div>
+                    <div class="text-[10px] text-white/30">以全部有效票為分母</div>
+                </div>
+                <div id="voting-leaderboard" class="space-y-3"></div>
+                <div id="voting-empty" class="rounded-2xl border border-dashed border-white/10 bg-black/20 px-4 py-6 text-center text-sm text-white/40">目前尚無排名資料。</div>
+            </div>
+            <p class="mt-6 text-center text-[10px] leading-relaxed text-white/30">每人一張有效票，可改票、不可投自己。前台不公開投票者名單。</p>
+        </div>
+    </div>
+</div>
+
 <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
     <div onclick="closeAuthModal()" class="absolute inset-0 bg-black/90 backdrop-blur-xl"></div>
     
@@ -929,6 +993,17 @@
                     <div class="grid grid-cols-2 gap-3">
                         <button type="button" onclick="closeResetConfirm()" class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white">取消</button>
                         <button type="button" onclick="confirmResetIdentity()" class="rounded-2xl bg-rose-500/90 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-rose-400">確認登出</button>
+                    </div>
+                </div>
+            </div>
+            <div id="vote-confirm-overlay" class="absolute inset-0 z-30 hidden items-center justify-center rounded-[32px] bg-black/85 backdrop-blur-md p-6">
+                <div class="w-full rounded-[28px] border border-fuchsia-400/20 bg-[#120d22] p-6 shadow-[0_0_40px_rgba(217,70,239,0.2)]">
+                    <div class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-fuchsia-400">Change Vote</div>
+                    <h3 class="mb-3 text-xl font-bold text-white">確認更改投票？</h3>
+                    <p class="mb-6 text-sm leading-relaxed text-white/70">要將最佳服裝票改投給「<span id="vote-confirm-name" class="font-bold text-fuchsia-200"></span>」嗎？原本的票會自動取消。</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="closeVoteConfirm()" class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white">取消</button>
+                        <button id="vote-confirm-btn" type="button" onclick="confirmCostumeVote()" class="rounded-2xl bg-fuchsia-600 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-fuchsia-500 disabled:opacity-50">確認改投</button>
                     </div>
                 </div>
             </div>
@@ -1025,6 +1100,12 @@ async function confirmResetIdentity() {
 
     localStorage.removeItem('eden_guest');
     currentIdentity = null;
+    viewedIdentity = null;
+    costumeVotingState = null;
+    if (votingRefreshTimer) clearTimeout(votingRefreshTimer);
+    if (votingClockTimer) clearInterval(votingClockTimer);
+    votingRefreshTimer = null;
+    votingClockTimer = null;
 
     if (el.inputName) el.inputName.value = '';
     if (el.inputAnimal) el.inputAnimal.value = '';
@@ -1042,6 +1123,7 @@ async function confirmResetIdentity() {
     if (window.liff?.isLoggedIn?.()) {
         liff.logout();
     }
+    renderVotingState();
     showAuthMessage('info', '已登出這台裝置。使用同一 LINE 帳號登入可取回原身分與編號。');
 }
 
@@ -1209,6 +1291,7 @@ function closeAuthModal() {
     if (!modal) return;
 
     closeResetConfirm();
+    closeVoteConfirm();
     modal.classList.add('opacity-0', 'pointer-events-none');
     const panel = modal.querySelector('.relative');
     panel.classList.remove('scale-100');
@@ -1246,10 +1329,18 @@ const functions = firebase.app().functions(window.WEDEN_CONFIG?.functionsRegion 
 const lineLoginCallable = functions.httpsCallable('lineLogin');
 const getMyIdentityCallable = functions.httpsCallable('getMyIdentity');
 const saveIdentityCallable = functions.httpsCallable('saveIdentity');
+const getCostumeVotingStateCallable = functions.httpsCallable('getCostumeVotingState');
+const castCostumeVoteCallable = functions.httpsCallable('castCostumeVote');
 let activeSectorListener = null;
 let activeSectorListenerPath = '';
 let currentIdentity = null;
 let currentLineProfile = null;
+let viewedIdentity = null;
+let costumeVotingState = null;
+let votingServerOffset = 0;
+let votingClockTimer = null;
+let votingRefreshTimer = null;
+let pendingVoteIdentity = null;
 let liffInitialized = false;
 
 function getCurrentGuest() {
@@ -1271,6 +1362,372 @@ function saveCurrentGuest(guest) {
     }
     currentIdentity = guest;
     localStorage.setItem('eden_guest', JSON.stringify(guest));
+}
+
+function getVotingElements() {
+    return {
+        modal: document.getElementById('voting-modal'),
+        phaseLabel: document.getElementById('voting-phase-label'),
+        panelTitle: document.getElementById('voting-panel-title'),
+        description: document.getElementById('voting-panel-description'),
+        total: document.getElementById('voting-total'),
+        countdown: document.getElementById('voting-countdown'),
+        countdownLabel: document.getElementById('voting-countdown-label'),
+        leaderboard: document.getElementById('voting-leaderboard'),
+        empty: document.getElementById('voting-empty'),
+        panelMessage: document.getElementById('voting-panel-message'),
+        entryTitle: document.getElementById('voting-entry-title'),
+        entryMeta: document.getElementById('voting-entry-meta'),
+        voteActions: document.getElementById('identity-vote-actions'),
+        voteButton: document.getElementById('identity-vote-btn'),
+        voteMessage: document.getElementById('identity-vote-message')
+    };
+}
+
+function setVotingPanelMessage(type, text) {
+    const { panelMessage } = getVotingElements();
+    if (!panelMessage) return;
+    if (!text) {
+        panelMessage.textContent = '';
+        panelMessage.classList.add('hidden');
+        return;
+    }
+
+    const styles = {
+        info: 'border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-100',
+        success: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-100',
+        error: 'border-rose-500/30 bg-rose-500/10 text-rose-100'
+    };
+    panelMessage.className = `mt-4 rounded-2xl border px-4 py-3 text-sm leading-relaxed ${styles[type] || styles.info}`;
+    panelMessage.textContent = text;
+    panelMessage.classList.remove('hidden');
+}
+
+function formatVotingDuration(milliseconds) {
+    const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours >= 24) {
+        const days = Math.floor(hours / 24);
+        return `${days}天 ${hours % 24}時`;
+    }
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function updateVotingCountdown() {
+    const { countdown, countdownLabel } = getVotingElements();
+    if (!countdown || !countdownLabel || !costumeVotingState) return;
+
+    const now = Date.now() + votingServerOffset;
+    if (costumeVotingState.phase === 'upcoming') {
+        countdown.textContent = formatVotingDuration(costumeVotingState.opensAt - now);
+        countdownLabel.textContent = '距離 20:30 開放';
+    } else if (costumeVotingState.phase === 'open') {
+        countdown.textContent = formatVotingDuration(costumeVotingState.closesAt - now);
+        countdownLabel.textContent = '距離 22:15 截止';
+    } else {
+        countdown.textContent = '已截止';
+        countdownLabel.textContent = '2026/8/14 22:15';
+    }
+}
+
+function renderVotingLeaderboard() {
+    const { leaderboard, empty } = getVotingElements();
+    if (!leaderboard || !empty) return;
+
+    leaderboard.replaceChildren();
+    const entries = costumeVotingState?.leaderboard || [];
+    if (!entries.length) {
+        empty.textContent = costumeVotingState?.phase === 'upcoming'
+            ? '投票開放後，這裡會顯示即時前五名。'
+            : '目前尚無有效票。';
+        empty.classList.remove('hidden');
+        return;
+    }
+
+    empty.classList.add('hidden');
+    entries.forEach((entry) => {
+        const isChampion = costumeVotingState.phase === 'closed' && entry.rank === 1;
+        const row = document.createElement('div');
+        row.className = `rounded-2xl border p-4 ${isChampion ? 'border-amber-300/40 bg-amber-300/10' : 'border-white/10 bg-white/5'}`;
+
+        const top = document.createElement('div');
+        top.className = 'flex items-center gap-3';
+        const rank = document.createElement('div');
+        rank.className = `flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black ${isChampion ? 'bg-amber-300/20 text-amber-200' : 'bg-fuchsia-500/15 text-fuchsia-200'}`;
+        rank.textContent = `#${entry.rank}`;
+
+        const identity = document.createElement('div');
+        identity.className = 'min-w-0 flex-1';
+        const name = document.createElement('div');
+        name.className = 'truncate text-sm font-black text-white';
+        name.textContent = entry.name || 'UNKNOWN';
+        const animal = document.createElement('div');
+        animal.className = 'mt-0.5 truncate text-[10px] text-white/40';
+        animal.textContent = entry.animal || 'UNKNOWN';
+        identity.append(name, animal);
+
+        const percentage = document.createElement('div');
+        percentage.className = `text-lg font-black ${isChampion ? 'text-amber-200' : 'text-fuchsia-200'}`;
+        percentage.textContent = `${Number(entry.percentage || 0).toFixed(1)}%`;
+        top.append(rank, identity, percentage);
+
+        const track = document.createElement('div');
+        track.className = 'mt-3 h-1.5 overflow-hidden rounded-full bg-white/10';
+        const bar = document.createElement('div');
+        bar.className = `h-full rounded-full ${isChampion ? 'bg-gradient-to-r from-amber-400 to-yellow-200' : 'bg-gradient-to-r from-fuchsia-500 to-violet-300'}`;
+        bar.style.width = `${Math.min(100, Math.max(0, Number(entry.percentage || 0)))}%`;
+        track.appendChild(bar);
+        row.append(top, track);
+        leaderboard.appendChild(row);
+    });
+}
+
+function renderVotingState() {
+    const el = getVotingElements();
+    const state = costumeVotingState;
+
+    if (!state) {
+        if (el.entryTitle) el.entryTitle.textContent = '最佳服裝投票';
+        if (el.entryMeta) el.entryMeta.textContent = currentIdentity ? '正在同步投票狀態…' : '登入後查看投票狀態';
+        updateIdentityVoteAction();
+        return;
+    }
+
+    if (el.total) el.total.textContent = state.phase === 'upcoming' ? '—' : `${state.totalVotes} 人`;
+    if (state.phase === 'upcoming') {
+        if (el.phaseLabel) el.phaseLabel.textContent = state.testMode ? 'Test Scheduled' : 'Voting Scheduled';
+        if (el.panelTitle) el.panelTitle.textContent = '最佳服裝投票';
+        if (el.description) el.description.textContent = state.testMode
+            ? '這是測試環境，尚未進入測試時段。'
+            : '2026/8/14 20:30 開放投票，22:15 截止。';
+        if (el.entryTitle) el.entryTitle.textContent = '最佳服裝投票';
+        if (el.entryMeta) el.entryMeta.textContent = state.testMode ? '測試尚未開放' : '8/14 20:30 開放';
+    } else if (state.phase === 'open') {
+        if (el.phaseLabel) el.phaseLabel.textContent = state.testMode ? 'Test Voting' : 'Live Voting';
+        if (el.panelTitle) el.panelTitle.textContent = state.testMode ? '最佳服裝｜流程測試中' : '最佳服裝即時戰況';
+        if (el.description) el.description.textContent = state.testMode
+            ? '這是測試票，不會作為 8/14 正式結果；請測試首次投票與改票流程。'
+            : '前五名依全部有效票計算；你可以在任一冒險者身分卡上投票或改票。';
+        if (el.entryTitle) el.entryTitle.textContent = state.testMode ? '最佳服裝｜測試中' : '最佳服裝｜投票進行中';
+        if (el.entryMeta) el.entryMeta.textContent = state.testMode
+            ? `測試模式 · ${state.totalVotes} 人已投票`
+            : `${state.totalVotes} 人已投票`;
+    } else {
+        if (el.phaseLabel) el.phaseLabel.textContent = state.testMode ? 'Test Result' : 'Final Result';
+        if (el.panelTitle) el.panelTitle.textContent = state.testMode ? '最佳服裝｜測試結果' : '最佳服裝開票結果';
+        if (el.description) el.description.textContent = state.testMode
+            ? '本輪測試票已鎖定；這不是 8/14 正式結果。'
+            : '投票已鎖定；並列者顯示相同名次。';
+        if (el.entryTitle) el.entryTitle.textContent = state.testMode ? '最佳服裝｜測試結果' : '最佳服裝｜開票結果';
+        if (el.entryMeta) el.entryMeta.textContent = state.testMode
+            ? `測試共 ${state.totalVotes} 人投票`
+            : `共 ${state.totalVotes} 人投票`;
+    }
+
+    updateVotingCountdown();
+    renderVotingLeaderboard();
+    updateIdentityVoteAction();
+    initIcons();
+}
+
+function scheduleVotingRefresh() {
+    if (votingRefreshTimer) clearTimeout(votingRefreshTimer);
+    votingRefreshTimer = null;
+    if (!costumeVotingState || !currentIdentity || !auth.currentUser) return;
+
+    const now = Date.now() + votingServerOffset;
+    let delay = null;
+    if (costumeVotingState.phase === 'upcoming') {
+        delay = Math.max(1000, costumeVotingState.opensAt - now + 1000);
+    } else if (costumeVotingState.phase === 'open') {
+        delay = Math.min(60000, Math.max(1000, costumeVotingState.closesAt - now + 1000));
+    }
+    if (delay !== null) {
+        votingRefreshTimer = setTimeout(() => refreshCostumeVotingState({ silent: true }), Math.min(delay, 2147483647));
+    }
+}
+
+async function refreshCostumeVotingState(options = {}) {
+    if (!auth.currentUser || !currentIdentity?.id) {
+        costumeVotingState = null;
+        renderVotingState();
+        return null;
+    }
+
+    try {
+        const result = await getCostumeVotingStateCallable();
+        const state = result.data;
+        if (!state?.phase) throw new Error('後端未回傳投票狀態。');
+        costumeVotingState = state;
+        votingServerOffset = Number(state.serverTime || Date.now()) - Date.now();
+        setVotingPanelMessage('', '');
+        renderVotingState();
+        scheduleVotingRefresh();
+        if (!votingClockTimer) votingClockTimer = setInterval(updateVotingCountdown, 1000);
+        return state;
+    } catch (error) {
+        console.error('refreshCostumeVotingState error:', error);
+        if (!options.silent) {
+            setVotingPanelMessage('error', error?.message?.replace(/^FirebaseError:\s*/i, '') || '投票狀態載入失敗，請稍後再試。');
+        }
+        return null;
+    }
+}
+
+function openVotingModal() {
+    const { modal } = getVotingElements();
+    if (!modal) return;
+
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    const panel = modal.children[1];
+    panel?.classList.remove('translate-y-6', 'sm:scale-95');
+    panel?.classList.add('translate-y-0', 'sm:scale-100');
+    document.body.style.overflow = 'hidden';
+    renderVotingState();
+
+    if (!auth.currentUser || !currentIdentity?.id) {
+        setVotingPanelMessage('info', '請先使用 LINE 登入並建立 W-EDEN 身分。');
+    } else {
+        setVotingPanelMessage('info', '正在更新即時戰況…');
+        refreshCostumeVotingState();
+    }
+    initIcons();
+}
+
+function closeVotingModal() {
+    const { modal } = getVotingElements();
+    if (!modal) return;
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    const panel = modal.children[1];
+    panel?.classList.remove('translate-y-0', 'sm:scale-100');
+    panel?.classList.add('translate-y-6', 'sm:scale-95');
+    document.body.style.overflow = '';
+}
+
+function updateIdentityVoteAction(message = '') {
+    const { voteActions, voteButton, voteMessage } = getVotingElements();
+    if (!voteActions || !voteButton || !voteMessage) return;
+
+    const isOwner = !viewedIdentity?.id || viewedIdentity.id === currentIdentity?.id;
+    voteActions.classList.toggle('hidden', isOwner);
+    if (isOwner) return;
+
+    if (message) voteMessage.textContent = message;
+    if (!currentIdentity?.id || !auth.currentUser) {
+        voteButton.disabled = true;
+        voteButton.textContent = '請先登入';
+        if (!message) voteMessage.textContent = '登入後才能投票。';
+        return;
+    }
+    if (!costumeVotingState) {
+        voteButton.disabled = true;
+        voteButton.textContent = '載入投票狀態…';
+        if (!message) voteMessage.textContent = '正在向基地同步投票時間。';
+        return;
+    }
+    if (costumeVotingState.phase === 'upcoming') {
+        voteButton.disabled = true;
+        voteButton.textContent = '20:30 開放投票';
+        if (!message) voteMessage.textContent = '2026/8/14 20:30–22:15';
+        return;
+    }
+    if (costumeVotingState.phase === 'closed') {
+        voteButton.disabled = true;
+        voteButton.textContent = '投票已截止';
+        if (!message) voteMessage.textContent = '請至基地地圖查看開票結果。';
+        return;
+    }
+
+    const isSelected = costumeVotingState.currentVoteCandidateId === viewedIdentity.id;
+    voteButton.disabled = isSelected;
+    voteButton.textContent = isSelected
+        ? '已投給這位冒險者'
+        : costumeVotingState.currentVoteCandidateId
+            ? '改投給這位冒險者'
+            : '投給這位冒險者';
+    if (!message) {
+        voteMessage.textContent = isSelected
+            ? '這是你目前唯一的有效票。'
+            : costumeVotingState.currentVoteCandidateId
+                ? '更改前會再次向你確認。'
+                : '每人一票，投票者名單不公開。';
+    }
+}
+
+function openVoteConfirm(identity) {
+    const overlay = document.getElementById('vote-confirm-overlay');
+    const name = document.getElementById('vote-confirm-name');
+    if (!overlay || !name) return;
+    pendingVoteIdentity = identity;
+    name.textContent = identity.name || '這位冒險者';
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+}
+
+function closeVoteConfirm() {
+    const overlay = document.getElementById('vote-confirm-overlay');
+    if (!overlay) return;
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+    pendingVoteIdentity = null;
+}
+
+async function prepareCostumeVote() {
+    const candidate = viewedIdentity;
+    if (!candidate?.id || candidate.id === currentIdentity?.id) return;
+
+    let state = costumeVotingState;
+    if (!state) state = await refreshCostumeVotingState();
+    if (!state || state.phase !== 'open') {
+        updateIdentityVoteAction(state?.phase === 'closed' ? '投票已截止。' : '投票尚未開放。');
+        return;
+    }
+    if (state.currentVoteCandidateId === candidate.id) return;
+    if (state.currentVoteCandidateId) {
+        openVoteConfirm(candidate);
+        return;
+    }
+    await submitCostumeVote(candidate);
+}
+
+async function confirmCostumeVote() {
+    const candidate = pendingVoteIdentity;
+    if (!candidate?.id) return;
+    const button = document.getElementById('vote-confirm-btn');
+    if (button) {
+        button.disabled = true;
+        button.textContent = '改票中…';
+    }
+    try {
+        await submitCostumeVote(candidate);
+        closeVoteConfirm();
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent = '確認改投';
+        }
+    }
+}
+
+async function submitCostumeVote(candidate) {
+    const { voteButton } = getVotingElements();
+    if (!candidate?.id || !voteButton) return;
+
+    voteButton.disabled = true;
+    voteButton.textContent = '同步投票中…';
+    try {
+        const result = await castCostumeVoteCallable({ candidateId: candidate.id });
+        costumeVotingState = result.data;
+        votingServerOffset = Number(costumeVotingState.serverTime || Date.now()) - Date.now();
+        renderVotingState();
+        scheduleVotingRefresh();
+        updateIdentityVoteAction(`已投給「${candidate.name || '這位冒險者'}」。`);
+    } catch (error) {
+        console.error('submitCostumeVote error:', error);
+        updateIdentityVoteAction(error?.message?.replace(/^FirebaseError:\s*/i, '') || '投票失敗，請稍後再試。');
+    }
 }
 
 function getSectorActionElements() {
@@ -1831,6 +2288,7 @@ async function restoreIdentityFromServer() {
     renderIdCard(identity);
     jumpTo('map');
     openAuthModal();
+    await refreshCostumeVotingState({ silent: true });
     return identity;
 }
 
@@ -1988,6 +2446,7 @@ function renderIdCard(data, options = {}) {
 
     const skill = normalizeSkillValue(data.skill);
     const isOwner = options.isOwner ?? (data.id === currentIdentity?.id);
+    viewedIdentity = data;
 
     el.displayName.innerText = data.name || 'PILOT';
     el.displayAnimal.innerText = data.animal || 'UNKNOWN';
@@ -1995,6 +2454,7 @@ function renderIdCard(data, options = {}) {
     if (el.displaySkillText) el.displaySkillText.innerText = skill.toFixed(1);
     if (el.displaySkillBar) el.displaySkillBar.style.width = `${skill * 100}%`;
     el.ownerActions?.classList.toggle('hidden', !isOwner);
+    updateIdentityVoteAction();
     if (el.greeting && el.greetingText) {
         const greeting = String(options.greeting || '');
         el.greeting.classList.toggle('hidden', !greeting);
@@ -2035,6 +2495,7 @@ async function confirmAndGenerate() {
 
         saveCurrentGuest(userData);
         renderIdCard(userData);
+        await refreshCostumeVotingState({ silent: true });
     } catch (error) {
         console.error('confirmAndGenerate error:', error);
         const message = error?.message?.replace(/^FirebaseError:\s*/i, '') || '身份授權失敗。';
