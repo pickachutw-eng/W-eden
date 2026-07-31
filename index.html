@@ -1222,11 +1222,15 @@ async function restoreIdentityFromServer() {
         saveCurrentGuest(null);
         showIdentityEditor();
         showAuthMessage('success', 'LINE 身分驗證完成。填寫資料後，系統將配發第一個可用流水號。');
+        jumpTo('map');
+        openAuthModal();
         return null;
     }
 
     saveCurrentGuest(identity);
     renderIdCard(identity);
+    jumpTo('map');
+    openAuthModal();
     return identity;
 }
 
