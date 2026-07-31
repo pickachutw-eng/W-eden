@@ -118,6 +118,22 @@
             animation: intro-two-b var(--slide-duration, 4s) linear both;
         }
 
+        .intro-slide.is-active .intro-sequence-year-one .intro-shot:nth-child(1) {
+            animation: intro-year-one-a var(--slide-duration, 5.8s) linear both;
+        }
+
+        .intro-slide.is-active .intro-sequence-year-one .intro-shot:nth-child(2) {
+            animation: intro-year-one-b var(--slide-duration, 5.8s) linear both;
+        }
+
+        .intro-slide.is-active .intro-sequence-year-one .intro-shot:nth-child(3) {
+            animation: intro-year-one-c var(--slide-duration, 5.8s) linear both;
+        }
+
+        .intro-slide.is-active .intro-sequence-year-one .intro-shot:nth-child(4) {
+            animation: intro-year-one-d var(--slide-duration, 5.8s) linear both;
+        }
+
         .intro-slide.is-active .intro-sequence-four .intro-shot:nth-child(1) {
             animation: intro-four-a var(--slide-duration, 5.2s) linear both;
         }
@@ -238,6 +254,28 @@
         @keyframes intro-two-b {
             0%, 38% { opacity: 0; }
             49%, 100% { opacity: 1; }
+        }
+
+        @keyframes intro-year-one-a {
+            0%, 23% { opacity: 1; }
+            31%, 100% { opacity: 0; }
+        }
+
+        @keyframes intro-year-one-b {
+            0%, 21% { opacity: 0; }
+            29%, 45% { opacity: 1; }
+            53%, 100% { opacity: 0; }
+        }
+
+        @keyframes intro-year-one-c {
+            0%, 43% { opacity: 0; }
+            51%, 68% { opacity: 1; }
+            76%, 100% { opacity: 0; }
+        }
+
+        @keyframes intro-year-one-d {
+            0%, 66% { opacity: 0; }
+            75%, 100% { opacity: 1; }
         }
 
         @keyframes intro-four-a {
@@ -389,13 +427,16 @@
 </div>
         
         <div id="landing" class="intro-carousel relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen overflow-hidden" aria-label="W-EDEN 四年航海日誌">
-            <div class="intro-slide is-active absolute inset-0" data-intro-slide="0" data-duration="4100" aria-hidden="false" style="--slide-duration: 4.1s; --copy-delay: 2.05s;">
-                <div class="intro-sequence-three absolute inset-0">
+            <div class="intro-slide is-active absolute inset-0" data-intro-slide="0" data-duration="5800" aria-hidden="false" style="--slide-duration: 5.8s; --copy-delay: 4.25s;">
+                <div class="intro-sequence-year-one absolute inset-0">
                     <div class="intro-shot">
                         <img src="assets/intro/history/year-01-cake.webp" alt="第一屆生日蛋糕、香檳杯塔與 18 字樣" class="intro-shot-image" style="--object-position: 50% 42%; --start-scale: 1.02; --end-scale: 1.14; --end-y: -1.5%;">
                     </div>
                     <div class="intro-shot">
                         <img src="assets/intro/history/year-01-bottles.webp" alt="冰桶裡的酒瓶與金色光環" class="intro-shot-image" style="--start-scale: 1.1; --end-scale: 1.18;">
+                    </div>
+                    <div class="intro-shot">
+                        <img src="assets/intro/history/year-01-pair.webp" alt="第一屆派對中兩人的合照" class="intro-shot-image" style="--object-position: 50% 43%; --start-scale: 1.04; --end-scale: 1.12; --end-y: -1%;">
                     </div>
                     <div class="intro-shot" data-final-shot>
                         <img src="assets/intro/history/year-01-group.webp" alt="第一屆派對全體賓客舉杯合照" class="intro-shot-image" style="--object-position: 50% 44%; --start-scale: 1.16; --end-scale: 1.04;">
@@ -444,17 +485,17 @@
                 </div>
             </div>
 
-            <div class="intro-slide absolute inset-0" data-intro-slide="2" data-duration="4300" aria-hidden="true" style="--slide-duration: 4.3s; --copy-delay: 2.15s;">
+            <div class="intro-slide absolute inset-0" data-intro-slide="2" data-duration="4800" aria-hidden="true" style="--slide-duration: 4.8s; --copy-delay: 2.85s;">
                 <div class="intro-sequence-three absolute inset-0">
-                    <div class="intro-shot">
-                        <img src="assets/intro/history/year-03-departure.webp" alt="遊艇離開台北、駛向未知星球" class="intro-shot-image" style="--object-position: 50% 48%; --start-scale: 1.02; --end-scale: 1.12; --end-y: -1.5%;">
-                    </div>
                     <div class="intro-shot">
                         <img src="assets/intro/history/year-03-selfie.webp" alt="遊艇航行途中六人的自拍" class="intro-shot-image" style="--object-position: 50% 44%; --start-scale: 1.06; --end-scale: 1.13;">
                     </div>
-                    <div class="intro-shot intro-shot--landscape" data-final-shot>
+                    <div class="intro-shot intro-shot--landscape">
                         <img src="assets/intro/history/year-03-group.webp" alt="" class="intro-shot-image intro-shot-image--blur" aria-hidden="true">
                         <img src="assets/intro/history/year-03-group.webp" alt="第三屆遊艇派對全體船員合照" class="intro-shot-image intro-shot-image--contain">
+                    </div>
+                    <div class="intro-shot" data-final-shot>
+                        <img src="assets/intro/history/year-03-departure.webp" alt="遊艇離開台北、駛向未知星球" class="intro-shot-image" style="--object-position: 50% 48%; --start-scale: 1.02; --end-scale: 1.12; --end-y: -1.5%;">
                     </div>
                 </div>
                 <div class="intro-flash absolute inset-0 bg-[radial-gradient(circle_at_52%_42%,rgba(255,255,255,.9),rgba(68,183,255,.3)_25%,transparent_58%)]"></div>
