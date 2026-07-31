@@ -45,16 +45,271 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .landing-snap {
-            scroll-snap-type: y mandatory;
-            overflow-y: scroll;
-            height: calc(100svh - 64px);
+        .entry-gate {
+            background:
+                radial-gradient(circle at 50% 42%, rgba(192, 132, 252, 0.18), transparent 28%),
+                linear-gradient(180deg, #0a0713, #05040a);
         }
-        .landing-snap section {
-            scroll-snap-align: start;
-            height: calc(100svh - 64px);
+
+        .entry-gate.is-ready {
+            opacity: 0;
+            visibility: hidden;
         }
-        
+
+        .intro-carousel {
+            height: calc(100svh - 64px);
+            min-height: 560px;
+            background: #05040a;
+        }
+
+        .intro-slide {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 900ms ease, visibility 900ms ease;
+        }
+
+        .intro-slide.is-active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .intro-shot {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            opacity: 0;
+            will-change: opacity, transform;
+        }
+
+        .intro-shot-image {
+            position: absolute;
+            inset: 0;
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+            object-position: var(--object-position, 50% 50%);
+            transform: scale(var(--start-scale, 1.04));
+            will-change: transform;
+        }
+
+        .intro-slide.is-active .intro-shot-image {
+            animation: intro-camera var(--slide-duration, 4s) cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .intro-slide.is-active .intro-sequence-three .intro-shot:nth-child(1) {
+            animation: intro-three-a var(--slide-duration, 4s) linear both;
+        }
+
+        .intro-slide.is-active .intro-sequence-three .intro-shot:nth-child(2) {
+            animation: intro-three-b var(--slide-duration, 4s) linear both;
+        }
+
+        .intro-slide.is-active .intro-sequence-three .intro-shot:nth-child(3) {
+            animation: intro-three-c var(--slide-duration, 4s) linear both;
+        }
+
+        .intro-slide.is-active .intro-sequence-two .intro-shot:nth-child(1) {
+            animation: intro-two-a var(--slide-duration, 4s) linear both;
+        }
+
+        .intro-slide.is-active .intro-sequence-two .intro-shot:nth-child(2) {
+            animation: intro-two-b var(--slide-duration, 4s) linear both;
+        }
+
+        .intro-slide.is-active .intro-sequence-four .intro-shot:nth-child(1) {
+            animation: intro-four-a var(--slide-duration, 5.2s) linear both;
+        }
+
+        .intro-slide.is-active .intro-sequence-four .intro-shot:nth-child(2) {
+            animation: intro-four-b var(--slide-duration, 5.2s) linear both;
+        }
+
+        .intro-slide.is-active .intro-sequence-four .intro-shot:nth-child(3) {
+            animation: intro-four-c var(--slide-duration, 5.2s) linear both;
+        }
+
+        .intro-slide.is-active .intro-sequence-four .intro-shot:nth-child(4) {
+            animation: intro-four-d var(--slide-duration, 5.2s) linear both;
+        }
+
+        .intro-shot--landscape {
+            background: #080510;
+        }
+
+        .intro-shot--landscape .intro-shot-image--blur {
+            filter: blur(22px) brightness(0.48) saturate(1.25);
+            transform: scale(1.18);
+        }
+
+        .intro-shot--landscape .intro-shot-image--contain {
+            object-fit: contain;
+            transform: scale(1.34);
+        }
+
+        .intro-slide.is-active .intro-shot--landscape .intro-shot-image--contain {
+            animation: intro-landscape-reveal var(--slide-duration, 4s) cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .intro-copy,
+        .intro-signal,
+        .intro-cta {
+            opacity: 0;
+            transform: translateY(18px);
+        }
+
+        .intro-slide.is-active .intro-copy {
+            animation: intro-copy-reveal 650ms cubic-bezier(0.22, 1, 0.36, 1) var(--copy-delay, 1.7s) both;
+        }
+
+        .intro-slide.is-active .intro-signal {
+            animation: intro-signal 1.45s ease 250ms both;
+        }
+
+        .intro-slide.is-active .intro-cta {
+            animation: intro-copy-reveal 650ms cubic-bezier(0.22, 1, 0.36, 1) var(--cta-delay, 3.75s) both;
+        }
+
+        .intro-flash,
+        .intro-scan-beam {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .intro-slide.is-active .intro-flash {
+            animation: intro-flash var(--slide-duration, 4s) linear both;
+        }
+
+        .intro-slide.is-active .intro-scan-beam {
+            animation: intro-scan-beam var(--slide-duration, 4s) ease-in-out both;
+        }
+
+        .intro-year-ghost {
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.16);
+            text-stroke: 1px rgba(255, 255, 255, 0.16);
+        }
+
+        .intro-progress-fill {
+            transform: scaleX(0);
+            transform-origin: left center;
+        }
+
+        .intro-progress-segment.is-complete .intro-progress-fill {
+            transform: scaleX(1);
+        }
+
+        .intro-progress-segment.is-active .intro-progress-fill {
+            animation: intro-progress var(--progress-duration, 4s) linear forwards;
+        }
+
+        @keyframes intro-camera {
+            from { transform: scale(var(--start-scale, 1.04)) translate3d(var(--start-x, 0), var(--start-y, 0), 0); }
+            to { transform: scale(var(--end-scale, 1.13)) translate3d(var(--end-x, 0), var(--end-y, 0), 0); }
+        }
+
+        @keyframes intro-landscape-reveal {
+            0%, 46% { transform: scale(1.34); }
+            100% { transform: scale(1.01); }
+        }
+
+        @keyframes intro-three-a {
+            0%, 38% { opacity: 1; }
+            48%, 100% { opacity: 0; }
+        }
+
+        @keyframes intro-three-b {
+            0%, 34% { opacity: 0; }
+            40%, 50% { opacity: 1; }
+            58%, 100% { opacity: 0; }
+        }
+
+        @keyframes intro-three-c {
+            0%, 49% { opacity: 0; }
+            58%, 100% { opacity: 1; }
+        }
+
+        @keyframes intro-two-a {
+            0%, 38% { opacity: 1; }
+            48%, 100% { opacity: 0; }
+        }
+
+        @keyframes intro-two-b {
+            0%, 38% { opacity: 0; }
+            49%, 100% { opacity: 1; }
+        }
+
+        @keyframes intro-four-a {
+            0%, 18% { opacity: 1; }
+            26%, 100% { opacity: 0; }
+        }
+
+        @keyframes intro-four-b {
+            0%, 16% { opacity: 0; }
+            23%, 31% { opacity: 1; }
+            40%, 100% { opacity: 0; }
+        }
+
+        @keyframes intro-four-c {
+            0%, 32% { opacity: 0; }
+            41%, 61% { opacity: 1; }
+            70%, 100% { opacity: 0; }
+        }
+
+        @keyframes intro-four-d {
+            0%, 61% { opacity: 0; }
+            72%, 100% { opacity: 1; }
+        }
+
+        @keyframes intro-copy-reveal {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes intro-signal {
+            0% { opacity: 0; transform: translateY(-8px); }
+            18%, 72% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(0); }
+        }
+
+        @keyframes intro-flash {
+            0%, 37%, 45%, 100% { opacity: 0; }
+            41% { opacity: 0.82; }
+        }
+
+        @keyframes intro-scan-beam {
+            0%, 36% { opacity: 0; transform: translateY(-38vh) rotate(-7deg); }
+            41% { opacity: 0.75; }
+            52% { opacity: 0; transform: translateY(54vh) rotate(-7deg); }
+            100% { opacity: 0; }
+        }
+
+        @keyframes intro-progress {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .intro-slide,
+            .intro-shot,
+            .intro-shot-image,
+            .intro-copy,
+            .intro-signal,
+            .intro-cta,
+            .intro-progress-fill {
+                animation: none !important;
+                transition-duration: 1ms !important;
+            }
+
+            .intro-slide.is-active .intro-shot[data-final-shot],
+            .intro-slide.is-active .intro-copy,
+            .intro-slide.is-active .intro-cta {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
         body { background-color: #090611; color: white; }
 
         #map-container {
@@ -71,6 +326,16 @@
 </style>
 </head>
 <body class="selection:bg-fuchsia-300/30">
+
+    <div id="entry-gate" class="entry-gate fixed inset-0 z-[70] flex items-center justify-center transition-all duration-500">
+        <div class="text-center">
+            <img src="胖宮logo.png" alt="" class="mx-auto h-14 w-auto opacity-90 drop-shadow-[0_0_18px_rgba(192,132,252,0.4)]">
+            <div class="mt-5 text-[10px] font-bold uppercase tracking-[0.42em] text-fuchsia-200/70">Identity Sync</div>
+            <div class="mt-4 h-px w-36 overflow-hidden bg-white/10">
+                <div class="h-full w-1/2 animate-pulse bg-gradient-to-r from-transparent via-fuchsia-300 to-transparent"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="fixed inset-0 -z-10 overflow-hidden">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,95,175,.18),transparent_25%),radial-gradient(circle_at_78%_18%,rgba(130,110,255,.16),transparent_22%),radial-gradient(circle_at_50%_65%,rgba(85,160,255,.12),transparent_30%),linear-gradient(180deg,#0a0713,#090611_45%,#05040a)]"></div>
@@ -123,46 +388,150 @@
     </div>
 </div>
         
-        <div id="landing" class="landing-snap relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen no-scrollbar">
-            <div class="sticky top-0 h-full w-full -z-10">
-                <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&q=80&w=2000" class="h-full w-full object-cover opacity-60" />
-                <div class="absolute inset-0 bg-gradient-to-t from-[#090611] via-[#090611]/40 to-transparent"></div>
+        <div id="landing" class="intro-carousel relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen overflow-hidden" aria-label="W-EDEN 四年航海日誌">
+            <div class="intro-slide is-active absolute inset-0" data-intro-slide="0" data-duration="4100" aria-hidden="false" style="--slide-duration: 4.1s; --copy-delay: 2.05s;">
+                <div class="intro-sequence-three absolute inset-0">
+                    <div class="intro-shot">
+                        <img src="assets/intro/history/year-01-cake.webp" alt="第一屆生日蛋糕、香檳杯塔與 18 字樣" class="intro-shot-image" style="--object-position: 50% 42%; --start-scale: 1.02; --end-scale: 1.14; --end-y: -1.5%;">
+                    </div>
+                    <div class="intro-shot">
+                        <img src="assets/intro/history/year-01-bottles.webp" alt="冰桶裡的酒瓶與金色光環" class="intro-shot-image" style="--start-scale: 1.1; --end-scale: 1.18;">
+                    </div>
+                    <div class="intro-shot" data-final-shot>
+                        <img src="assets/intro/history/year-01-group.webp" alt="第一屆派對全體賓客舉杯合照" class="intro-shot-image" style="--object-position: 50% 44%; --start-scale: 1.16; --end-scale: 1.04;">
+                    </div>
+                </div>
+                <div class="intro-flash absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,240,190,.92),rgba(255,190,75,.28)_28%,transparent_62%)]"></div>
+                <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,4,10,.04),rgba(9,6,17,.12)_38%,rgba(9,6,17,.96)_91%)]"></div>
+                <div class="absolute inset-x-0 bottom-0 mx-auto max-w-md px-7 pb-24 lg:max-w-5xl lg:px-12 lg:pb-20">
+                    <div class="intro-copy max-w-lg">
+                        <div class="mb-4 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.32em] text-fuchsia-200/75">
+                            <span>2023.08.19</span><span class="h-px w-10 bg-fuchsia-200/40"></span><span>Year 01</span>
+                        </div>
+                        <div class="relative">
+                            <div class="intro-year-ghost absolute -top-24 right-0 text-[7rem] font-black leading-none">01</div>
+                            <h1 class="relative text-5xl font-black tracking-[0.12em] text-white">集結</h1>
+                            <p class="relative mt-5 max-w-sm text-base font-light leading-8 text-white/80">我們集結相遇，<br>開啟了故事扉頁。</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <section class="relative flex flex-col items-center justify-center text-center -mt-[calc(100svh-64px)]">
-                <div class="space-y-6">
-                    <div class="text-5xl font-bold tracking-tighter text-white drop-shadow-2xl">W-EDEN</div>
-                    <div class="space-y-1">
-                    <div class="text-[10px] tracking-[0.8em] text-white/60 uppercase font-light ml-[0.8em]">Logbook</div>
-                        <div class="text-[13px] tracking-[0.6em] text-fuchsia-200 font-semibold uppercase ml-[0.6em]">Year 04</div>
+            <div class="intro-slide absolute inset-0" data-intro-slide="1" data-duration="3900" aria-hidden="true" style="--slide-duration: 3.9s; --copy-delay: 1.75s;">
+                <div class="intro-sequence-two absolute inset-0">
+                    <div class="intro-shot">
+                        <img src="assets/intro/history/year-02-cake.webp" alt="第二屆派對中兩人與生日蛋糕合照" class="intro-shot-image" style="--object-position: 50% 42%; --start-scale: 1.03; --end-scale: 1.13; --end-y: -1%;">
+                    </div>
+                    <div class="intro-shot intro-shot--landscape" data-final-shot>
+                        <img src="assets/intro/history/year-02-group.webp" alt="" class="intro-shot-image intro-shot-image--blur" aria-hidden="true">
+                        <img src="assets/intro/history/year-02-group.webp" alt="第二屆夜店派對全體合照" class="intro-shot-image intro-shot-image--contain">
                     </div>
                 </div>
-            </section>
-
-            <section class="relative flex items-center justify-center text-left px-6">
-                <div class="max-w-sm text-lg leading-9 text-white/90 font-light space-y-4">
-                    <p>2023-08-19，<br>我們集結相遇，<br>開啟了故事扉頁。</p>
-                    <p>2024-08-10，<br>我們放縱狂歡，<br>在酒與歌中把夜晚點燃。</p>
-                    <p>2025-08-02，<br>我們登上冒險船，<br>離開熟悉的海岸，<br>航向未知的前方。</p>
-                </div>
-            </section>
-
-            <section class="relative flex items-center justify-center text-center px-6">
-                <p class="max-w-sm text-lg leading-9 text-white/90 font-light px-4">如今一年又過，經歷漫長等待，<br>我們終於即將登陸迷幻的新世界。<br>2026，伊甸星前進基地已建立，<br>生命的野性正等待甦醒——</p>
-            </section>
-
-            <section class="relative flex items-center justify-center text-center px-6">
-                <div class="max-w-sm space-y-8">
-                    <div class="space-y-2">
-                        <div class="text-3xl font-bold tracking-[0.2em]">W-EDEN</div>
-                        <div class="text-[11px] tracking-[0.3em] text-white/50">PG FORWARD BASE</div>
+                <div class="intro-scan-beam absolute left-[-15%] top-1/2 h-24 w-[130%] bg-gradient-to-b from-transparent via-fuchsia-200/70 to-transparent blur-xl"></div>
+                <div class="intro-flash absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(255,255,255,.92),rgba(216,90,255,.35)_24%,transparent_58%)]"></div>
+                <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,4,10,.04),rgba(9,6,17,.1)_40%,rgba(9,6,17,.96)_91%)]"></div>
+                <div class="absolute inset-x-0 bottom-0 mx-auto max-w-md px-7 pb-24 lg:max-w-5xl lg:px-12 lg:pb-20">
+                    <div class="intro-copy max-w-lg">
+                        <div class="mb-4 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.32em] text-fuchsia-200/75">
+                            <span>2024.08.10</span><span class="h-px w-10 bg-fuchsia-200/40"></span><span>Year 02</span>
+                        </div>
+                        <div class="relative">
+                            <div class="intro-year-ghost absolute -top-24 right-0 text-[7rem] font-black leading-none">02</div>
+                            <h2 class="relative text-5xl font-black tracking-[0.12em] text-white">狂歡</h2>
+                            <p class="relative mt-5 max-w-sm text-base font-light leading-8 text-white/80">人群開始擴張，燈光取代了窗景。<br>這一次，我們佔領了夜晚。</p>
+                        </div>
                     </div>
-                    <p class="text-white/90 leading-8 text-lg">探索你的動物本能<br>歡迎登陸伊甸星</p>
-                    <button onclick="jumpTo('map'); openAuthModal('auth-sector')" class="group relative rounded-2xl bg-fuchsia-600 px-10 py-4 font-bold transition-all hover:bg-fuchsia-500 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(192,132,252,0.3)]">
-                        進入基地系統
-                    </button>
                 </div>
-            </section>
+            </div>
+
+            <div class="intro-slide absolute inset-0" data-intro-slide="2" data-duration="4300" aria-hidden="true" style="--slide-duration: 4.3s; --copy-delay: 2.15s;">
+                <div class="intro-sequence-three absolute inset-0">
+                    <div class="intro-shot">
+                        <img src="assets/intro/history/year-03-departure.webp" alt="遊艇離開台北、駛向未知星球" class="intro-shot-image" style="--object-position: 50% 48%; --start-scale: 1.02; --end-scale: 1.12; --end-y: -1.5%;">
+                    </div>
+                    <div class="intro-shot">
+                        <img src="assets/intro/history/year-03-selfie.webp" alt="遊艇航行途中六人的自拍" class="intro-shot-image" style="--object-position: 50% 44%; --start-scale: 1.06; --end-scale: 1.13;">
+                    </div>
+                    <div class="intro-shot intro-shot--landscape" data-final-shot>
+                        <img src="assets/intro/history/year-03-group.webp" alt="" class="intro-shot-image intro-shot-image--blur" aria-hidden="true">
+                        <img src="assets/intro/history/year-03-group.webp" alt="第三屆遊艇派對全體船員合照" class="intro-shot-image intro-shot-image--contain">
+                    </div>
+                </div>
+                <div class="intro-flash absolute inset-0 bg-[radial-gradient(circle_at_52%_42%,rgba(255,255,255,.9),rgba(68,183,255,.3)_25%,transparent_58%)]"></div>
+                <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,4,10,.02),rgba(9,6,17,.08)_40%,rgba(9,6,17,.96)_92%)]"></div>
+                <div class="absolute inset-x-0 bottom-0 mx-auto max-w-md px-7 pb-24 lg:max-w-5xl lg:px-12 lg:pb-20">
+                    <div class="intro-copy max-w-lg">
+                        <div class="mb-4 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.32em] text-cyan-100/75">
+                            <span>2025.08.02</span><span class="h-px w-10 bg-cyan-100/40"></span><span>Year 03</span>
+                        </div>
+                        <div class="relative">
+                            <div class="intro-year-ghost absolute -top-24 right-0 text-[7rem] font-black leading-none">03</div>
+                            <h2 class="relative text-5xl font-black tracking-[0.12em] text-white">出航</h2>
+                            <p class="relative mt-5 max-w-sm text-base font-light leading-8 text-white/80">第三次，我們離開了陸地。<br>沿著夜色，駛向未知的星球。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="intro-slide absolute inset-0" data-intro-slide="3" data-duration="5400" aria-hidden="true" style="--slide-duration: 5.4s; --copy-delay: 2.25s; --cta-delay: 3.85s;">
+                <div class="intro-sequence-four absolute inset-0">
+                    <div class="intro-shot">
+                        <img src="assets/intro/history/year-04-taipei.webp" alt="台北城市裡兩人舉杯，航線重新連結" class="intro-shot-image" style="--object-position: 50% 44%; --start-scale: 1.02; --end-scale: 1.08;">
+                    </div>
+                    <div class="intro-shot">
+                        <img src="assets/intro/history/year-04-portal.webp" alt="現實場景像素化，伊甸星傳送門開啟" class="intro-shot-image" style="--object-position: 50% 44%; --start-scale: 1.04; --end-scale: 1.11;">
+                    </div>
+                    <div class="intro-shot">
+                        <img src="assets/intro/history/year-04-arrival.webp" alt="伊甸星的兩位基地領航員伸手迎接冒險者" class="intro-shot-image" style="--object-position: 50% 46%; --start-scale: 1.03; --end-scale: 1.1;">
+                    </div>
+                    <div class="intro-shot" data-final-shot>
+                        <img src="assets/intro/history/year-04-base.webp" alt="冒險者走入 PG FORWARD BASE" class="intro-shot-image" style="--object-position: 50% 50%; --start-scale: 1.02; --end-scale: 1.1; --end-y: -1%;">
+                    </div>
+                </div>
+                <div class="intro-signal absolute inset-x-0 top-16 z-10 text-center text-[9px] font-bold uppercase tracking-[0.38em] text-cyan-100/80">航線重新連結中 · Eden Signal Detected</div>
+                <div class="intro-flash absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(255,255,255,.94),rgba(61,193,255,.34)_24%,transparent_58%)]"></div>
+                <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,4,10,.03),rgba(9,6,17,.08)_36%,rgba(9,6,17,.98)_94%)]"></div>
+                <div class="absolute inset-x-0 bottom-0 mx-auto max-w-md px-7 pb-20 lg:max-w-5xl lg:px-12 lg:pb-16">
+                    <div class="intro-copy max-w-xl">
+                        <div class="mb-4 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.32em] text-fuchsia-200/80">
+                            <span>2026.08.14</span><span class="h-px w-10 bg-fuchsia-200/40"></span><span>Year 04</span>
+                        </div>
+                        <div class="relative">
+                            <div class="intro-year-ghost absolute -top-24 right-0 text-[7rem] font-black leading-none">04</div>
+                            <h2 class="relative text-5xl font-black tracking-[0.12em] text-white">登陸</h2>
+                            <p class="relative mt-3 max-w-md text-sm font-light leading-7 text-white/75">伊甸星前進基地已建立，生命的野性正等待甦醒。<br><span class="font-semibold text-white">第四次，輪到你登陸。</span></p>
+                        </div>
+                    </div>
+                    <div class="intro-cta relative mt-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                        <p class="text-sm font-semibold leading-6 text-white">探索你的動物本能<br><span class="text-fuchsia-200">歡迎登陸伊甸星</span></p>
+                        <button onclick="enterBaseSystem()" class="rounded-2xl bg-fuchsia-600 px-7 py-3.5 text-sm font-bold shadow-[0_0_24px_rgba(192,132,252,0.35)] transition-all hover:scale-105 hover:bg-fuchsia-500 active:scale-95">
+                            進入基地系統
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute inset-x-0 top-0 z-20 mx-auto flex max-w-md gap-2 px-5 pt-5 lg:max-w-5xl lg:px-10">
+                <button type="button" class="intro-progress-segment is-active h-5 flex-1 py-2" data-intro-progress="0" aria-label="前往 Year 01">
+                    <span class="block h-px overflow-hidden bg-white/20"><span class="intro-progress-fill block h-full bg-white/90"></span></span>
+                </button>
+                <button type="button" class="intro-progress-segment h-5 flex-1 py-2" data-intro-progress="1" aria-label="前往 Year 02">
+                    <span class="block h-px overflow-hidden bg-white/20"><span class="intro-progress-fill block h-full bg-white/90"></span></span>
+                </button>
+                <button type="button" class="intro-progress-segment h-5 flex-1 py-2" data-intro-progress="2" aria-label="前往 Year 03">
+                    <span class="block h-px overflow-hidden bg-white/20"><span class="intro-progress-fill block h-full bg-white/90"></span></span>
+                </button>
+                <button type="button" class="intro-progress-segment h-5 flex-1 py-2" data-intro-progress="3" aria-label="前往 Year 04">
+                    <span class="block h-px overflow-hidden bg-white/20"><span class="intro-progress-fill block h-full bg-white/90"></span></span>
+                </button>
+            </div>
+
+            <button type="button" id="intro-prev" class="absolute bottom-7 left-6 z-20 rounded-full border border-white/15 bg-black/20 p-2.5 text-white/60 backdrop-blur-md transition-colors hover:text-white disabled:opacity-0" aria-label="上一段航海日誌">
+                <i data-lucide="chevron-left" class="h-5 w-5"></i>
+            </button>
+            <button type="button" id="intro-next" class="absolute bottom-7 right-6 z-20 rounded-full border border-white/15 bg-black/20 p-2.5 text-white/60 backdrop-blur-md transition-colors hover:text-white disabled:opacity-0" aria-label="下一段航海日誌">
+                <i data-lucide="chevron-right" class="h-5 w-5"></i>
+            </button>
         </div>
 
 <section id="auth-sector" class="hidden scroll-mt-24 py-16 border-t border-white/10">
@@ -224,6 +593,10 @@
 </div>
 
     <div id="id-card-container" class="hidden max-w-sm mx-auto animate-map-deploy max-h-[78svh] overflow-y-auto no-scrollbar overscroll-contain px-1">
+        <div id="id-card-greeting" class="mb-3 hidden rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-center">
+            <div class="text-[9px] font-bold uppercase tracking-[0.28em] text-emerald-200/70">Identity Restored</div>
+            <div id="id-card-greeting-text" class="mt-1 text-sm font-bold text-white">歡迎回來，冒險者。</div>
+        </div>
         <div class="relative overflow-hidden rounded-[32px] border border-fuchsia-500/50 bg-gradient-to-br from-fuchsia-950/40 via-[#090611] to-black p-8 shadow-[0_0_40px_rgba(192,132,252,0.2)]">
             <div class="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-fuchsia-500/40"></div>
             <div class="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-fuchsia-500/40"></div>
@@ -730,7 +1103,7 @@ function openAuthModal() {
     document.body.style.overflow = 'hidden';
 }
 
-function openIdentityCardModal(identity) {
+function openIdentityCardModal(identity, options = {}) {
     const modal = document.getElementById('auth-modal');
     const innerContent = document.getElementById('inner-auth-content');
     const form = document.getElementById('guest-form-container');
@@ -742,7 +1115,10 @@ function openIdentityCardModal(identity) {
         innerContent.appendChild(card);
     }
 
-    renderIdCard(identity, { isOwner: identity.id === currentIdentity?.id });
+    renderIdCard(identity, {
+        isOwner: identity.id === currentIdentity?.id,
+        greeting: options.greeting || ''
+    });
 
     modal.classList.remove('opacity-0', 'pointer-events-none');
     const panel = modal.querySelector('.relative');
@@ -1017,6 +1393,8 @@ function getIdentityElements() {
         displaySkillText: document.getElementById('display-skill-text'),
         displaySkillBar: document.getElementById('display-skill-bar'),
         ownerActions: document.getElementById('identity-owner-actions'),
+        greeting: document.getElementById('id-card-greeting'),
+        greetingText: document.getElementById('id-card-greeting-text'),
         message: document.getElementById('auth-message'),
         confirmBtn: document.getElementById('confirm-btn')
     };
@@ -1063,6 +1441,86 @@ function updateSkillDisplay(value) {
     if (skillValue) {
         skillValue.textContent = normalized.toFixed(1);
     }
+}
+
+const INTRO_SLIDE_FALLBACK_DURATION_MS = 4000;
+let introSlideIndex = 0;
+let introTimer = null;
+let introTouchStartX = null;
+
+function setIntroSlide(index, { restartTimer = true } = {}) {
+    const slides = Array.from(document.querySelectorAll('[data-intro-slide]'));
+    const progress = Array.from(document.querySelectorAll('[data-intro-progress]'));
+    if (!slides.length) return;
+
+    introSlideIndex = Math.max(0, Math.min(index, slides.length - 1));
+    const activeDuration = Number(slides[introSlideIndex]?.dataset.duration) || INTRO_SLIDE_FALLBACK_DURATION_MS;
+    slides.forEach((slide, slideIndex) => {
+        const isActive = slideIndex === introSlideIndex;
+        slide.classList.toggle('is-active', isActive);
+        slide.setAttribute('aria-hidden', String(!isActive));
+    });
+    progress.forEach((segment, segmentIndex) => {
+        segment.classList.toggle('is-complete', segmentIndex < introSlideIndex);
+        segment.classList.toggle('is-active', segmentIndex === introSlideIndex);
+        const fill = segment.querySelector('.intro-progress-fill');
+        if (fill && segmentIndex === introSlideIndex) {
+            fill.style.setProperty('--progress-duration', `${activeDuration}ms`);
+            fill.style.animation = 'none';
+            void fill.offsetWidth;
+            fill.style.animation = '';
+        }
+    });
+
+    const prev = document.getElementById('intro-prev');
+    const next = document.getElementById('intro-next');
+    if (prev) prev.disabled = introSlideIndex === 0;
+    if (next) next.disabled = introSlideIndex === slides.length - 1;
+
+    window.clearTimeout(introTimer);
+    if (restartTimer && introSlideIndex < slides.length - 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        introTimer = window.setTimeout(() => setIntroSlide(introSlideIndex + 1), activeDuration);
+    }
+}
+
+function initializeIntroCarousel() {
+    const landing = document.getElementById('landing');
+    document.querySelectorAll('[data-intro-progress]').forEach((button) => {
+        button.addEventListener('click', () => setIntroSlide(Number(button.dataset.introProgress)));
+    });
+    document.getElementById('intro-prev')?.addEventListener('click', () => setIntroSlide(introSlideIndex - 1));
+    document.getElementById('intro-next')?.addEventListener('click', () => setIntroSlide(introSlideIndex + 1));
+
+    landing?.addEventListener('touchstart', (event) => {
+        introTouchStartX = event.changedTouches[0]?.clientX ?? null;
+    }, { passive: true });
+    landing?.addEventListener('touchend', (event) => {
+        if (introTouchStartX === null) return;
+        const endX = event.changedTouches[0]?.clientX ?? introTouchStartX;
+        const delta = endX - introTouchStartX;
+        introTouchStartX = null;
+        if (Math.abs(delta) < 48) return;
+        setIntroSlide(introSlideIndex + (delta < 0 ? 1 : -1));
+    }, { passive: true });
+
+    setIntroSlide(0, { restartTimer: false });
+}
+
+function dismissEntryGate() {
+    const gate = document.getElementById('entry-gate');
+    if (!gate) return;
+    gate.classList.add('is-ready', 'pointer-events-none');
+}
+
+function jumpToBaseImmediately() {
+    const map = document.getElementById('map');
+    map?.scrollIntoView({ behavior: 'auto', block: 'start' });
+}
+
+function enterBaseSystem() {
+    window.clearTimeout(introTimer);
+    jumpTo('map');
+    openAuthModal();
 }
 
 function isLiffConfigured() {
@@ -1264,12 +1722,13 @@ async function exchangeLineIdentity() {
         'Firebase 登入逾時，請再試一次。'
     );
     renderLineProfile(profileResult || loginResult.data?.profile || null);
-    await withLineTimeout(
+    const identity = await withLineTimeout(
         restoreIdentityFromServer(),
         LINE_STEP_TIMEOUT_MS,
         '基地身分同步逾時，請再試一次。'
     );
     sessionStorage.removeItem(LINE_REAUTH_GUARD_KEY);
+    return identity;
 }
 
 
@@ -1278,11 +1737,11 @@ async function initializeLineSession() {
     if (!isLiffConfigured()) {
         el.lineLoginBtn?.setAttribute('disabled', 'disabled');
         showAuthMessage('error', '尚未設定 LIFF ID。請先完成 README 的 LINE Developers 與 Firebase 部署步驟。');
-        return;
+        return { lineLoggedIn: false, identity: null };
     }
     if (!window.liff) {
         showAuthMessage('error', 'LINE 登入模組載入失敗，請重新整理頁面。');
-        return;
+        return { lineLoggedIn: false, identity: null };
     }
 
     try {
@@ -1292,20 +1751,22 @@ async function initializeLineSession() {
             if (sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) === '1') {
                 showAuthMessage('info', '已清除失效的 LINE 登入狀態，請重新按一次「使用 LINE 登入」。');
             }
-            return;
+            return { lineLoggedIn: false, identity: null };
         }
 
         setButtonState(el.lineLoginBtn, true, '使用 LINE 登入', '同步中...');
         showAuthMessage('info', '正在驗證 LINE 身分並同步基地檔案。');
-        await exchangeLineIdentity();
+        const identity = await exchangeLineIdentity();
+        return { lineLoggedIn: true, identity };
     } catch (error) {
         console.error('initializeLineSession error:', error);
         if (isLineCredentialError(error) && sessionStorage.getItem(LINE_REAUTH_GUARD_KEY) !== '1') {
             await resetInvalidLineSession();
-            return;
+            return { lineLoggedIn: false, identity: null };
         }
         el.lineLoginBtn?.classList.remove('hidden');
         showAuthMessage('error', error?.message || 'LINE 登入失敗，請稍後再試。');
+        return { lineLoggedIn: false, identity: null };
     } finally {
         setButtonState(el.lineLoginBtn, false, '使用 LINE 登入', '同步中...');
     }
@@ -1350,6 +1811,11 @@ function renderIdCard(data, options = {}) {
     if (el.displaySkillText) el.displaySkillText.innerText = skill.toFixed(1);
     if (el.displaySkillBar) el.displaySkillBar.style.width = `${skill * 100}%`;
     el.ownerActions?.classList.toggle('hidden', !isOwner);
+    if (el.greeting && el.greetingText) {
+        const greeting = String(options.greeting || '');
+        el.greeting.classList.toggle('hidden', !greeting);
+        el.greetingText.textContent = greeting;
+    }
 
     el.form?.classList.add('hidden');
     el.card?.classList.remove('hidden');
@@ -1398,7 +1864,23 @@ async function confirmAndGenerate() {
 document.addEventListener('DOMContentLoaded', async () => {
     initIcons();
     updateSkillDisplay(0.5);
-    await initializeLineSession();
+    initializeIntroCarousel();
+    const session = await initializeLineSession();
+
+    if (session?.lineLoggedIn && session.identity?.id) {
+        jumpToBaseImmediately();
+        openIdentityCardModal(session.identity, {
+            greeting: `歡迎回來，${session.identity.name || '冒險者'}。基地已恢復你的身分。`
+        });
+    } else if (session?.lineLoggedIn) {
+        jumpToBaseImmediately();
+        openAuthModal();
+        showAuthMessage('success', '歡迎抵達伊甸星。完成身分資料後，基地將配發你的 WEDEN 流水號。');
+    } else {
+        setIntroSlide(0);
+    }
+
+    dismissEntryGate();
 });
 </script>
 
