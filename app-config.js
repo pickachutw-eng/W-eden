@@ -97,16 +97,17 @@ window.WEDEN_CONFIG = Object.freeze({
         'liff.referrer'
     ];
     const initialUrl = new URL(window.location.href);
-    const arrivedFromLineCallback = CALLBACK_KEYS.some((key) => initialUrl.searchParams.has(key));
+    let callbackReturnPending = CALLBACK_KEYS.some((key) => initialUrl.searchParams.has(key));
     let resumePromise = null;
     let lastResumeAt = 0;
 
     function hasPendingReturn() {
-        return arrivedFromLineCallback || sessionStorage.getItem(RETURN_PENDING_KEY) === '1';
+        return callbackReturnPending || sessionStorage.getItem(RETURN_PENDING_KEY) === '1';
     }
 
     function revealRecoveredIdentity(session) {
         if (!session?.lineLoggedIn) return;
+        callbackReturnPending = false;
         sessionStorage.removeItem(RETURN_PENDING_KEY);
 
         if (session.identity?.id) {
@@ -174,7 +175,7 @@ window.WEDEN_CONFIG = Object.freeze({
         if (hasPendingReturn()) {
             window.setTimeout(async () => {
                 await resumeLineSession(false);
-                if (sessionStorage.getItem(RETURN_PENDING_KEY) === '1') {
+                if (hasPendingReturn()) {
                     await resumeLineSession(true);
                 }
             }, 0);
