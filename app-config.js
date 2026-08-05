@@ -1,4 +1,84 @@
 window.WEDEN_CONFIG = Object.freeze({
     liffId: '2010878499-ibrTU601',
-    functionsRegion: 'asia-east1'
+    functionsRegion: 'asia-east1',
+    eventSchedule: Object.freeze({
+        votingOpensAt: '2026-08-14T20:30:00+08:00',
+        votingClosesAt: '2026-08-14T21:50:00+08:00',
+        awardsAt: '2026-08-14T22:00:00+08:00',
+        darkRoomAt: '2026-08-14T22:20:00+08:00'
+    })
 });
+
+(function installEventSchedule() {
+    const votingTextReplacements = new Map([
+        ['距離 22:15 截止', '距離 21:50 截止'],
+        ['2026/8/14 22:15', '2026/8/14 21:50'],
+        ['2026/8/14 20:30 開放投票，22:15 截止。', '2026/8/14 20:30 開放投票，21:50 截止。'],
+        ['2026/8/14 20:30–22:15', '2026/8/14 20:30–21:50'],
+        ['最佳服裝投票已於 22:15 結束。', '最佳服裝投票已於 21:50 結束。']
+    ]);
+
+    function replaceVotingText(root) {
+        if (!root) return;
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) {
+            const replacement = votingTextReplacements.get(node.nodeValue.trim());
+            if (replacement) node.nodeValue = node.nodeValue.replace(node.nodeValue.trim(), replacement);
+        }
+    }
+
+    function scheduleRow(time, title, subtitle, description, isLast) {
+        return `
+            <div class="flex gap-6">
+                <div class="flex flex-col items-center w-16 shrink-0 font-black text-fuchsia-300 text-xs">
+                    <span class="rounded-full bg-fuchsia-500/20 border border-fuchsia-500/40 px-3 py-1.5">${time}</span>
+                    ${isLast ? '' : '<div class="w-px h-full bg-gradient-to-b from-fuchsia-500/50 to-transparent mt-3"></div>'}
+                </div>
+                <div class="text-[15px] text-white/90 ${isLast ? '' : 'pb-2'}">
+                    <strong class="text-white text-lg block mb-1">${title}</strong>
+                    <span class="text-fuchsia-200/50 text-[10px] uppercase tracking-wider block mb-2">${subtitle}</span>
+                    <p class="text-white/60 text-sm leading-relaxed">${description}</p>
+                </div>
+            </div>`;
+    }
+
+    function renderSchedule() {
+        const landingTitle = [...document.querySelectorAll('strong')]
+            .find((element) => element.textContent.trim() === '軌道對接：報到迎賓');
+        const scheduleCard = landingTitle?.closest('.rounded-\[32px\]');
+        if (!scheduleCard || scheduleCard.dataset.scheduleVersion === '2026-08-05') return;
+
+        scheduleCard.dataset.scheduleVersion = '2026-08-05';
+        scheduleCard.innerHTML = [
+            scheduleRow('20:00', '軌道對接：報到迎賓', 'Orbital Docking: Check-in & Welcome', '完成報到、領取識別物資，與其他冒險者自由交流。', false),
+            scheduleRow('20:30', '能量補充：食物與狂歡', 'Fueling Station: Feast & Revelry', '主食與酒水開放，同步開啟最佳服裝投票。', false),
+            scheduleRow('21:30', '星核引爆：致詞／切蛋糕', 'Core Ignition: Toast & Cake', '集合致詞、切蛋糕並拍攝全體合照；投票持續至 21:50。', false),
+            scheduleRow('22:00', '最佳服裝獎：頒獎時刻', 'Best Costume Awards', '公布最佳服裝投票結果，進行頒獎與得獎者合照。', false),
+            scheduleRow('22:20', '深空探索：暗夜時刻', 'Deep Space Exploration: After Dark', '正式流程結束，基地進入自由探索與暗夜時刻。', true)
+        ].join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderSchedule();
+        replaceVotingText(document.body);
+
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        const replacement = votingTextReplacements.get(node.nodeValue.trim());
+                        if (replacement) node.nodeValue = replacement;
+                    } else if (node.nodeType === Node.ELEMENT_NODE) {
+                        replaceVotingText(node);
+                    }
+                });
+                if (mutation.type === 'characterData') {
+                    const replacement = votingTextReplacements.get(mutation.target.nodeValue.trim());
+                    if (replacement) mutation.target.nodeValue = replacement;
+                }
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    });
+})();
