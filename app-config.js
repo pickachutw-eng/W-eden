@@ -46,7 +46,7 @@ window.WEDEN_CONFIG = Object.freeze({
     function renderSchedule() {
         const landingTitle = [...document.querySelectorAll('strong')]
             .find((element) => element.textContent.trim() === '軌道對接：報到迎賓');
-        const scheduleCard = landingTitle?.closest('.rounded-\[32px\]');
+        const scheduleCard = landingTitle?.closest('.rounded-\\[32px\\]');
         if (!scheduleCard || scheduleCard.dataset.scheduleVersion === '2026-08-05') return;
 
         scheduleCard.dataset.scheduleVersion = '2026-08-05';
@@ -80,5 +80,116 @@ window.WEDEN_CONFIG = Object.freeze({
             }
         });
         observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    });
+})();
+
+(function installLineLoginRecovery() {
+    const RETURN_PENDING_KEY = 'weden_line_login_return_pending';
+    const CALLBACK_KEYS = [
+        'code',
+        'state',
+        'friendship_status_changed',
+        'error',
+        'error_description',
+        'liffClientId',
+        'liffRedirectUri',
+        'liff.state',
+        'liff.referrer'
+    ];
+    const initialUrl = new URL(window.location.href);
+    const arrivedFromLineCallback = CALLBACK_KEYS.some((key) => initialUrl.searchParams.has(key));
+    let resumePromise = null;
+    let lastResumeAt = 0;
+
+    function hasPendingReturn() {
+        return arrivedFromLineCallback || sessionStorage.getItem(RETURN_PENDING_KEY) === '1';
+    }
+
+    function revealRecoveredIdentity(session) {
+        if (!session?.lineLoggedIn) return;
+        sessionStorage.removeItem(RETURN_PENDING_KEY);
+
+        if (session.identity?.id) {
+            window.jumpToBaseImmediately?.();
+            window.openIdentityCardModal?.(session.identity, {
+                greeting: `歡迎回來，${session.identity.name || '冒險者'}。基地已恢復你的身分。`
+            });
+            return;
+        }
+
+        window.jumpToBaseImmediately?.();
+        window.openAuthModal?.();
+    }
+
+    async function resumeLineSession(forceLineExchange = false) {
+        if (document.visibilityState === 'hidden') return null;
+        if (typeof window.initializeLineSession !== 'function') return null;
+        if (resumePromise) return resumePromise;
+
+        const now = Date.now();
+        if (!forceLineExchange && now - lastResumeAt < 1200) return null;
+        lastResumeAt = now;
+
+        resumePromise = window.initializeLineSession({ forceLineExchange })
+            .then((session) => {
+                revealRecoveredIdentity(session);
+                return session;
+            })
+            .catch((error) => {
+                console.error('LINE session resume failed:', error);
+                return null;
+            })
+            .finally(() => {
+                resumePromise = null;
+            });
+
+        return resumePromise;
+    }
+
+    function installLoginEntryWrapper() {
+        const originalStartLineLogin = window.startLineLogin;
+        if (typeof originalStartLineLogin !== 'function' || originalStartLineLogin.__wedenWrapped) return;
+
+        async function startLineLoginFromStableEntry(...args) {
+            const liffId = String(window.WEDEN_CONFIG?.liffId || '');
+            const isInLiffClient = window.liff?.isInClient?.() === true;
+
+            if (liffId && !isInLiffClient) {
+                sessionStorage.setItem(RETURN_PENDING_KEY, '1');
+                window.closeAuthModal?.();
+                window.location.assign(`https://liff.line.me/${encodeURIComponent(liffId)}`);
+                return;
+            }
+
+            return originalStartLineLogin.apply(this, args);
+        }
+
+        startLineLoginFromStableEntry.__wedenWrapped = true;
+        window.startLineLogin = startLineLoginFromStableEntry;
+    }
+
+    window.addEventListener('load', () => {
+        installLoginEntryWrapper();
+
+        if (hasPendingReturn()) {
+            window.setTimeout(async () => {
+                await resumeLineSession(false);
+                if (sessionStorage.getItem(RETURN_PENDING_KEY) === '1') {
+                    await resumeLineSession(true);
+                }
+            }, 0);
+        }
+    });
+
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted || hasPendingReturn()) {
+            window.setTimeout(() => resumeLineSession(hasPendingReturn()), 0);
+        }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && hasPendingReturn()) {
+            window.setTimeout(() => resumeLineSession(true), 0);
+        }
     });
 })();
