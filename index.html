@@ -684,7 +684,19 @@
                             </div>
                         </div>
                     </div>
-                    <div id="display-name" class="text-right text-[2.15rem] leading-none font-black text-white uppercase tracking-tighter">PILOT</div>
+                    <div class="flex min-w-0 items-center justify-end gap-1">
+                        <div id="display-name" class="min-w-0 text-right text-[2.15rem] leading-none font-black text-white uppercase tracking-tighter">PILOT</div>
+                        <button id="identity-edit-button" type="button" onclick="editCurrentIdentity()"
+                                class="hidden shrink-0 rounded-full p-1.5 text-fuchsia-200/65 transition-colors hover:bg-white/10 hover:text-white active:bg-white/15"
+                                aria-label="修改身分資料" title="修改資料">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                        </button>
+                        <a id="display-instagram-link" href="#" target="_blank" rel="noopener noreferrer"
+                           class="hidden shrink-0 rounded-full p-1.5 text-fuchsia-200/65 transition-colors hover:bg-white/10 hover:text-white active:bg-white/15"
+                           aria-label="開啟 Instagram 個人頁面" title="Instagram">
+                            <i data-lucide="instagram" class="h-3.5 w-3.5"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -692,15 +704,6 @@
                 <div class="flex justify-between border-b border-white/10 pb-2">
                     <span class="text-[10px] text-white/40 uppercase">Avatar</span>
                     <span id="display-animal" class="text-sm font-bold text-fuchsia-200">UNKNOWN</span>
-                </div>
-                <div id="display-instagram-row" class="hidden items-center justify-between border-b border-white/10 pb-2">
-                    <span class="text-[10px] text-white/40 uppercase">Instagram</span>
-                    <a id="display-instagram-link" href="#" target="_blank" rel="noopener noreferrer"
-                       class="inline-flex items-center gap-1.5 text-sm font-bold text-fuchsia-200 transition-colors hover:text-white"
-                       aria-label="開啟 Instagram 個人頁面">
-                        <i data-lucide="instagram" class="h-3.5 w-3.5"></i>
-                        <span id="display-instagram-username">@username</span>
-                    </a>
                 </div>
                 <div class="flex justify-between border-b border-white/10 pb-2">
                     <span class="text-[10px] text-white/40 uppercase">Serial No.</span>
@@ -728,12 +731,7 @@
                 <p id="identity-vote-message" class="mt-3 text-center text-[10px] leading-relaxed text-white/45"></p>
             </div>
 
-            <div id="identity-owner-actions" class="mt-8 space-y-3 border-t border-white/5 pt-6 text-center">
-                <button type="button" onclick="editCurrentIdentity()"
-                        class="mx-auto flex items-center justify-center gap-2 rounded-xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-4 py-2.5 text-xs font-bold tracking-[0.16em] text-fuchsia-100 transition-all hover:border-fuchsia-300/50 hover:bg-fuchsia-500/20 active:scale-[0.98]">
-                    <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
-                    修改資料
-                </button>
+            <div id="identity-owner-actions" class="mt-8 border-t border-white/5 pt-6 text-center">
                 <button type="button" onclick="resetIdentity()" class="mx-auto flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/20 transition-colors hover:text-fuchsia-400">
                     <i data-lucide="log-out" class="h-3 w-3"></i>
                     切換 LINE 帳號 / Switch Account
@@ -1937,10 +1935,9 @@ function getIdentityElements() {
         inputSkill: document.getElementById('input-skill'),
         skillValue: document.getElementById('skill-value'),
         displayName: document.getElementById('display-name'),
+        editButton: document.getElementById('identity-edit-button'),
         displayAnimal: document.getElementById('display-animal'),
-        displayInstagramRow: document.getElementById('display-instagram-row'),
         displayInstagramLink: document.getElementById('display-instagram-link'),
-        displayInstagramUsername: document.getElementById('display-instagram-username'),
         displayId: document.getElementById('display-id'),
         displaySkillText: document.getElementById('display-skill-text'),
         displaySkillBar: document.getElementById('display-skill-bar'),
@@ -2501,12 +2498,14 @@ function renderIdCard(data, options = {}) {
         console.warn('Ignoring invalid stored Instagram username:', error.message);
     }
     const showInstagram = Boolean(auth.currentUser && instagramUsername);
-    el.displayInstagramRow?.classList.toggle('hidden', !showInstagram);
-    el.displayInstagramRow?.classList.toggle('flex', showInstagram);
-    if (showInstagram && el.displayInstagramLink && el.displayInstagramUsername) {
+    el.editButton?.classList.toggle('hidden', !isOwner);
+    el.editButton?.classList.toggle('inline-flex', isOwner);
+    el.displayInstagramLink?.classList.toggle('hidden', !showInstagram);
+    el.displayInstagramLink?.classList.toggle('inline-flex', showInstagram);
+    if (showInstagram && el.displayInstagramLink) {
         el.displayInstagramLink.href = `https://www.instagram.com/${encodeURIComponent(instagramUsername)}/`;
-        el.displayInstagramUsername.textContent = `@${instagramUsername}`;
         el.displayInstagramLink.setAttribute('aria-label', `開啟 @${instagramUsername} 的 Instagram 個人頁面`);
+        el.displayInstagramLink.setAttribute('title', `@${instagramUsername}`);
     } else if (el.displayInstagramLink) {
         el.displayInstagramLink.removeAttribute('href');
     }
