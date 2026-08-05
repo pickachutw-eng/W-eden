@@ -20,7 +20,7 @@ const users = {
 
 test('uses the Taipei event voting window', () => {
     assert.equal(VOTING_OPENS_AT, Date.parse('2026-08-14T12:30:00Z'));
-    assert.equal(VOTING_CLOSES_AT, Date.parse('2026-08-14T14:15:00Z'));
+    assert.equal(VOTING_CLOSES_AT, Date.parse('2026-08-14T13:50:00Z'));
     assert.equal(getVotingPhase(VOTING_OPENS_AT - 1), 'upcoming');
     assert.equal(getVotingPhase(VOTING_OPENS_AT), 'open');
     assert.equal(getVotingPhase(VOTING_CLOSES_AT - 1), 'open');
