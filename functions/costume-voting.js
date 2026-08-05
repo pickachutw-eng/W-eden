@@ -1,7 +1,7 @@
 'use strict';
 
 const VOTING_OPENS_AT = Date.parse('2026-08-14T20:30:00+08:00');
-const VOTING_CLOSES_AT = Date.parse('2026-08-14T22:15:00+08:00');
+const VOTING_CLOSES_AT = Date.parse('2026-08-14T21:50:00+08:00');
 const TEST_VOTING_OPENS_AT = Date.parse('2026-07-31T11:30:00+08:00');
 const TEST_VOTING_CLOSES_AT = Date.parse('2026-08-02T23:59:00+08:00');
 
