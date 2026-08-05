@@ -638,9 +638,10 @@
             <input type="text" id="input-animal" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white">
         </div>
         <div>
-            <label class="block text-[10px] text-white/60 mb-2">INSTAGRAM (確認用，不顯示於身分卡)</label>
-            <input type="text" id="input-ig" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/25 focus:border-fuchsia-500 outline-none transition-all">
-            <p class="text-[10px] text-white/35 mt-2">此欄位僅供你在啟動授權前確認，生成後的身分卡不會顯示。</p>
+            <label for="input-ig" class="block text-[10px] text-white/60 mb-2">INSTAGRAM 帳號（選填）</label>
+            <input type="text" id="input-ig" maxlength="31" inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="@username"
+                   class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/25 focus:border-fuchsia-500 outline-none transition-all">
+            <p class="text-[10px] text-white/35 mt-2">可輸入 @username 或 username；其他已登入的冒險者可由身分卡前往你的 IG。</p>
         </div>
         <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
             <div class="flex items-center justify-between mb-3">
@@ -683,7 +684,23 @@
                             </div>
                         </div>
                     </div>
-                    <div id="display-name" class="text-right text-[2.15rem] leading-none font-black text-white uppercase tracking-tighter">PILOT</div>
+                    <div class="flex min-w-0 items-center justify-end gap-1">
+                        <div id="display-name" class="min-w-0 text-right text-[2.15rem] leading-none font-black text-white uppercase tracking-tighter">PILOT</div>
+                        <button id="identity-edit-button" type="button" onclick="editCurrentIdentity()"
+                                class="hidden shrink-0 rounded-full p-1.5 text-fuchsia-200/65 transition-colors hover:bg-white/10 hover:text-white active:bg-white/15"
+                                aria-label="修改身分資料" title="修改資料">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                        </button>
+                        <a id="display-instagram-link" href="#" target="_blank" rel="noopener noreferrer"
+                           class="hidden shrink-0 rounded-full p-1.5 text-fuchsia-200/65 transition-colors hover:bg-white/10 hover:text-white active:bg-white/15"
+                           aria-label="開啟 Instagram 個人頁面" title="Instagram">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect width="18" height="18" x="3" y="3" rx="5"></rect>
+                                <circle cx="12" cy="12" r="4"></circle>
+                                <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle>
+                            </svg>
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -718,12 +735,12 @@
                 <p id="identity-vote-message" class="mt-3 text-center text-[10px] leading-relaxed text-white/45"></p>
             </div>
 
-            <div id="identity-owner-actions" class="mt-8 pt-6 border-t border-white/5 text-center">
-    <button onclick="resetIdentity()" class="text-[10px] text-white/20 hover:text-fuchsia-400 uppercase tracking-[0.3em] transition-colors flex items-center justify-center gap-2 mx-auto">
-        <i data-lucide="log-out" class="w-3 h-3"></i> 
-        切換 LINE 帳號 / Switch Account
-    </button>
-</div>
+            <div id="identity-owner-actions" class="mt-8 border-t border-white/5 pt-6 text-center">
+                <button type="button" onclick="resetIdentity()" class="mx-auto flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/20 transition-colors hover:text-fuchsia-400">
+                    <i data-lucide="log-out" class="h-3 w-3"></i>
+                    切換 LINE 帳號 / Switch Account
+                </button>
+            </div>
 
         </div>
     </div>
@@ -1922,7 +1939,9 @@ function getIdentityElements() {
         inputSkill: document.getElementById('input-skill'),
         skillValue: document.getElementById('skill-value'),
         displayName: document.getElementById('display-name'),
+        editButton: document.getElementById('identity-edit-button'),
         displayAnimal: document.getElementById('display-animal'),
+        displayInstagramLink: document.getElementById('display-instagram-link'),
         displayId: document.getElementById('display-id'),
         displaySkillText: document.getElementById('display-skill-text'),
         displaySkillBar: document.getElementById('display-skill-bar'),
@@ -1974,6 +1993,47 @@ function updateSkillDisplay(value) {
     const normalized = normalizeSkillValue(value);
     if (skillValue) {
         skillValue.textContent = normalized.toFixed(1);
+    }
+}
+
+function normalizeInstagramUsername(value) {
+    let username = String(value || '').trim();
+    if (!username) return '';
+
+    if (username.startsWith('@')) {
+        username = username.slice(1).trim();
+    }
+
+    if (!/^[A-Za-z0-9._]{1,30}$/.test(username)) {
+        throw new Error('Instagram 帳號請只輸入 1–30 位英文字母、數字、句點或底線，不要貼網址。');
+    }
+
+    return username.toLowerCase();
+}
+
+function normalizeStoredInstagramUsername(value) {
+    const storedValue = String(value || '').trim();
+    if (!storedValue) return '';
+
+    try {
+        return normalizeInstagramUsername(storedValue);
+    } catch (error) {
+        // Earlier registrations accepted arbitrary text, including complete Instagram URLs.
+        // Keep those profiles visible while new edits continue to require a username only.
+        try {
+            const urlCandidate = /^(?:www\.|m\.)?instagram\.com\//i.test(storedValue)
+                ? `https://${storedValue}`
+                : storedValue;
+            const url = new URL(urlCandidate);
+            const hostname = url.hostname.toLowerCase().replace(/^(?:www\.|m\.)/, '');
+            const pathSegments = url.pathname.split('/').filter(Boolean);
+            if (!['http:', 'https:'].includes(url.protocol) || hostname !== 'instagram.com' || pathSegments.length !== 1) {
+                return '';
+            }
+            return normalizeInstagramUsername(pathSegments[0]);
+        } catch (urlError) {
+            return '';
+        }
     }
 }
 
@@ -2258,11 +2318,11 @@ function showIdentityEditor(identity = null) {
     el.card?.classList.add('hidden');
     el.identityFields?.classList.remove('hidden');
 
-    if (el.inputName && !el.inputName.value) {
+    if (el.inputName) {
         el.inputName.value = identity?.name || currentLineProfile?.displayName || '';
     }
-    if (el.inputAnimal) el.inputAnimal.value = identity?.animal || el.inputAnimal.value || '';
-    if (el.inputIg) el.inputIg.value = identity?.IG || identity?.ig || el.inputIg.value || '';
+    if (el.inputAnimal) el.inputAnimal.value = identity?.animal || '';
+    if (el.inputIg) el.inputIg.value = identity?.IG || identity?.ig || '';
     if (el.inputSkill) {
         el.inputSkill.value = normalizeSkillValue(identity?.skill).toFixed(1);
         updateSkillDisplay(el.inputSkill.value);
@@ -2270,6 +2330,16 @@ function showIdentityEditor(identity = null) {
     if (el.confirmBtn) {
         el.confirmBtn.textContent = identity ? '更新基地身分' : '建立基地身分';
     }
+}
+
+function editCurrentIdentity() {
+    if (!auth.currentUser || !currentIdentity?.id) {
+        showAuthMessage('error', '請先使用 LINE 登入，再修改自己的身分資料。');
+        return;
+    }
+
+    clearAuthMessage();
+    showIdentityEditor(currentIdentity);
 }
 
 async function restoreIdentityFromServer() {
@@ -2451,6 +2521,19 @@ function renderIdCard(data, options = {}) {
     el.displayName.innerText = data.name || 'PILOT';
     el.displayAnimal.innerText = data.animal || 'UNKNOWN';
     el.displayId.innerText = data.id || 'WEDEN-260814000';
+    const instagramUsername = normalizeStoredInstagramUsername(data.IG || data.ig || '');
+    const showInstagram = Boolean(instagramUsername);
+    el.editButton?.classList.toggle('hidden', !isOwner);
+    el.editButton?.classList.toggle('inline-flex', isOwner);
+    el.displayInstagramLink?.classList.toggle('hidden', !showInstagram);
+    el.displayInstagramLink?.classList.toggle('inline-flex', showInstagram);
+    if (showInstagram && el.displayInstagramLink) {
+        el.displayInstagramLink.href = `https://www.instagram.com/${encodeURIComponent(instagramUsername)}/`;
+        el.displayInstagramLink.setAttribute('aria-label', `開啟 @${instagramUsername} 的 Instagram 個人頁面`);
+        el.displayInstagramLink.setAttribute('title', `@${instagramUsername}`);
+    } else if (el.displayInstagramLink) {
+        el.displayInstagramLink.removeAttribute('href');
+    }
     if (el.displaySkillText) el.displaySkillText.innerText = skill.toFixed(1);
     if (el.displaySkillBar) el.displaySkillBar.style.width = `${skill * 100}%`;
     el.ownerActions?.classList.toggle('hidden', !isOwner);
@@ -2471,7 +2554,7 @@ async function confirmAndGenerate() {
     const { inputName, inputAnimal, inputIg, inputSkill, confirmBtn } = getIdentityElements();
     const name = inputName?.value.trim();
     const animal = inputAnimal?.value.trim();
-    const ig = inputIg?.value.trim();
+    let ig = '';
     const skill = normalizeSkillValue(inputSkill?.value);
     clearAuthMessage();
 
@@ -2482,6 +2565,14 @@ async function confirmAndGenerate() {
 
     if (!name || !animal) {
         showAuthMessage('error', '資訊不完整。請確認名稱與動物形態都已填寫。');
+        return;
+    }
+
+    try {
+        ig = normalizeInstagramUsername(inputIg?.value);
+    } catch (error) {
+        showAuthMessage('error', error.message);
+        inputIg?.focus();
         return;
     }
 

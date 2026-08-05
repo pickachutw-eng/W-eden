@@ -12,6 +12,7 @@ const {
     getVotingPhase,
     getVotingWindow
 } = require('./costume-voting');
+const { InstagramValidationError, normalizeInstagramUsername } = require('./instagram');
 
 initializeApp();
 setGlobalOptions({ region: 'asia-east1', maxInstances: 10 });
@@ -25,14 +26,6 @@ const VOTING_DATA_ROOT = VOTING_TEST_MODE ? 'costumeVotingTest' : 'costumeVoting
 function requireText(value, fieldName, maxLength) {
     const text = String(value || '').trim();
     if (!text) throw new HttpsError('invalid-argument', `${fieldName}不可空白。`);
-    if (text.length > maxLength) {
-        throw new HttpsError('invalid-argument', `${fieldName}不可超過 ${maxLength} 個字元。`);
-    }
-    return text;
-}
-
-function optionalText(value, fieldName, maxLength) {
-    const text = String(value || '').trim();
     if (text.length > maxLength) {
         throw new HttpsError('invalid-argument', `${fieldName}不可超過 ${maxLength} 個字元。`);
     }
@@ -53,6 +46,17 @@ function normalizeIdentityId(value, fieldName) {
         throw new HttpsError('invalid-argument', `${fieldName}格式無效。`);
     }
     return id;
+}
+
+function normalizeInstagram(value) {
+    try {
+        return normalizeInstagramUsername(value);
+    } catch (error) {
+        if (error instanceof InstagramValidationError) {
+            throw new HttpsError('invalid-argument', error.message);
+        }
+        throw error;
+    }
 }
 
 async function verifyLineIdToken(idToken) {
@@ -167,7 +171,7 @@ exports.saveIdentity = onCall({ cors: true }, async (request) => {
     const profile = {
         name: requireText(request.data?.name, '識別名稱', 40),
         animal: requireText(request.data?.animal, '動物形態', 40),
-        IG: optionalText(request.data?.IG, 'Instagram', 80),
+        IG: normalizeInstagram(request.data?.IG),
         skill: normalizeSkill(request.data?.skill)
     };
     const db = getDatabase();
@@ -208,7 +212,7 @@ exports.saveIdentity = onCall({ cors: true }, async (request) => {
         updatedAt: Date.now()
     };
 
-    await db.ref().update({
+    const updates = {
         [`lineBindings/${uid}`]: id,
         [`users/${id}`]: identity,
         [`sectorOccupancy/${currentSector}/${id}`]: {
@@ -217,7 +221,9 @@ exports.saveIdentity = onCall({ cors: true }, async (request) => {
             animal: identity.animal,
             timestamp: sectorUpdatedAt
         }
-    });
+    };
+
+    await db.ref().update(updates);
 
     return { identity, created: allocation.created };
 });
