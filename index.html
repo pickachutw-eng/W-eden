@@ -1566,7 +1566,8 @@ function scheduleSwampUnlockCheck() {
 function initializeSwampUnlockClock() {
     if (SWAMP_PREVIEW_MODE) {
         swampServerTimeReady = true;
-        scheduleSwampUnlockCheck();
+        renderSwampUnlockState();
+        showSwampUnlockNotice();
         return;
     }
 
