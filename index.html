@@ -737,22 +737,26 @@
                             </div>
                         </div>
                     </div>
-                    <div class="flex min-w-0 items-center justify-end gap-1">
-                        <div id="display-name" class="min-w-0 text-right text-[2.15rem] leading-none font-black text-white uppercase tracking-tighter">PILOT</div>
-                        <button id="identity-edit-button" type="button" onclick="editCurrentIdentity()"
-                                class="hidden shrink-0 rounded-full p-1.5 text-fuchsia-200/65 transition-colors hover:bg-white/10 hover:text-white active:bg-white/15"
-                                aria-label="修改身分資料" title="修改資料">
-                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
-                        </button>
-                        <a id="display-instagram-link" href="#" target="_blank" rel="noopener noreferrer"
-                           class="hidden shrink-0 rounded-full p-1.5 text-fuchsia-200/65 transition-colors hover:bg-white/10 hover:text-white active:bg-white/15"
-                           aria-label="開啟 Instagram 個人頁面" title="Instagram">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <rect width="18" height="18" x="3" y="3" rx="5"></rect>
-                                <circle cx="12" cy="12" r="4"></circle>
-                                <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle>
-                            </svg>
-                        </a>
+                    <div id="identity-name-row" class="flex min-w-0 flex-1 justify-center">
+                        <div id="identity-name-anchor" class="relative min-w-0 max-w-full">
+                            <div id="display-name" class="min-w-0 max-w-full whitespace-nowrap text-center text-[clamp(1.4rem,7vw,2.15rem)] leading-none font-black text-white uppercase tracking-tighter">PILOT</div>
+                            <div id="identity-name-actions" class="absolute left-full top-1/2 ml-0.5 flex -translate-y-1/2 items-center gap-0.5">
+                                <button id="identity-edit-button" type="button" onclick="editCurrentIdentity()"
+                                        class="hidden shrink-0 rounded-full p-1 text-fuchsia-200/65 transition-colors hover:bg-white/10 hover:text-white active:bg-white/15"
+                                        aria-label="修改身分資料" title="修改資料">
+                                    <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                                </button>
+                                <a id="display-instagram-link" href="#" target="_blank" rel="noopener noreferrer"
+                                   class="hidden shrink-0 rounded-full p-1 text-fuchsia-200/65 transition-colors hover:bg-white/10 hover:text-white active:bg-white/15"
+                                   aria-label="開啟 Instagram 個人頁面" title="Instagram">
+                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <rect width="18" height="18" x="3" y="3" rx="5"></rect>
+                                        <circle cx="12" cy="12" r="4"></circle>
+                                        <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1990,6 +1994,9 @@ function getIdentityElements() {
         inputSkill: document.getElementById('input-skill'),
         skillValue: document.getElementById('skill-value'),
         displayName: document.getElementById('display-name'),
+        nameRow: document.getElementById('identity-name-row'),
+        nameAnchor: document.getElementById('identity-name-anchor'),
+        nameActions: document.getElementById('identity-name-actions'),
         editButton: document.getElementById('identity-edit-button'),
         displayAnimal: document.getElementById('display-animal'),
         displayInstagramLink: document.getElementById('display-instagram-link'),
@@ -2086,6 +2093,34 @@ function normalizeStoredInstagramUsername(value) {
             return '';
         }
     }
+}
+
+function fitIdentityDisplayName() {
+    const { displayName, nameAnchor } = getIdentityElements();
+    if (!displayName || !nameAnchor || !nameAnchor.clientWidth) return;
+
+    displayName.style.removeProperty('font-size');
+    const preferredFontSize = Number.parseFloat(window.getComputedStyle(displayName).fontSize);
+    const requiredWidth = displayName.scrollWidth;
+    const availableWidth = nameAnchor.clientWidth;
+    if (!preferredFontSize || requiredWidth <= availableWidth) return;
+
+    const minimumFontSize = 16;
+    const fittedFontSize = Math.max(
+        minimumFontSize,
+        Math.floor(preferredFontSize * availableWidth / requiredWidth)
+    );
+    displayName.style.fontSize = `${fittedFontSize}px`;
+}
+
+function updateIdentityNameLayout({ isOwner, showInstagram }) {
+    const { nameRow, nameActions } = getIdentityElements();
+    if (!nameRow || !nameActions) return;
+
+    const visibleActionCount = Number(Boolean(isOwner)) + Number(Boolean(showInstagram));
+    const actionSpace = visibleActionCount === 0 ? 0 : (visibleActionCount * 24) + 2;
+    nameRow.style.paddingRight = `${actionSpace}px`;
+    window.requestAnimationFrame(fitIdentityDisplayName);
 }
 
 const INTRO_SLIDE_FALLBACK_DURATION_MS = 4000;
@@ -2585,6 +2620,7 @@ function renderIdCard(data, options = {}) {
     } else if (el.displayInstagramLink) {
         el.displayInstagramLink.removeAttribute('href');
     }
+    updateIdentityNameLayout({ isOwner, showInstagram });
     if (el.displaySkillText) el.displaySkillText.innerText = skill.toFixed(1);
     if (el.displaySkillBar) el.displaySkillBar.style.width = `${skill * 100}%`;
     el.ownerActions?.classList.toggle('hidden', !isOwner);
@@ -2597,6 +2633,7 @@ function renderIdCard(data, options = {}) {
 
     el.form?.classList.add('hidden');
     el.card?.classList.remove('hidden');
+    window.requestAnimationFrame(fitIdentityDisplayName);
     clearAuthMessage();
     initIcons();
 }
@@ -2650,6 +2687,9 @@ async function confirmAndGenerate() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initIcons();
+    window.addEventListener('resize', () => {
+        window.requestAnimationFrame(fitIdentityDisplayName);
+    }, { passive: true });
     updateSkillDisplay(0.5);
     initializeIntroCarousel();
     setIntroSlide(0);
