@@ -3,7 +3,7 @@ window.WEDEN_CONFIG = Object.freeze({
     functionsRegion: 'asia-east1',
     eventSchedule: Object.freeze({
         votingOpensAt: '2026-08-14T20:30:00+08:00',
-        votingClosesAt: '2026-08-14T21:50:00+08:00',
+        votingClosesAt: '2026-08-14T22:00:00+08:00',
         awardsAt: '2026-08-14T22:00:00+08:00',
         darkRoomAt: '2026-08-14T22:20:00+08:00'
     })
@@ -11,11 +11,11 @@ window.WEDEN_CONFIG = Object.freeze({
 
 (function installEventSchedule() {
     const votingTextReplacements = new Map([
-        ['距離 22:15 截止', '距離 21:50 截止'],
-        ['2026/8/14 22:15', '2026/8/14 21:50'],
-        ['2026/8/14 20:30 開放投票，22:15 截止。', '2026/8/14 20:30 開放投票，21:50 截止。'],
-        ['2026/8/14 20:30–22:15', '2026/8/14 20:30–21:50'],
-        ['最佳服裝投票已於 22:15 結束。', '最佳服裝投票已於 21:50 結束。']
+        ['距離 22:15 截止', '距離 22:00 截止'],
+        ['2026/8/14 22:15', '2026/8/14 22:00'],
+        ['2026/8/14 20:30 開放投票，22:15 截止。', '2026/8/14 20:30 開放投票，22:00 截止並立即開票。'],
+        ['2026/8/14 20:30–22:15', '2026/8/14 20:30–22:00'],
+        ['最佳服裝投票已於 22:15 結束。', '最佳服裝投票已於 22:00 結束。']
     ]);
 
     function replaceVotingText(root) {
@@ -53,9 +53,9 @@ window.WEDEN_CONFIG = Object.freeze({
         scheduleCard.innerHTML = [
             scheduleRow('20:00', '軌道對接：報到迎賓', 'Orbital Docking: Check-in & Welcome', '完成報到、領取識別物資，與其他冒險者自由交流。', false),
             scheduleRow('20:30', '能量補充：食物與狂歡', 'Fueling Station: Feast & Revelry', '主食與酒水開放，同步開啟最佳服裝投票。', false),
-            scheduleRow('21:30', '星核引爆：致詞／切蛋糕', 'Core Ignition: Toast & Cake', '集合致詞、切蛋糕並拍攝全體合照；投票持續至 21:50。', false),
-            scheduleRow('22:00', '最佳服裝獎：頒獎時刻', 'Best Costume Awards', '公布最佳服裝投票結果，進行頒獎與得獎者合照。', false),
-            scheduleRow('22:20', '深空探索：暗夜時刻', 'Deep Space Exploration: After Dark', '正式流程結束，基地進入自由探索與暗夜時刻。', true)
+            scheduleRow('21:30', '致詞切蛋糕', 'Toast & Cake', '集合致詞、切蛋糕並拍攝全體合照；最佳服裝投票持續進行。', false),
+            scheduleRow('22:00', '榮耀時刻：最佳服裝獎', 'Moment of Glory: Best Costume Awards', '22:00 截止投票並立即開票，公布結果、頒發獎項並拍攝得獎者合照。', false),
+            scheduleRow('22:20', '秘境探索：暗夜時刻', 'Secret Realm: After Dark', '正式流程結束，基地進入自由探索與暗夜時刻。', true)
         ].join('');
     }
 
