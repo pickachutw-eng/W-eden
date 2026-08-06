@@ -252,7 +252,7 @@ exports.castCostumeVote = onCall({ cors: true }, async (request) => {
     if (phase === 'closed') {
         throw new HttpsError(
             'failed-precondition',
-            VOTING_TEST_MODE ? '本輪最佳服裝投票測試已結束。' : '最佳服裝投票已於 22:15 結束。'
+            VOTING_TEST_MODE ? '本輪最佳服裝投票測試已結束。' : '最佳服裝投票已於 22:00 結束。'
         );
     }
 
