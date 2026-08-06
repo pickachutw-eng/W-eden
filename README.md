@@ -14,7 +14,7 @@ W-EDEN 活動網站以 GitHub Pages 提供前端，並以 LINE Login、LIFF、Fi
 
 ## 最佳服裝投票
 
-- 投票期間固定為 2026/8/14 20:30–22:15（Asia/Taipei），由 Cloud Functions 的伺服器時間判定。
+- 投票期間固定為 2026/8/14 20:30–22:00（Asia/Taipei），22:00 截止後立即開票，由 Cloud Functions 的伺服器時間判定。
 - 每個 W-EDEN 身分只有一張有效票，可改票、不可投自己。
 - 原始票存於 `costumeVoting/votesByVoter`，Realtime Database 規則不允許前端直接讀寫。
 - `getCostumeVotingState` 僅回傳本人目前選擇、已投總人數，以及前五名的公開身分與得票比例。
