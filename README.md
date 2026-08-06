@@ -21,6 +21,13 @@ W-EDEN 活動網站以 GitHub Pages 提供前端，並以 LINE Login、LIFF、Fi
 - `castCostumeVote` 驗證 Firebase 登入身分、候選人與投票時段，再覆寫投票者唯一的一筆票。
 - 前五名以全部有效票為分母；同票顯示相同名次，截止後同一畫面鎖定為開票結果。
 
+## 迷幻沼澤解鎖
+
+- 迷幻沼澤固定於 2026/8/14 22:00（Asia/Taipei）解鎖，前端以 Firebase Realtime Database 的伺服器時間偏移判定，Database Rules 也會在解鎖前阻止進駐寫入。
+- 解鎖前地圖按鈕顯示 `????`；點擊只會顯示掃描中說明，不能查看或進駐該區域。
+- 解鎖後，已登入的使用者會收到一次開放通知；已讀狀態存於 `swampUnlockNotices/{guestId}`，跨裝置不重複顯示。
+- 此功能不需部署 Cloud Functions；合併至 `main` 後，專用 GitHub Actions 工作流會自動部署 Database Rules。
+
 ## 首次部署設定
 
 ### 1. LINE Developers

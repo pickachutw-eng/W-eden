@@ -340,6 +340,10 @@
                 transition-duration: 1ms !important;
             }
 
+            .map-hotspot.is-locked .map-hotspot__icon {
+                animation: none !important;
+            }
+
             .intro-slide.is-active .intro-shot[data-final-shot],
             .intro-slide.is-active .intro-copy,
             .intro-slide.is-active .intro-cta {
@@ -400,6 +404,21 @@
             outline: 2px solid rgba(255, 255, 255, 0.9);
             outline-offset: 2px;
             border-radius: 0.75rem;
+        }
+
+        .map-hotspot.is-locked .map-hotspot__icon {
+            opacity: 0.7;
+            animation: swamp-signal 2.4s ease-in-out infinite;
+        }
+
+        .map-hotspot.is-locked .map-hotspot__label {
+            letter-spacing: 0.18em;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        @keyframes swamp-signal {
+            0%, 100% { opacity: 0.45; filter: drop-shadow(0 0 2px rgba(103, 232, 249, 0.35)); }
+            50% { opacity: 0.9; filter: drop-shadow(0 0 8px rgba(103, 232, 249, 0.8)); }
         }
 
         .map-hotspot__icon {
@@ -504,6 +523,24 @@
 
         <div id="modal-content" class="max-h-[90svh] overflow-y-auto no-scrollbar overscroll-contain">
             </div>
+    </div>
+</div>
+
+<div id="swamp-unlock-modal" role="dialog" aria-modal="true" aria-labelledby="swamp-unlock-title" class="fixed inset-0 z-[70] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-500">
+    <div class="absolute inset-0 bg-black/90 backdrop-blur-xl"></div>
+    <div class="relative w-full max-w-sm scale-95 overflow-hidden rounded-[32px] border border-cyan-300/25 bg-[#0a101c] p-1 shadow-[0_0_70px_rgba(34,211,238,0.22)] transition-all duration-500">
+        <div class="rounded-[28px] border border-white/5 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.14),transparent_45%)] px-6 py-8 text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-cyan-300/30 bg-cyan-400/10 text-cyan-200 shadow-[0_0_35px_rgba(34,211,238,0.25)]">
+                <i data-lucide="waves" class="h-7 w-7"></i>
+            </div>
+            <div class="mt-6 text-[10px] font-black uppercase tracking-[0.35em] text-cyan-300/75">Area Unlocked</div>
+            <h2 id="swamp-unlock-title" class="mt-2 text-2xl font-black text-white">未知區域已完成解析</h2>
+            <p class="mt-4 text-sm leading-relaxed text-white/65">基地偵測到異常的生命訊號——<br><strong class="text-cyan-100">迷幻沼澤現已開放探索。</strong></p>
+            <div class="mt-7 grid grid-cols-2 gap-3">
+                <button type="button" onclick="dismissSwampUnlockNotice()" class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white/65 transition-all hover:bg-white/10 hover:text-white">稍後探索</button>
+                <button type="button" onclick="goToUnlockedSwamp()" class="rounded-2xl bg-cyan-500 px-4 py-3 text-sm font-black text-[#061016] shadow-[0_0_24px_rgba(34,211,238,0.24)] transition-all hover:bg-cyan-300">立即前往</button>
+            </div>
+        </div>
     </div>
 </div>
         
@@ -847,9 +884,9 @@
         <span class="map-hotspot__label">能量補給艙</span>
     </button>
 
-    <button onclick="openSector('sec-swamp')" class="map-hotspot" style="--map-x: 11%; --map-y: 43%;" aria-label="開啟迷幻沼澤：迷霧浴室區">
+    <button id="swamp-map-hotspot" onclick="openSector('sec-swamp')" class="map-hotspot is-locked" style="--map-x: 11%; --map-y: 43%;" aria-label="未知區域尚未解鎖">
         <i data-lucide="waves" class="map-hotspot__icon text-cyan-300"></i>
-        <span class="map-hotspot__label">迷幻沼澤</span>
+        <span id="swamp-map-label" class="map-hotspot__label">????</span>
     </button>
 
     <button onclick="openSector('sec-station')" class="map-hotspot" style="--map-x: 27%; --map-y: 64%;" aria-label="開啟引力觀測站：私密臥室區">
@@ -1151,6 +1188,43 @@ function resetIdentity() {
     openResetConfirm();
 }
 
+const SWAMP_SECTOR_ID = 'sec-swamp';
+const SWAMP_UNLOCKS_AT = Date.parse('2026-08-14T22:00:00+08:00');
+const SWAMP_PREVIEW_MODE = new URLSearchParams(window.location.search).get('previewSwamp') === '1';
+
+function openLockedSwampSector() {
+    const modal = document.getElementById('sector-modal');
+    const content = document.getElementById('modal-content');
+    if (!modal || !content) return;
+
+    detachSectorOccupancyListener();
+    content.innerHTML = `
+        <div class="relative overflow-hidden px-8 pb-9 pt-12 text-center">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(34,211,238,0.14),transparent_44%)]"></div>
+            <div class="relative">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-cyan-300/25 bg-cyan-400/10 text-cyan-200 shadow-[0_0_30px_rgba(34,211,238,0.18)]">
+                    <i data-lucide="scan-line" class="h-7 w-7"></i>
+                </div>
+                <div class="mt-6 text-[10px] font-black uppercase tracking-[0.35em] text-cyan-300/65">Unknown Area</div>
+                <h2 class="mt-2 text-2xl font-black text-white">未知區域尚未解鎖</h2>
+                <p class="mt-4 text-sm leading-relaxed text-white/60">感測器受到不明能量干擾，無法辨識此區域。</p>
+                <div class="mt-6 rounded-2xl border border-cyan-300/15 bg-cyan-400/5 px-4 py-4">
+                    <div class="text-[9px] font-bold uppercase tracking-[0.25em] text-white/35">Estimated Scan Completion</div>
+                    <div class="mt-2 text-lg font-black text-cyan-100">2026.08.14&nbsp;&nbsp;22:00</div>
+                    <div class="mt-1 text-xs text-white/45">完成掃描後，基地將發送開放通知。</div>
+                </div>
+                <button type="button" onclick="closeModal()" class="mt-6 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white/65 transition-all hover:bg-white/10 hover:text-white">返回基地</button>
+            </div>
+        </div>
+    `;
+
+    initIcons();
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modal.children[1].classList.remove('scale-95');
+    modal.children[1].classList.add('scale-100');
+    document.body.style.overflow = 'hidden';
+}
+
 async function confirmResetIdentity() {
     const el = getIdentityElements();
     const guest = getCurrentGuest();
@@ -1170,8 +1244,7 @@ async function confirmResetIdentity() {
         console.error('confirmResetIdentity cleanup error:', error);
     }
 
-    localStorage.removeItem('eden_guest');
-    currentIdentity = null;
+    saveCurrentGuest(null);
     viewedIdentity = null;
     costumeVotingState = null;
     if (votingRefreshTimer) clearTimeout(votingRefreshTimer);
@@ -1241,6 +1314,11 @@ const sectorData = {
 function openSector(id) {
     const data = sectorData[id];
     if (!data) return;
+
+    if (id === SWAMP_SECTOR_ID && !isSwampUnlocked()) {
+        openLockedSwampSector();
+        return;
+    }
 
     const modal = document.getElementById('sector-modal');
     const content = document.getElementById('modal-content');
@@ -1414,6 +1492,13 @@ let votingClockTimer = null;
 let votingRefreshTimer = null;
 let pendingVoteIdentity = null;
 let liffInitialized = false;
+let swampServerTimeOffset = 0;
+let swampServerTimeReady = false;
+let swampUnlockTimer = null;
+let swampUnlockNoticeSeen = null;
+let swampUnlockNoticeVisible = false;
+let swampUnlockNoticeCheckInFlight = false;
+let swampPreviousBodyOverflow = '';
 
 function getCurrentGuest() {
     if (currentIdentity) return currentIdentity;
@@ -1429,11 +1514,153 @@ function getCurrentGuest() {
 function saveCurrentGuest(guest) {
     if (!guest) {
         currentIdentity = null;
+        swampUnlockNoticeSeen = null;
         localStorage.removeItem('eden_guest');
-            return;
+        return;
     }
+    if (currentIdentity?.id !== guest.id) swampUnlockNoticeSeen = null;
     currentIdentity = guest;
     localStorage.setItem('eden_guest', JSON.stringify(guest));
+    if (document.readyState !== 'loading') void maybeShowSwampUnlockNotice();
+}
+
+function getSwampServerNow() {
+    return Date.now() + swampServerTimeOffset;
+}
+
+function isSwampUnlocked() {
+    return SWAMP_PREVIEW_MODE || (swampServerTimeReady && getSwampServerNow() >= SWAMP_UNLOCKS_AT);
+}
+
+function renderSwampUnlockState() {
+    const hotspot = document.getElementById('swamp-map-hotspot');
+    const label = document.getElementById('swamp-map-label');
+    if (!hotspot || !label) return;
+
+    const unlocked = isSwampUnlocked();
+    label.textContent = unlocked ? '迷幻沼澤' : '????';
+    hotspot.classList.toggle('is-locked', !unlocked);
+    hotspot.setAttribute('aria-label', unlocked
+        ? '開啟迷幻沼澤：迷霧浴室區'
+        : '未知區域尚未解鎖');
+}
+
+function scheduleSwampUnlockCheck() {
+    if (swampUnlockTimer) window.clearTimeout(swampUnlockTimer);
+    swampUnlockTimer = null;
+    renderSwampUnlockState();
+    if (!swampServerTimeReady) return;
+
+    const remaining = SWAMP_UNLOCKS_AT - getSwampServerNow();
+    if (remaining <= 0) {
+        void maybeShowSwampUnlockNotice();
+        return;
+    }
+
+    swampUnlockTimer = window.setTimeout(
+        scheduleSwampUnlockCheck,
+        Math.min(remaining + 50, 60000)
+    );
+}
+
+function initializeSwampUnlockClock() {
+    if (SWAMP_PREVIEW_MODE) {
+        swampServerTimeReady = true;
+        renderSwampUnlockState();
+        showSwampUnlockNotice();
+        return;
+    }
+
+    renderSwampUnlockState();
+    db.ref('.info/serverTimeOffset').on('value', (snapshot) => {
+        const offset = snapshot.val();
+        if (typeof offset !== 'number') return;
+        swampServerTimeOffset = offset;
+        swampServerTimeReady = true;
+        scheduleSwampUnlockCheck();
+    }, (error) => {
+        console.error('initializeSwampUnlockClock error:', error);
+    });
+}
+
+function showSwampUnlockNotice() {
+    const modal = document.getElementById('swamp-unlock-modal');
+    if (!modal || swampUnlockNoticeVisible) return;
+
+    swampUnlockNoticeVisible = true;
+    swampPreviousBodyOverflow = document.body.style.overflow;
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    const panel = modal.querySelector('.relative');
+    panel?.classList.remove('scale-95');
+    panel?.classList.add('scale-100');
+    document.body.style.overflow = 'hidden';
+    initIcons();
+}
+
+function hideSwampUnlockNotice() {
+    const modal = document.getElementById('swamp-unlock-modal');
+    if (!modal) return;
+
+    swampUnlockNoticeVisible = false;
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    const panel = modal.querySelector('.relative');
+    panel?.classList.remove('scale-100');
+    panel?.classList.add('scale-95');
+    document.body.style.overflow = swampPreviousBodyOverflow;
+}
+
+async function acknowledgeSwampUnlockNotice() {
+    if (SWAMP_PREVIEW_MODE) return;
+
+    const guestId = currentIdentity?.id;
+    if (!guestId || swampUnlockNoticeSeen === true) return;
+
+    swampUnlockNoticeSeen = true;
+    try {
+        await db.ref(`swampUnlockNotices/${guestId}`).set(firebase.database.ServerValue.TIMESTAMP);
+    } catch (error) {
+        console.error('acknowledgeSwampUnlockNotice error:', error);
+    }
+}
+
+function dismissSwampUnlockNotice() {
+    hideSwampUnlockNotice();
+    void acknowledgeSwampUnlockNotice();
+}
+
+function goToUnlockedSwamp() {
+    hideSwampUnlockNotice();
+    void acknowledgeSwampUnlockNotice();
+    closeVotingModal();
+    closeAuthModal();
+    closeModal();
+    openSector(SWAMP_SECTOR_ID);
+}
+
+async function maybeShowSwampUnlockNotice() {
+    if (SWAMP_PREVIEW_MODE) {
+        showSwampUnlockNotice();
+        return;
+    }
+
+    const guestId = currentIdentity?.id;
+    if (!isSwampUnlocked() || !auth.currentUser || !guestId) return;
+    if (swampUnlockNoticeSeen !== null || swampUnlockNoticeVisible || swampUnlockNoticeCheckInFlight) return;
+
+    swampUnlockNoticeCheckInFlight = true;
+    try {
+        const snapshot = await db.ref(`swampUnlockNotices/${guestId}`).once('value');
+        swampUnlockNoticeSeen = snapshot.exists();
+    } catch (error) {
+        console.error('maybeShowSwampUnlockNotice error:', error);
+        swampUnlockNoticeSeen = false;
+    } finally {
+        swampUnlockNoticeCheckInFlight = false;
+    }
+
+    if (swampUnlockNoticeSeen === false && currentIdentity?.id === guestId) {
+        showSwampUnlockNotice();
+    }
 }
 
 function getVotingElements() {
@@ -1930,6 +2157,11 @@ function updateSectorClaimButton(sectorId) {
 async function claimSector(sectorId) {
     const guest = getCurrentGuest();
     const { actionBtn } = getSectorActionElements();
+
+    if (sectorId === SWAMP_SECTOR_ID && !isSwampUnlocked()) {
+        openLockedSwampSector();
+        return;
+    }
 
     if (!guest?.id) {
         showSectorActionMessage('error', '請先完成身份授權，才能進駐區域。');
@@ -2687,6 +2919,7 @@ async function confirmAndGenerate() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initIcons();
+    initializeSwampUnlockClock();
     window.addEventListener('resize', () => {
         window.requestAnimationFrame(fitIdentityDisplayName);
     }, { passive: true });
