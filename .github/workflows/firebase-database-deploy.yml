@@ -1,0 +1,50 @@
+name: Deploy Firebase Database Rules
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/firebase-database-deploy.yml"
+      - "database.rules.json"
+      - "firebase.json"
+      - ".firebaserc"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-database-w-eden
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: firebase-production
+
+    steps:
+      - name: Check deployment configuration
+        env:
+          ENABLE_FIREBASE_DEPLOY: ${{ vars.ENABLE_FIREBASE_DEPLOY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_W_EDEN }}
+        run: |
+          test "$ENABLE_FIREBASE_DEPLOY" = "true"
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_W_EDEN }}
+          project_id: w-eden
+
+      - name: Validate and deploy Database Rules
+        run: npx --yes firebase-tools@latest deploy --only database --project w-eden --non-interactive

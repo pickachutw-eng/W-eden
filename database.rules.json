@@ -6,16 +6,23 @@
       "$guestId": {
         ".read": "auth != null",
         ".write": "auth != null && root.child('lineBindings').child(auth.uid).val() === $guestId",
-        ".validate": "newData.hasChildren(['id', 'name', 'animal', 'skill']) && newData.child('id').val() === $guestId && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 40 && newData.child('animal').isString() && newData.child('animal').val().length > 0 && newData.child('animal').val().length <= 40 && newData.child('skill').isNumber() && newData.child('skill').val() >= 0 && newData.child('skill').val() <= 1"
+        ".validate": "newData.hasChildren(['id', 'name', 'animal', 'skill']) && newData.child('id').val() === $guestId && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 40 && newData.child('animal').isString() && newData.child('animal').val().length > 0 && newData.child('animal').val().length <= 40 && newData.child('skill').isNumber() && newData.child('skill').val() >= 0 && newData.child('skill').val() <= 1 && (newData.child('currentSector').val() !== 'sec-swamp' || now >= 1786716000000)"
       }
     },
     "sectorOccupancy": {
       "$sectorId": {
         ".read": "auth != null",
         "$guestId": {
-          ".write": "auth != null && root.child('lineBindings').child(auth.uid).val() === $guestId",
+          ".write": "auth != null && root.child('lineBindings').child(auth.uid).val() === $guestId && (!newData.exists() || $sectorId !== 'sec-swamp' || now >= 1786716000000)",
           ".validate": "!newData.exists() || (newData.hasChildren(['id', 'name', 'animal', 'timestamp']) && newData.child('id').val() === $guestId)"
         }
+      }
+    },
+    "swampUnlockNotices": {
+      "$guestId": {
+        ".read": "auth != null && root.child('lineBindings').child(auth.uid).val() === $guestId",
+        ".write": "auth != null && root.child('lineBindings').child(auth.uid).val() === $guestId",
+        ".validate": "newData.isNumber()"
       }
     },
     "lineBindings": {
