@@ -1425,10 +1425,10 @@ function updateVotingCountdown() {
         countdownLabel.textContent = '距離 20:30 開放';
     } else if (costumeVotingState.phase === 'open') {
         countdown.textContent = formatVotingDuration(costumeVotingState.closesAt - now);
-        countdownLabel.textContent = '距離 22:15 截止';
+        countdownLabel.textContent = '距離 22:00 截止';
     } else {
         countdown.textContent = '已截止';
-        countdownLabel.textContent = '2026/8/14 22:15';
+        countdownLabel.textContent = '2026/8/14 22:00';
     }
 }
 
@@ -1501,7 +1501,7 @@ function renderVotingState() {
         if (el.panelTitle) el.panelTitle.textContent = '最佳服裝投票';
         if (el.description) el.description.textContent = state.testMode
             ? '這是測試環境，尚未進入測試時段。'
-            : '2026/8/14 20:30 開放投票，22:15 截止。';
+            : '2026/8/14 20:30 開放投票，22:00 截止並立即開票。';
         if (el.entryTitle) el.entryTitle.textContent = '最佳服裝投票';
         if (el.entryMeta) el.entryMeta.textContent = state.testMode ? '測試尚未開放' : '8/14 20:30 開放';
     } else if (state.phase === 'open') {
@@ -1630,7 +1630,7 @@ function updateIdentityVoteAction(message = '') {
     if (costumeVotingState.phase === 'upcoming') {
         voteButton.disabled = true;
         voteButton.textContent = '20:30 開放投票';
-        if (!message) voteMessage.textContent = '2026/8/14 20:30–22:15';
+        if (!message) voteMessage.textContent = '2026/8/14 20:30–22:00';
         return;
     }
     if (costumeVotingState.phase === 'closed') {
