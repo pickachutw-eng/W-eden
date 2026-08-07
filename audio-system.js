@@ -5,7 +5,7 @@
     const MASTER = 0.72;
     const BASE_LEVEL = 0.24;
     const ZONE_LEVEL = 0.19;
-    const zones = new Set(['sec-forest', 'sec-supply', 'sec-station', 'sec-swamp']);
+    const zones = new Set(['sec-gate', 'sec-forest', 'sec-supply', 'sec-station', 'sec-swamp']);
 
     let enabled = localStorage.getItem(PREF_KEY) !== '0';
     let unlocked = false;
@@ -69,6 +69,15 @@
         oscillator(pad, 110, 0.10);
         oscillator(pad, 165, 0.035, 'triangle');
         lfo(pad, 0.065, 0.08, 0.32);
+
+        const gate = bus();
+        zoneBuses['sec-gate'] = gate;
+        const gatePad = ctx.createGain();
+        gatePad.connect(gate);
+        oscillator(gatePad, 130.81, 0.13);
+        oscillator(gatePad, 261.63, 0.055, 'triangle', 4);
+        oscillator(gatePad, 523.25, 0.012);
+        lfo(gatePad, 0.1, 0.045, 0.14);
 
         const forest = bus();
         zoneBuses['sec-forest'] = forest;
@@ -187,7 +196,10 @@
 
     function playZoneDetail() {
         if (!enabled || !unlocked || !currentZone || document.visibilityState === 'hidden') return;
-        if (currentZone === 'sec-forest') {
+        if (currentZone === 'sec-gate') {
+            tone(420, 1120, 0.5, 0.012);
+            tone(840, 1640, 0.35, 0.006, 0.18, 'triangle');
+        } else if (currentZone === 'sec-forest') {
             tone(900, 1280, 0.25, 0.008);
             tone(1280, 1040, 0.22, 0.006, 0.15);
         } else if (currentZone === 'sec-supply') {
