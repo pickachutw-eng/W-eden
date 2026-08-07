@@ -9,6 +9,7 @@ const {
     TEST_VOTING_CLOSES_AT,
     buildLeaderboard,
     getVotingPhase,
+    isBirthdayHostId,
     getVotingWindow
 } = require('./costume-voting');
 
@@ -59,6 +60,29 @@ test('shows tied candidates at the same rank', () => {
     }, users);
 
     assert.deepEqual(result.leaderboard.map((entry) => entry.rank), [1, 1, 1]);
+});
+
+test('recognizes the two birthday host identities', () => {
+    assert.equal(isBirthdayHostId('WEDEN-260814001'), true);
+    assert.equal(isBirthdayHostId('WEDEN-260814004'), true);
+    assert.equal(isBirthdayHostId('WEDEN-260814002'), false);
+});
+
+test('excludes birthday hosts from totals and the leaderboard', () => {
+    const hostOne = 'WEDEN-260814001';
+    const hostFour = 'WEDEN-260814004';
+    const result = buildLeaderboard({
+        voter1: { candidateId: hostOne },
+        voter2: { candidateId: hostFour },
+        voter3: { candidateId: 'bob' }
+    }, {
+        ...users,
+        [hostOne]: { id: hostOne, name: '隆隆', animal: 'HOST' },
+        [hostFour]: { id: hostFour, name: '豪豪', animal: 'HOST' }
+    });
+
+    assert.equal(result.totalVotes, 1);
+    assert.deepEqual(result.leaderboard.map((entry) => entry.candidateId), ['bob']);
 });
 
 test('ignores self votes and candidates without a current identity', () => {

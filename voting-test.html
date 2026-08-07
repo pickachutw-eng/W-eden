@@ -996,6 +996,13 @@
                     </div>
                 </div>
             </div>
+            <div id="birthday-thanks-overlay" class="absolute inset-0 z-40 hidden items-center justify-center rounded-[32px] bg-black/85 backdrop-blur-md p-6">
+                <div class="w-full rounded-[28px] border border-fuchsia-400/20 bg-[#120d22] p-6 text-center shadow-[0_0_40px_rgba(217,70,239,0.2)]">
+                    <div class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-fuchsia-400">Birthday Transmission</div>
+                    <h3 class="mb-6 text-xl font-bold leading-relaxed text-white">謝謝來生日趴陪我們玩！</h3>
+                    <button type="button" onclick="closeBirthdayThanks()" class="w-full rounded-2xl bg-fuchsia-600 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-fuchsia-500 active:scale-[0.98]">開心登陸！</button>
+                </div>
+            </div>
             <div id="vote-confirm-overlay" class="absolute inset-0 z-30 hidden items-center justify-center rounded-[32px] bg-black/85 backdrop-blur-md p-6">
                 <div class="w-full rounded-[28px] border border-fuchsia-400/20 bg-[#120d22] p-6 shadow-[0_0_40px_rgba(217,70,239,0.2)]">
                     <div class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-fuchsia-400">Change Vote</div>
@@ -1292,6 +1299,7 @@ function closeAuthModal() {
 
     closeResetConfirm();
     closeVoteConfirm();
+    closeBirthdayThanks();
     modal.classList.add('opacity-0', 'pointer-events-none');
     const panel = modal.querySelector('.relative');
     panel.classList.remove('scale-100');
@@ -1342,6 +1350,31 @@ let votingClockTimer = null;
 let votingRefreshTimer = null;
 let pendingVoteIdentity = null;
 let liffInitialized = false;
+
+const VOTING_SIMULATION_MODE = new URLSearchParams(window.location.search).get('simulate');
+
+function isFinalResultSimulation() {
+    return VOTING_SIMULATION_MODE === 'results';
+}
+
+function createSimulatedFinalVotingState() {
+    return {
+        phase: 'closed',
+        testMode: false,
+        totalVotes: 36,
+        serverTime: Date.now(),
+        opensAt: new Date('2026-08-14T20:30:00+08:00').getTime(),
+        closesAt: new Date('2026-08-14T22:00:00+08:00').getTime(),
+        currentVoteCandidateId: null,
+        leaderboard: [
+            { rank: 1, id: 'DEMO-012', name: '銀河豹', animal: '雪豹', percentage: 27.8 },
+            { rank: 2, id: 'DEMO-027', name: '霓虹狐', animal: '狐狸', percentage: 22.2 },
+            { rank: 3, id: 'DEMO-018', name: '夜航狼', animal: '黑狼', percentage: 16.7 },
+            { rank: 4, id: 'DEMO-033', name: '星塵兔', animal: '月兔', percentage: 11.1 },
+            { rank: 5, id: 'DEMO-021', name: '伊甸鹿', animal: '鹿', percentage: 8.3 }
+        ]
+    };
+}
 
 function getCurrentGuest() {
     if (currentIdentity) return currentIdentity;
@@ -1587,6 +1620,12 @@ function openVotingModal() {
     document.body.style.overflow = 'hidden';
     renderVotingState();
 
+    if (isFinalResultSimulation()) {
+        setVotingPanelMessage('info', '模擬畫面 · 以下為示意票數與虛構名稱，不是正式開票結果。');
+        initIcons();
+        return;
+    }
+
     if (!auth.currentUser || !currentIdentity?.id) {
         setVotingPanelMessage('info', '請先使用 LINE 登入並建立 W-EDEN 身分。');
     } else {
@@ -1606,6 +1645,13 @@ function closeVotingModal() {
     document.body.style.overflow = '';
 }
 
+const BIRTHDAY_HOST_IDS = new Set(['WEDEN-260814001', 'WEDEN-260814004']);
+
+function isBirthdayHostIdentity(identity) {
+    const identityId = typeof identity === 'string' ? identity : identity?.id;
+    return BIRTHDAY_HOST_IDS.has(String(identityId || '').trim());
+}
+
 function updateIdentityVoteAction(message = '') {
     const { voteActions, voteButton, voteMessage } = getVotingElements();
     if (!voteActions || !voteButton || !voteMessage) return;
@@ -1613,6 +1659,13 @@ function updateIdentityVoteAction(message = '') {
     const isOwner = !viewedIdentity?.id || viewedIdentity.id === currentIdentity?.id;
     voteActions.classList.toggle('hidden', isOwner);
     if (isOwner) return;
+
+    if (isBirthdayHostIdentity(viewedIdentity)) {
+        voteButton.disabled = false;
+        voteButton.textContent = '隆隆豪豪生日快樂';
+        voteMessage.textContent = '';
+        return;
+    }
 
     if (message) voteMessage.textContent = message;
     if (!currentIdentity?.id || !auth.currentUser) {
@@ -1656,6 +1709,20 @@ function updateIdentityVoteAction(message = '') {
     }
 }
 
+function openBirthdayThanks() {
+    const overlay = document.getElementById('birthday-thanks-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+}
+
+function closeBirthdayThanks() {
+    const overlay = document.getElementById('birthday-thanks-overlay');
+    if (!overlay) return;
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+}
+
 function openVoteConfirm(identity) {
     const overlay = document.getElementById('vote-confirm-overlay');
     const name = document.getElementById('vote-confirm-name');
@@ -1676,7 +1743,12 @@ function closeVoteConfirm() {
 
 async function prepareCostumeVote() {
     const candidate = viewedIdentity;
-    if (!candidate?.id || candidate.id === currentIdentity?.id) return;
+    if (!candidate?.id) return;
+    if (isBirthdayHostIdentity(candidate)) {
+        openBirthdayThanks();
+        return;
+    }
+    if (candidate.id === currentIdentity?.id) return;
 
     let state = costumeVotingState;
     if (!state) state = await refreshCostumeVotingState();
@@ -1714,6 +1786,10 @@ async function confirmCostumeVote() {
 async function submitCostumeVote(candidate) {
     const { voteButton } = getVotingElements();
     if (!candidate?.id || !voteButton) return;
+    if (isBirthdayHostIdentity(candidate)) {
+        openBirthdayThanks();
+        return;
+    }
 
     voteButton.disabled = true;
     voteButton.textContent = '同步投票中…';
@@ -2512,6 +2588,15 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeIntroCarousel();
     setIntroSlide(0);
     dismissEntryGate();
+
+    if (isFinalResultSimulation()) {
+        costumeVotingState = createSimulatedFinalVotingState();
+        votingServerOffset = 0;
+        renderVotingState();
+        jumpToBaseImmediately();
+        openVotingModal();
+        return;
+    }
 
     initializeLineSession().then((session) => {
         if (session?.lineLoggedIn && session.identity?.id) {

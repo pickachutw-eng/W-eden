@@ -10,6 +10,7 @@ const { AllocationError, allocateIdentity } = require('./identity-registry');
 const {
     buildLeaderboard,
     getVotingPhase,
+    isBirthdayHostId,
     getVotingWindow
 } = require('./costume-voting');
 const { InstagramValidationError, normalizeInstagramUsername } = require('./instagram');
@@ -122,6 +123,7 @@ async function buildVotingState(db, voterId, now = Date.now()) {
     const ranking = phase === 'upcoming'
         ? { totalVotes: 0, leaderboard: [] }
         : buildLeaderboard(votesByVoter, users);
+    const currentVoteCandidateId = votesByVoter[voterId]?.candidateId || null;
 
     return {
         phase,
@@ -131,7 +133,7 @@ async function buildVotingState(db, voterId, now = Date.now()) {
         serverTime: now,
         totalVotes: ranking.totalVotes,
         leaderboard: ranking.leaderboard,
-        currentVoteCandidateId: votesByVoter[voterId]?.candidateId || null
+        currentVoteCandidateId: isBirthdayHostId(currentVoteCandidateId) ? null : currentVoteCandidateId
     };
 }
 
@@ -257,6 +259,9 @@ exports.castCostumeVote = onCall({ cors: true }, async (request) => {
     }
 
     const candidateId = normalizeIdentityId(request.data?.candidateId, '候選人');
+    if (isBirthdayHostId(candidateId)) {
+        throw new HttpsError('invalid-argument', '壽星不列入最佳服裝投票。');
+    }
     const db = getDatabase();
     const voterId = await getIdentityIdForUid(db, request.auth.uid);
     if (!voterId) throw new HttpsError('failed-precondition', '請先建立 W-EDEN 身分。');
