@@ -1351,6 +1351,31 @@ let votingRefreshTimer = null;
 let pendingVoteIdentity = null;
 let liffInitialized = false;
 
+const VOTING_SIMULATION_MODE = new URLSearchParams(window.location.search).get('simulate');
+
+function isFinalResultSimulation() {
+    return VOTING_SIMULATION_MODE === 'results';
+}
+
+function createSimulatedFinalVotingState() {
+    return {
+        phase: 'closed',
+        testMode: false,
+        totalVotes: 36,
+        serverTime: Date.now(),
+        opensAt: new Date('2026-08-14T20:30:00+08:00').getTime(),
+        closesAt: new Date('2026-08-14T22:00:00+08:00').getTime(),
+        currentVoteCandidateId: null,
+        leaderboard: [
+            { rank: 1, id: 'DEMO-012', name: '銀河豹', animal: '雪豹', percentage: 27.8 },
+            { rank: 2, id: 'DEMO-027', name: '霓虹狐', animal: '狐狸', percentage: 22.2 },
+            { rank: 3, id: 'DEMO-018', name: '夜航狼', animal: '黑狼', percentage: 16.7 },
+            { rank: 4, id: 'DEMO-033', name: '星塵兔', animal: '月兔', percentage: 11.1 },
+            { rank: 5, id: 'DEMO-021', name: '伊甸鹿', animal: '鹿', percentage: 8.3 }
+        ]
+    };
+}
+
 function getCurrentGuest() {
     if (currentIdentity) return currentIdentity;
     try {
@@ -1594,6 +1619,12 @@ function openVotingModal() {
     panel?.classList.add('translate-y-0', 'sm:scale-100');
     document.body.style.overflow = 'hidden';
     renderVotingState();
+
+    if (isFinalResultSimulation()) {
+        setVotingPanelMessage('info', '模擬畫面 · 以下為示意票數與虛構名稱，不是正式開票結果。');
+        initIcons();
+        return;
+    }
 
     if (!auth.currentUser || !currentIdentity?.id) {
         setVotingPanelMessage('info', '請先使用 LINE 登入並建立 W-EDEN 身分。');
@@ -2557,6 +2588,15 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeIntroCarousel();
     setIntroSlide(0);
     dismissEntryGate();
+
+    if (isFinalResultSimulation()) {
+        costumeVotingState = createSimulatedFinalVotingState();
+        votingServerOffset = 0;
+        renderVotingState();
+        jumpToBaseImmediately();
+        openVotingModal();
+        return;
+    }
 
     initializeLineSession().then((session) => {
         if (session?.lineLoggedIn && session.identity?.id) {
