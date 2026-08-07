@@ -194,3 +194,12 @@ window.WEDEN_CONFIG = Object.freeze({
         }
     });
 })();
+
+(function loadWedenAudioSystem() {
+    if (document.querySelector('script[data-weden-audio]')) return;
+    const script = document.createElement('script');
+    script.src = 'audio-system.js';
+    script.defer = true;
+    script.dataset.wedenAudio = 'phase-one';
+    document.head.appendChild(script);
+})();
