@@ -5,6 +5,7 @@ window.WEDEN_CONFIG = Object.freeze({
         votingOpensAt: '2026-08-14T20:30:00+08:00',
         votingClosesAt: '2026-08-14T22:00:00+08:00',
         awardsAt: '2026-08-14T22:00:00+08:00',
+        galaxyPicnicTransformsAt: '2026-08-14T22:00:00+08:00',
         darkRoomAt: '2026-08-14T22:20:00+08:00'
     })
 });
