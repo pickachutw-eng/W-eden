@@ -221,7 +221,7 @@
         const button = document.createElement('button');
         button.id = 'weden-audio-toggle';
         button.type = 'button';
-        button.className = 'fixed right-3 top-[68px] z-[80] flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#120d22]/80 text-white/70 backdrop-blur-xl shadow-[0_0_22px_rgba(192,132,252,0.16)] transition-all hover:border-fuchsia-300/30 hover:bg-fuchsia-500/15 hover:text-fuchsia-100 active:scale-95';
+        button.className = 'ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#120d22]/70 text-white/70 backdrop-blur-xl shadow-[0_0_18px_rgba(192,132,252,0.14)] transition-all hover:border-fuchsia-300/30 hover:bg-fuchsia-500/15 hover:text-fuchsia-100 active:scale-95';
         button.addEventListener('click', (event) => {
             event.stopPropagation();
             unlocked = true;
@@ -231,7 +231,12 @@
             updateToggle();
             applyMix();
         });
-        document.body.appendChild(button);
+        const headerRow = document.querySelector('header .mx-auto.flex');
+        if (headerRow) {
+            headerRow.appendChild(button);
+        } else {
+            document.body.appendChild(button);
+        }
         updateToggle();
     }
 
