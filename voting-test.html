@@ -763,10 +763,10 @@
         <div class="text-[7px] text-white/60">艦長的話</div>
     </button>
 
-    <button onclick="jumpTo('flow')" class="absolute top-[21%] right-[26%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-fuchsia-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(192,132,252,0.3)]">
+    <button onclick="openSector('sec-gate')" class="absolute top-[21%] right-[26%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-fuchsia-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(192,132,252,0.3)]">
         <i data-lucide="door-open" class="w-3.5 h-3.5 text-fuchsia-300"></i>
         <div class="mt-1 text-[9px] font-bold text-white">星際之門</div>
-        <div class="text-[7px] text-white/60">任務日誌</div>
+        <div class="text-[7px] text-white/60">登陸任務區</div>
     </button>
 
     <button onclick="openSector('sec-supply')" class="absolute top-[38%] right-[30%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-amber-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(252,189,88,0.3)]">
@@ -1135,6 +1135,17 @@ async function confirmResetIdentity() {
 }
 
 const sectorData = {
+    'sec-gate': {
+        title: '星際之門',
+        subtitle: 'Stargate',
+        tag: '登陸任務區',
+        icon: 'door-open',
+        color: 'fuchsia',
+        img: '星際之門.png',
+        portrait: true,
+        showMissionLog: true,
+        desc: '所有航線在此交會。穿越光門、完成登陸，確認任務日誌中的行動時序；這裡既是抵達伊甸星的起點，也是每一次探索重新出發的座標。'
+    },
     'sec-forest': {
         title: '伊甸花園',
         subtitle: 'Eden Forest',
@@ -1182,7 +1193,7 @@ function openSector(id) {
     if (!modal || !content) return;
 
     content.innerHTML = `
-        <div class="relative aspect-video w-full overflow-hidden">
+        <div class="relative ${data.portrait ? 'aspect-[3/4] sm:aspect-video' : 'aspect-video'} w-full overflow-hidden">
             <img src="${data.img}" class="w-full h-full object-cover" alt="${data.title}">
             <div class="absolute inset-0 bg-gradient-to-t from-[#0d091a] to-transparent"></div>
         </div>
@@ -1200,6 +1211,13 @@ function openSector(id) {
             <span class="inline-flex items-center gap-2 rounded-full border border-${data.color}-500/30 bg-${data.color}-500/10 px-4 py-1.5 text-[10px] font-bold text-${data.color}-200 uppercase tracking-widest">
                 ${data.tag}
             </span>
+
+            ${data.showMissionLog ? `
+                <button type="button" onclick="openMissionLogFromSector()" class="flex w-full items-center justify-center gap-2 rounded-2xl border border-fuchsia-300/30 bg-gradient-to-r from-fuchsia-600 to-violet-600 px-5 py-3.5 text-sm font-bold text-white shadow-[0_0_24px_rgba(192,132,252,0.25)] transition-all hover:from-fuchsia-500 hover:to-violet-500 active:scale-[0.98]">
+                    <i data-lucide="scroll-text" class="h-4 w-4"></i>
+                    查閱任務日誌
+                </button>
+            ` : ''}
 
             <div class="space-y-4 rounded-[24px] border border-white/10 bg-white/5 p-5">
                 <div class="flex items-center justify-between gap-3">
@@ -1241,6 +1259,11 @@ function closeModal() {
     modal.children[1].classList.remove('scale-100');
     modal.children[1].classList.add('scale-95');
     document.body.style.overflow = '';
+}
+
+function openMissionLogFromSector() {
+    closeModal();
+    window.setTimeout(() => jumpTo('flow'), 300);
 }
 
 function openAuthModal() {
