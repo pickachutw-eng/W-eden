@@ -777,12 +777,7 @@
                     <div id="identity-name-row" class="flex min-w-0 flex-1 justify-center">
                         <div id="identity-name-anchor" class="relative min-w-0 max-w-full">
                             <div id="display-name" class="min-w-0 max-w-full whitespace-nowrap text-center text-[clamp(1.4rem,7vw,2.15rem)] leading-none font-black text-white uppercase tracking-tighter">PILOT</div>
-                            <div id="identity-name-actions" class="absolute left-full top-1/2 ml-0.5 flex -translate-y-1/2 items-center gap-0.5">
-                                <button id="identity-edit-button" type="button" onclick="editCurrentIdentity()"
-                                        class="hidden shrink-0 rounded-full p-1 text-fuchsia-200/65 transition-colors hover:bg-white/10 hover:text-white active:bg-white/15"
-                                        aria-label="修改身分資料" title="修改資料">
-                                    <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
-                                </button>
+                            <div id="identity-name-actions" class="absolute left-full top-1/2 ml-0.5 flex -translate-y-1/2 flex-col items-center gap-0.5">
                                 <a id="display-instagram-link" href="#" target="_blank" rel="noopener noreferrer"
                                    class="hidden shrink-0 rounded-full p-1 text-fuchsia-200/65 transition-colors hover:bg-white/10 hover:text-white active:bg-white/15"
                                    aria-label="開啟 Instagram 個人頁面" title="Instagram">
@@ -792,6 +787,11 @@
                                         <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle>
                                     </svg>
                                 </a>
+                                <button id="identity-edit-button" type="button" onclick="editCurrentIdentity()"
+                                        class="hidden shrink-0 rounded-full p-1 text-fuchsia-200/65 transition-colors hover:bg-white/10 hover:text-white active:bg-white/15"
+                                        aria-label="修改身分資料" title="修改資料">
+                                    <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -2394,8 +2394,8 @@ function updateIdentityNameLayout({ isOwner, showInstagram }) {
     const { nameRow, nameActions } = getIdentityElements();
     if (!nameRow || !nameActions) return;
 
-    const visibleActionCount = Number(Boolean(isOwner)) + Number(Boolean(showInstagram));
-    const actionSpace = visibleActionCount === 0 ? 0 : (visibleActionCount * 24) + 2;
+    const hasVisibleAction = Boolean(isOwner || showInstagram);
+    const actionSpace = hasVisibleAction ? 26 : 0;
     nameRow.style.paddingRight = `${actionSpace}px`;
     window.requestAnimationFrame(fitIdentityDisplayName);
 }
