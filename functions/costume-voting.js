@@ -4,6 +4,7 @@ const VOTING_OPENS_AT = Date.parse('2026-08-14T20:30:00+08:00');
 const VOTING_CLOSES_AT = Date.parse('2026-08-14T22:00:00+08:00');
 const TEST_VOTING_OPENS_AT = Date.parse('2026-07-31T11:30:00+08:00');
 const TEST_VOTING_CLOSES_AT = Date.parse('2026-08-02T23:59:00+08:00');
+const BIRTHDAY_HOST_IDS = new Set(['WEDEN-260814001', 'WEDEN-260814004']);
 
 function getVotingWindow(testMode = false) {
     return testMode
@@ -17,12 +18,16 @@ function getVotingPhase(now = Date.now(), window = getVotingWindow()) {
     return 'closed';
 }
 
+function isBirthdayHostId(identityId) {
+    return BIRTHDAY_HOST_IDS.has(String(identityId || '').trim());
+}
+
 function buildLeaderboard(votesByVoter, users) {
     const tallies = new Map();
 
     Object.entries(votesByVoter || {}).forEach(([voterId, vote]) => {
         const candidateId = String(vote?.candidateId || '');
-        if (!candidateId || candidateId === voterId || !users?.[candidateId]?.id) return;
+        if (!candidateId || candidateId === voterId || isBirthdayHostId(candidateId) || !users?.[candidateId]?.id) return;
         tallies.set(candidateId, (tallies.get(candidateId) || 0) + 1);
     });
 
@@ -63,6 +68,7 @@ module.exports = {
     TEST_VOTING_OPENS_AT,
     TEST_VOTING_CLOSES_AT,
     buildLeaderboard,
+    isBirthdayHostId,
     getVotingPhase,
     getVotingWindow
 };
