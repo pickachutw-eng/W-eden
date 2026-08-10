@@ -2,6 +2,7 @@ window.WEDEN_CONFIG = Object.freeze({
     liffId: '2010878499-ibrTU601',
     functionsRegion: 'asia-east1',
     eventSchedule: Object.freeze({
+        boardingGuidanceEndsAt: '2026-08-14T21:00:00+08:00',
         votingOpensAt: '2026-08-14T20:30:00+08:00',
         votingClosesAt: '2026-08-14T22:00:00+08:00',
         awardsAt: '2026-08-14T22:00:00+08:00',
