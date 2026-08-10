@@ -25,6 +25,13 @@
         ".validate": "newData.isNumber()"
       }
     },
+    "landingClearances": {
+      "$guestId": {
+        ".read": "auth != null && root.child('lineBindings').child(auth.uid).val() === $guestId",
+        ".write": "auth != null && root.child('lineBindings').child(auth.uid).val() === $guestId && !data.exists()",
+        ".validate": "newData.hasChildren(['questionId', 'answerId', 'isCorrect', 'completedAt']) && newData.child('questionId').isString() && (newData.child('questionId').val() === 'birthday-hosts' || newData.child('questionId').val() === 'birthday-animals' || newData.child('questionId').val() === 'party-history') && newData.child('answerId').isString() && newData.child('answerId').val().length > 0 && newData.child('answerId').val().length <= 20 && newData.child('isCorrect').isBoolean() && newData.child('completedAt').isNumber()"
+      }
+    },
     "lineBindings": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
