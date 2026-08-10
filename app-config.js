@@ -29,39 +29,7 @@ window.WEDEN_CONFIG = Object.freeze({
         }
     }
 
-    function scheduleRow(time, title, subtitle, description, isLast) {
-        return `
-            <div class="flex gap-6">
-                <div class="flex flex-col items-center w-16 shrink-0 font-black text-fuchsia-300 text-xs">
-                    <span class="rounded-full bg-fuchsia-500/20 border border-fuchsia-500/40 px-3 py-1.5">${time}</span>
-                    ${isLast ? '' : '<div class="w-px h-full bg-gradient-to-b from-fuchsia-500/50 to-transparent mt-3"></div>'}
-                </div>
-                <div class="text-[15px] text-white/90 ${isLast ? '' : 'pb-2'}">
-                    <strong class="text-white text-lg block mb-1">${title}</strong>
-                    <span class="text-fuchsia-200/50 text-[10px] uppercase tracking-wider block mb-2">${subtitle}</span>
-                    <p class="text-white/60 text-sm leading-relaxed">${description}</p>
-                </div>
-            </div>`;
-    }
-
-    function renderSchedule() {
-        const landingTitle = [...document.querySelectorAll('strong')]
-            .find((element) => element.textContent.trim() === '軌道對接：報到迎賓');
-        const scheduleCard = landingTitle?.closest('.rounded-\\[32px\\]');
-        if (!scheduleCard || scheduleCard.dataset.scheduleVersion === '2026-08-05') return;
-
-        scheduleCard.dataset.scheduleVersion = '2026-08-05';
-        scheduleCard.innerHTML = [
-            scheduleRow('20:00', '軌道對接：報到迎賓', 'Orbital Docking: Check-in & Welcome', '完成報到、領取識別物資，與其他冒險者自由交流。', false),
-            scheduleRow('20:30', '能量補充：食物與狂歡', 'Fueling Station: Feast & Revelry', '主食與酒水開放，同步開啟最佳服裝投票。', false),
-            scheduleRow('21:30', '致詞切蛋糕', 'Toast & Cake', '集合致詞、切蛋糕並拍攝全體合照；最佳服裝投票持續進行。', false),
-            scheduleRow('22:00', '榮耀時刻：最佳服裝獎', 'Moment of Glory: Best Costume Awards', '22:00 截止投票並立即開票，公布結果、頒發獎項並拍攝得獎者合照。', false),
-            scheduleRow('22:20', '秘境探索：暗夜時刻', 'Secret Realm: After Dark', '正式流程結束，基地進入自由探索與暗夜時刻。', true)
-        ].join('');
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
-        renderSchedule();
         replaceVotingText(document.body);
 
         const observer = new MutationObserver((mutations) => {
@@ -152,22 +120,20 @@ window.WEDEN_CONFIG = Object.freeze({
         const originalStartLineLogin = window.startLineLogin;
         if (typeof originalStartLineLogin !== 'function' || originalStartLineLogin.__wedenWrapped) return;
 
-        async function startLineLoginFromStableEntry(...args) {
-            const liffId = String(window.WEDEN_CONFIG?.liffId || '');
-            const isInLiffClient = window.liff?.isInClient?.() === true;
+        async function startLineLoginWithRecovery(...args) {
+            sessionStorage.setItem(RETURN_PENDING_KEY, '1');
+            const result = await originalStartLineLogin.apply(this, args);
 
-            if (liffId && !isInLiffClient) {
-                sessionStorage.setItem(RETURN_PENDING_KEY, '1');
-                window.closeAuthModal?.();
-                window.location.assign(`https://liff.line.me/${encodeURIComponent(liffId)}`);
-                return;
+            // If no redirect was needed and LINE is already authenticated, the normal
+            // login flow has completed in this page. Do not leave a stale recovery flag.
+            if (window.liff?.isLoggedIn?.()) {
+                sessionStorage.removeItem(RETURN_PENDING_KEY);
             }
-
-            return originalStartLineLogin.apply(this, args);
+            return result;
         }
 
-        startLineLoginFromStableEntry.__wedenWrapped = true;
-        window.startLineLogin = startLineLoginFromStableEntry;
+        startLineLoginWithRecovery.__wedenWrapped = true;
+        window.startLineLogin = startLineLoginWithRecovery;
     }
 
     window.addEventListener('load', () => {
