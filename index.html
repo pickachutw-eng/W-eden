@@ -889,9 +889,9 @@
         <span id="swamp-map-label" class="map-hotspot__label">????</span>
     </button>
 
-    <button onclick="openSector('sec-station')" class="map-hotspot" style="--map-x: 27%; --map-y: 64%;" aria-label="開啟引力觀測站：私密臥室區">
-        <i data-lucide="moon-star" class="map-hotspot__icon text-violet-300"></i>
-        <span class="map-hotspot__label">引力觀測站</span>
+    <button id="station-map-hotspot" onclick="openSector('sec-station')" class="map-hotspot" style="--map-x: 27%; --map-y: 64%;" aria-label="開啟銀河野餐：床鋪點心區">
+        <i id="station-map-icon" data-lucide="sparkles" class="map-hotspot__icon text-violet-300"></i>
+        <span id="station-map-label" class="map-hotspot__label">銀河野餐</span>
     </button>
 
     <button onclick="openSector('sec-forest')" class="map-hotspot" style="--map-x: 76%; --map-y: 80%;" aria-label="開啟伊甸花園：沙發交誼區">
@@ -1198,6 +1198,9 @@ function resetIdentity() {
 const SWAMP_SECTOR_ID = 'sec-swamp';
 const SWAMP_UNLOCKS_AT = Date.parse('2026-08-14T22:00:00+08:00');
 const SWAMP_PREVIEW_MODE = new URLSearchParams(window.location.search).get('previewSwamp') === '1';
+const STATION_SECTOR_ID = 'sec-station';
+const STATION_TRANSFORMS_AT = Date.parse('2026-08-14T22:00:00+08:00');
+const STATION_PREVIEW_MODE = new URLSearchParams(window.location.search).get('previewStation');
 
 function openLockedSwampSector() {
     const modal = document.getElementById('sector-modal');
@@ -1279,6 +1282,31 @@ async function confirmResetIdentity() {
     showAuthMessage('info', '已登出這台裝置。使用同一 LINE 帳號登入可取回原身分與編號。');
 }
 
+const stationSectorData = {
+    picnic: {
+        title: '銀河野餐',
+        subtitle: 'Galactic Picnic',
+        tag: '床鋪點心區',
+        icon: 'sparkles',
+        color: 'violet',
+        img: '銀河野餐.png',
+        mediaClass: 'aspect-[2/3] sm:aspect-[3/4]',
+        notice: '22:00 後，燈光轉暗並切換為引力觀測站。',
+        desc: '在星河光幕下，柔軟艙墊上陳列著各式餐食。自在取用，坐下或躺著，在短暫休息、交談與分享之間，等待基地進入夜間觀測階段。'
+    },
+    afterDark: {
+        title: '引力觀測站',
+        subtitle: 'Gravity Observatory',
+        tag: '暗夜觀測區',
+        icon: 'moon-star',
+        color: 'violet',
+        img: '引力觀測站.png',
+        mediaClass: 'aspect-[2/3] sm:aspect-[3/4]',
+        notice: '22:00 夜間模式已啟動；銀河野餐轉換為引力觀測站。',
+        desc: '光逐漸退去，感官變得敏銳。界線不再清晰，語言也失去必要性；在黑暗與引力作用下，存在本身就是回應。'
+    }
+};
+
 const sectorData = {
     'sec-gate': {
         title: '星際之門',
@@ -1309,15 +1337,6 @@ const sectorData = {
         img: '能量補給艙.png',
         desc: '光線與人群在這裡匯聚，能量不斷流動。每一次停留，都是重新出發前的短暫對接，在喧鬧與目光之間找到自己的位置。'
     },
-    'sec-station': {
-        title: '引力觀測站',
-        subtitle: 'Dark Energy',
-        tag: '私密臥室區',
-        icon: 'moon-star',
-        color: 'violet',
-        img: '引力觀測站.png',
-        desc: '光逐漸退去，感官變得敏銳。界線不再清晰，語言也失去必要性。在這裡，存在本身就是回應。'
-    },
     'sec-swamp': {
         title: '迷幻沼澤',
         subtitle: 'Swamp',
@@ -1329,8 +1348,42 @@ const sectorData = {
     }
 };
 
+function getStationNow() {
+    return typeof getSwampServerNow === 'function' && swampServerTimeReady
+        ? getSwampServerNow()
+        : Date.now();
+}
+
+function isStationAfterDark() {
+    if (STATION_PREVIEW_MODE === 'night') return true;
+    if (STATION_PREVIEW_MODE === 'picnic') return false;
+    return getStationNow() >= STATION_TRANSFORMS_AT;
+}
+
+function getSectorData(id) {
+    if (id === STATION_SECTOR_ID) {
+        return isStationAfterDark() ? stationSectorData.afterDark : stationSectorData.picnic;
+    }
+    return sectorData[id];
+}
+
+function renderStationTransformState() {
+    const hotspot = document.getElementById('station-map-hotspot');
+    const label = document.getElementById('station-map-label');
+    const icon = document.getElementById('station-map-icon');
+    if (!hotspot || !label || !icon) return;
+
+    const data = getSectorData(STATION_SECTOR_ID);
+    label.textContent = data.title;
+    icon.setAttribute('data-lucide', data.icon);
+    hotspot.setAttribute('aria-label', isStationAfterDark()
+        ? '開啟引力觀測站：暗夜觀測區'
+        : '開啟銀河野餐：床鋪點心區');
+    initIcons();
+}
+
 function openSector(id) {
-    const data = sectorData[id];
+    const data = getSectorData(id);
     if (!data) return;
 
     if (id === SWAMP_SECTOR_ID && !isSwampUnlocked()) {
@@ -1343,7 +1396,7 @@ function openSector(id) {
     if (!modal || !content) return;
 
     content.innerHTML = `
-        <div class="relative ${data.portrait ? 'aspect-[3/4] sm:aspect-video' : 'aspect-video'} w-full overflow-hidden">
+        <div class="relative ${data.mediaClass || (data.portrait ? 'aspect-[3/4] sm:aspect-video' : 'aspect-video')} w-full overflow-hidden">
             <img src="${data.img}" class="w-full h-full object-cover" alt="${data.title}">
             <div class="absolute inset-0 bg-gradient-to-t from-[#0d091a] to-transparent"></div>
         </div>
@@ -1358,6 +1411,12 @@ function openSector(id) {
                 </div>
             </div>
             <p class="text-white/70 leading-relaxed text-sm">${data.desc}</p>
+            ${data.notice ? `
+                <div class="flex items-start gap-2.5 rounded-2xl border border-violet-300/20 bg-violet-400/10 px-4 py-3 text-xs leading-relaxed text-violet-100/80">
+                    <i data-lucide="clock-3" class="mt-0.5 h-4 w-4 shrink-0 text-violet-300"></i>
+                    <span>${data.notice}</span>
+                </div>
+            ` : ''}
             <span class="inline-flex items-center gap-2 rounded-full border border-${data.color}-500/30 bg-${data.color}-500/10 px-4 py-1.5 text-[10px] font-bold text-${data.color}-200 uppercase tracking-widest">
                 ${data.tag}
             </span>
@@ -1580,6 +1639,7 @@ function scheduleSwampUnlockCheck() {
     if (swampUnlockTimer) window.clearTimeout(swampUnlockTimer);
     swampUnlockTimer = null;
     renderSwampUnlockState();
+    renderStationTransformState();
     if (!swampServerTimeReady) return;
 
     const remaining = SWAMP_UNLOCKS_AT - getSwampServerNow();
@@ -1598,11 +1658,13 @@ function initializeSwampUnlockClock() {
     if (SWAMP_PREVIEW_MODE) {
         swampServerTimeReady = true;
         renderSwampUnlockState();
+        renderStationTransformState();
         showSwampUnlockNotice();
         return;
     }
 
     renderSwampUnlockState();
+    renderStationTransformState();
     db.ref('.info/serverTimeOffset').on('value', (snapshot) => {
         const offset = snapshot.val();
         if (typeof offset !== 'number') return;
@@ -2267,7 +2329,7 @@ async function claimSector(sectorId) {
         const updatedGuest = { ...guest, currentSector: sectorId, currentSectorUpdatedAt: Date.now() };
         saveCurrentGuest(updatedGuest);
         updateSectorClaimButton(sectorId);
-        showSectorActionMessage('success', `已進駐 ${sectorData[sectorId]?.title || '此區域'}。`);
+        showSectorActionMessage('success', `已進駐 ${getSectorData(sectorId)?.title || '此區域'}。`);
     } catch (error) {
         console.error('claimSector error:', error);
         showSectorActionMessage('error', '區域進駐失敗。請檢查 Firebase 權限、連線狀態或資料路徑。');

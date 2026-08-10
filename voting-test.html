@@ -781,10 +781,10 @@
         <div class="text-[7px] text-white/60">迷霧浴室區</div>
     </button>
 
-    <button onclick="openSector('sec-station')" class="absolute bottom-[33%] left-[22%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-violet-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(167,139,250,0.3)]">
-        <i data-lucide="moon-star" class="w-3.5 h-3.5 text-violet-300"></i>
-        <div class="mt-1 text-[9px] font-bold text-white">引力觀測站</div>
-        <div class="text-[7px] text-white/60">私密臥室區</div>
+    <button id="station-map-hotspot" onclick="openSector('sec-station')" class="absolute bottom-[33%] left-[22%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-violet-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(167,139,250,0.3)]" aria-label="開啟銀河野餐：床鋪點心區">
+        <i id="station-map-icon" data-lucide="sparkles" class="w-3.5 h-3.5 text-violet-300"></i>
+        <div id="station-map-label" class="mt-1 text-[9px] font-bold text-white">銀河野餐</div>
+        <div id="station-map-tag" class="text-[7px] text-white/60">床鋪點心區</div>
     </button>
 
     <button onclick="openSector('sec-forest')" class="absolute bottom-[17%] right-[19%] w-[10%] h-[6%] rounded-xl border border-white/20 bg-[#090611]/60 p-1.5 text-left transition-all hover:bg-emerald-500/20 group backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.3)]">
@@ -1134,6 +1134,35 @@ async function confirmResetIdentity() {
     showAuthMessage('info', '已登出這台裝置。使用同一 LINE 帳號登入可取回原身分與編號。');
 }
 
+const STATION_SECTOR_ID = 'sec-station';
+const STATION_TRANSFORMS_AT = Date.parse('2026-08-14T22:00:00+08:00');
+const STATION_PREVIEW_MODE = new URLSearchParams(window.location.search).get('previewStation');
+
+const stationSectorData = {
+    picnic: {
+        title: '銀河野餐',
+        subtitle: 'Galactic Picnic',
+        tag: '床鋪點心區',
+        icon: 'sparkles',
+        color: 'violet',
+        img: '銀河野餐.png',
+        mediaClass: 'aspect-[2/3] sm:aspect-[3/4]',
+        notice: '22:00 後，燈光轉暗並切換為引力觀測站。',
+        desc: '在星河光幕下，柔軟艙墊上陳列著各式餐食。自在取用，坐下或躺著，在短暫休息、交談與分享之間，等待基地進入夜間觀測階段。'
+    },
+    afterDark: {
+        title: '引力觀測站',
+        subtitle: 'Gravity Observatory',
+        tag: '暗夜觀測區',
+        icon: 'moon-star',
+        color: 'violet',
+        img: '引力觀測站.png',
+        mediaClass: 'aspect-[2/3] sm:aspect-[3/4]',
+        notice: '22:00 夜間模式已啟動；銀河野餐轉換為引力觀測站。',
+        desc: '光逐漸退去，感官變得敏銳。界線不再清晰，語言也失去必要性；在黑暗與引力作用下，存在本身就是回應。'
+    }
+};
+
 const sectorData = {
     'sec-gate': {
         title: '星際之門',
@@ -1164,15 +1193,6 @@ const sectorData = {
         img: '能量補給艙.png',
         desc: '光線與人群在這裡匯聚，能量不斷流動。每一次停留，都是重新出發前的短暫對接，在喧鬧與目光之間找到自己的位置。'
     },
-    'sec-station': {
-        title: '引力觀測站',
-        subtitle: 'Dark Energy',
-        tag: '私密臥室區',
-        icon: 'moon-star',
-        color: 'violet',
-        img: '引力觀測站.png',
-        desc: '光逐漸退去，感官變得敏銳。界線不再清晰，語言也失去必要性。在這裡，存在本身就是回應。'
-    },
     'sec-swamp': {
         title: '迷幻沼澤',
         subtitle: 'Swamp',
@@ -1184,8 +1204,38 @@ const sectorData = {
     }
 };
 
+function isStationAfterDark() {
+    if (STATION_PREVIEW_MODE === 'night') return true;
+    if (STATION_PREVIEW_MODE === 'picnic') return false;
+    return Date.now() >= STATION_TRANSFORMS_AT;
+}
+
+function getSectorData(id) {
+    if (id === STATION_SECTOR_ID) {
+        return isStationAfterDark() ? stationSectorData.afterDark : stationSectorData.picnic;
+    }
+    return sectorData[id];
+}
+
+function renderStationTransformState() {
+    const hotspot = document.getElementById('station-map-hotspot');
+    const label = document.getElementById('station-map-label');
+    const tag = document.getElementById('station-map-tag');
+    const icon = document.getElementById('station-map-icon');
+    if (!hotspot || !label || !tag || !icon) return;
+
+    const data = getSectorData(STATION_SECTOR_ID);
+    label.textContent = data.title;
+    tag.textContent = data.tag;
+    icon.setAttribute('data-lucide', data.icon);
+    hotspot.setAttribute('aria-label', isStationAfterDark()
+        ? '開啟引力觀測站：暗夜觀測區'
+        : '開啟銀河野餐：床鋪點心區');
+    initIcons();
+}
+
 function openSector(id) {
-    const data = sectorData[id];
+    const data = getSectorData(id);
     if (!data) return;
 
     const modal = document.getElementById('sector-modal');
@@ -1193,7 +1243,7 @@ function openSector(id) {
     if (!modal || !content) return;
 
     content.innerHTML = `
-        <div class="relative ${data.portrait ? 'aspect-[3/4] sm:aspect-video' : 'aspect-video'} w-full overflow-hidden">
+        <div class="relative ${data.mediaClass || (data.portrait ? 'aspect-[3/4] sm:aspect-video' : 'aspect-video')} w-full overflow-hidden">
             <img src="${data.img}" class="w-full h-full object-cover" alt="${data.title}">
             <div class="absolute inset-0 bg-gradient-to-t from-[#0d091a] to-transparent"></div>
         </div>
@@ -1208,6 +1258,12 @@ function openSector(id) {
                 </div>
             </div>
             <p class="text-white/70 leading-relaxed text-sm">${data.desc}</p>
+            ${data.notice ? `
+                <div class="flex items-start gap-2.5 rounded-2xl border border-violet-300/20 bg-violet-400/10 px-4 py-3 text-xs leading-relaxed text-violet-100/80">
+                    <i data-lucide="clock-3" class="mt-0.5 h-4 w-4 shrink-0 text-violet-300"></i>
+                    <span>${data.notice}</span>
+                </div>
+            ` : ''}
             <span class="inline-flex items-center gap-2 rounded-full border border-${data.color}-500/30 bg-${data.color}-500/10 px-4 py-1.5 text-[10px] font-bold text-${data.color}-200 uppercase tracking-widest">
                 ${data.tag}
             </span>
@@ -1994,7 +2050,7 @@ async function claimSector(sectorId) {
         const updatedGuest = { ...guest, currentSector: sectorId, currentSectorUpdatedAt: Date.now() };
         saveCurrentGuest(updatedGuest);
         updateSectorClaimButton(sectorId);
-        showSectorActionMessage('success', `已進駐 ${sectorData[sectorId]?.title || '此區域'}。`);
+        showSectorActionMessage('success', `已進駐 ${getSectorData(sectorId)?.title || '此區域'}。`);
     } catch (error) {
         console.error('claimSector error:', error);
         showSectorActionMessage('error', '區域進駐失敗。請檢查 Firebase 權限、連線狀態或資料路徑。');
@@ -2607,6 +2663,8 @@ async function confirmAndGenerate() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initIcons();
+    renderStationTransformState();
+    window.setInterval(renderStationTransformState, 60000);
     updateSkillDisplay(0.5);
     initializeIntroCarousel();
     setIntroSlide(0);
