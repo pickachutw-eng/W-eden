@@ -5,6 +5,9 @@
     const MASTER = 0.72;
     const BASE_LEVEL = 0.24;
     const ZONE_LEVEL = 0.19;
+    const INTRO_LEVEL = 0.92;
+    const INTRO_MUSIC_SRC = 'weden-history-intro-v2-luxe.mp3?v=20260810';
+    const INTRO_SLIDE_OFFSETS_SECONDS = Object.freeze([0, 5.8, 9.7, 15.5]);
     const zones = new Set(['sec-gate', 'sec-forest', 'sec-supply', 'sec-station', 'sec-swamp']);
 
     let enabled = localStorage.getItem(PREF_KEY) !== '0';
@@ -16,6 +19,11 @@
     const zoneBuses = {};
     let resultPlayed = false;
     let swampPlayed = false;
+    let introAudio = null;
+    let introSource = null;
+    let introBus = null;
+    let introPlaying = false;
+    let introViewportFrame = null;
 
     function ramp(param, value, duration = 0.5) {
         if (!ctx || !param) return;
@@ -123,6 +131,25 @@
         detuneOsc.start();
     }
 
+    function buildIntroMusic() {
+        introAudio = new Audio(INTRO_MUSIC_SRC);
+        introAudio.preload = 'auto';
+        introAudio.playsInline = true;
+        introAudio.setAttribute('playsinline', '');
+        introAudio.load();
+
+        introSource = ctx.createMediaElementSource(introAudio);
+        introBus = ctx.createGain();
+        introBus.gain.value = INTRO_LEVEL;
+        introSource.connect(introBus);
+        introBus.connect(master);
+
+        introAudio.addEventListener('ended', () => {
+            introPlaying = false;
+            applyMix();
+        });
+    }
+
     function ensureContext() {
         if (ctx) return ctx;
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -132,6 +159,7 @@
         master.gain.value = 0;
         master.connect(ctx.destination);
         buildAmbience();
+        buildIntroMusic();
         window.setInterval(playZoneDetail, 4200);
         return ctx;
     }
@@ -139,12 +167,107 @@
     function applyMix() {
         if (!unlocked || !ensureContext()) return;
         const audible = enabled && document.visibilityState !== 'hidden';
+        const introAudible = audible
+            && introPlaying
+            && introAudio
+            && !introAudio.paused
+            && isIntroVisible();
         ramp(master.gain, audible ? MASTER : 0, 0.35);
-        ramp(base.gain, audible ? BASE_LEVEL : 0, 0.7);
+        ramp(base.gain, audible ? (introAudible ? 0.025 : BASE_LEVEL) : 0, 0.7);
         Object.entries(zoneBuses).forEach(([id, node]) => {
             ramp(node.gain, audible && id === currentZone ? ZONE_LEVEL : 0, 0.8);
         });
         if (audible && ctx.state === 'suspended') void ctx.resume().catch(() => {});
+    }
+
+    function isIntroVisible() {
+        const landing = document.getElementById('landing');
+        if (!landing) return false;
+        const rect = landing.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        return rect.top < viewportHeight * 0.55 && rect.bottom > viewportHeight * 0.45;
+    }
+
+    function getActiveIntroSlideIndex() {
+        const slides = Array.from(document.querySelectorAll('[data-intro-slide]'));
+        const activeIndex = slides.findIndex((slide) => slide.classList.contains('is-active'));
+        return activeIndex >= 0 ? activeIndex : 0;
+    }
+
+    function getIntroSlideElapsedSeconds(index) {
+        const progress = document.querySelector('[data-intro-progress="' + index + '"] .intro-progress-fill');
+        const animation = progress?.getAnimations?.().find((item) => item.playState !== 'idle');
+        const elapsedMilliseconds = Number(animation?.currentTime || 0);
+        const slide = document.querySelectorAll('[data-intro-slide]')[index];
+        const durationSeconds = (Number(slide?.dataset.duration) || 4000) / 1000;
+        return Math.min(Math.max(0, elapsedMilliseconds / 1000), Math.max(0, durationSeconds - 0.08));
+    }
+
+    function pauseIntroMusic({ reset = false } = {}) {
+        if (!introAudio) return;
+        introAudio.pause();
+        if (reset) {
+            try {
+                introAudio.currentTime = 0;
+            } catch (error) {
+                // Metadata can still be loading on a cold mobile visit.
+            }
+        }
+        introPlaying = false;
+        applyMix();
+    }
+
+    function syncIntroMusic(index = getActiveIntroSlideIndex(), { forceSeek = true } = {}) {
+        if (!unlocked || !enabled || document.visibilityState === 'hidden' || !isIntroVisible()) {
+            if (introPlaying && !isIntroVisible()) pauseIntroMusic();
+            return;
+        }
+        if (!ensureContext() || !introAudio) return;
+        if (!forceSeek && introPlaying && !introAudio.paused) return;
+
+        const safeIndex = Math.max(0, Math.min(Number(index) || 0, INTRO_SLIDE_OFFSETS_SECONDS.length - 1));
+        const targetTime = INTRO_SLIDE_OFFSETS_SECONDS[safeIndex] + getIntroSlideElapsedSeconds(safeIndex);
+        const playback = introAudio.play();
+        introPlaying = true;
+
+        try {
+            introAudio.currentTime = targetTime;
+        } catch (error) {
+            introAudio.addEventListener('loadedmetadata', () => {
+                introAudio.currentTime = targetTime;
+            }, { once: true });
+        }
+
+        Promise.resolve(playback).then(() => {
+            introPlaying = true;
+            applyMix();
+        }).catch(() => {
+            introPlaying = false;
+            applyMix();
+        });
+        applyMix();
+    }
+
+    function handleVisibilityChange() {
+        if (document.visibilityState === 'hidden') {
+            pauseIntroMusic();
+            return;
+        }
+        applyMix();
+        syncIntroMusic(getActiveIntroSlideIndex());
+    }
+
+    function scheduleIntroViewportSync() {
+        if (introViewportFrame !== null) return;
+        introViewportFrame = window.requestAnimationFrame(() => {
+            introViewportFrame = null;
+            if (!unlocked) return;
+            if (!isIntroVisible()) {
+                if (introPlaying) pauseIntroMusic();
+                return;
+            }
+            syncIntroMusic(getActiveIntroSlideIndex(), { forceSeek: false });
+        });
     }
 
     function tone(frequency, endFrequency, duration, gain, start = 0, type = 'sine') {
@@ -241,6 +364,11 @@
             enabled = !enabled;
             localStorage.setItem(PREF_KEY, enabled ? '1' : '0');
             updateToggle();
+            if (enabled) {
+                syncIntroMusic(getActiveIntroSlideIndex());
+            } else {
+                pauseIntroMusic();
+            }
             applyMix();
         });
         const headerRow = document.querySelector('header .mx-auto.flex');
@@ -258,6 +386,7 @@
         ensureContext();
         if (ctx?.state === 'suspended') void ctx.resume().catch(() => {});
         applyMix();
+        syncIntroMusic(getActiveIntroSlideIndex());
     }
 
     function wrap(name, factory) {
@@ -269,6 +398,19 @@
     }
 
     function installHooks() {
+        wrap('setIntroSlide', (original) => function (index, ...args) {
+            const value = original.call(this, index, ...args);
+            syncIntroMusic(Number(index));
+            return value;
+        });
+        wrap('enterBaseSystem', (original) => function (...args) {
+            pauseIntroMusic({ reset: true });
+            return original.apply(this, args);
+        });
+        wrap('jumpToBaseImmediately', (original) => function (...args) {
+            pauseIntroMusic({ reset: true });
+            return original.apply(this, args);
+        });
         wrap('openSector', (original) => function (sectorId, ...args) {
             sfx('map');
             const lockedSwamp = sectorId === 'sec-swamp' && typeof window.isSwampUnlocked === 'function' && !window.isSwampUnlocked();
@@ -328,7 +470,8 @@
         installHooks();
         document.addEventListener('pointerdown', unlockFromGesture, { passive: true, once: true });
         document.addEventListener('keydown', unlockFromGesture, { once: true });
-        document.addEventListener('visibilitychange', applyMix);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('scroll', scheduleIntroViewportSync, { passive: true });
     }
 
     if (document.readyState === 'loading') {
