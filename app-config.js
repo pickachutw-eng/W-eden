@@ -81,7 +81,8 @@ window.WEDEN_CONFIG = Object.freeze({
 
         if (session.identity?.id) {
             window.jumpToBaseImmediately?.();
-            window.openIdentityCardModal?.(session.identity, {
+            const openExperience = window.openPostLoginExperience || window.openIdentityCardModal;
+            openExperience?.(session.identity, {
                 greeting: `歡迎回來，${session.identity.name || '冒險者'}。基地已恢復你的身分。`
             });
             return;
