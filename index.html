@@ -1613,6 +1613,9 @@ let swampUnlockNoticeVisible = false;
 let swampUnlockNoticeCheckInFlight = false;
 let swampPreviousBodyOverflow = '';
 const LANDING_CLEARANCE_PASSPHRASE = '前進胖宮GO！';
+const BOARDING_GUIDANCE_ENDS_AT = Date.parse(
+    window.WEDEN_CONFIG?.eventSchedule?.boardingGuidanceEndsAt || '2026-08-14T21:00:00+08:00'
+);
 const LANDING_CLEARANCE_PREVIEW = new URLSearchParams(window.location.search).get('previewClearance');
 const LANDING_CLEARANCE_QUESTIONS = Object.freeze([
     Object.freeze({
@@ -1675,6 +1678,12 @@ function setLandingClearanceContent(markup) {
     initIcons();
 }
 
+function getBoardingGuidance(now = Date.now() + swampServerTimeOffset) {
+    return now >= BOARDING_GUIDANCE_ENDS_AT
+        ? '已錯過軌道對接時間，請聯絡指揮艙安排救援備案。'
+        : '20:00 起，每十分鐘開放一批次，由領航員自大廳引導登艦。';
+}
+
 function renderLandingClearanceLoading() {
     setLandingClearanceContent(`
         <div class="flex min-h-64 flex-col items-center justify-center gap-4 text-center">
@@ -1710,6 +1719,7 @@ function renderLandingClearanceQuestion(question) {
 }
 
 function renderLandingClearancePermit({ isCorrect = null, fact = '', syncState = 'saved' } = {}) {
+    const boardingGuidance = getBoardingGuidance();
     const resultLabel = isCorrect === null
         ? '登陸許可已核發'
         : isCorrect
@@ -1758,7 +1768,7 @@ function renderLandingClearancePermit({ isCorrect = null, fact = '', syncState =
                 <i data-lucide="navigation" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-200/75"></i>
                 <div>
                     <div class="text-[9px] font-black uppercase tracking-[0.24em] text-cyan-200/60">Boarding Guidance</div>
-                    <p class="mt-2 text-sm font-bold leading-relaxed text-white/75">20:00 起，每十分鐘開放一批次，由領航員自大廳引導登艦。</p>
+                    <p class="mt-2 text-sm font-bold leading-relaxed text-white/75">${boardingGuidance}</p>
                 </div>
             </div>
         </div>
