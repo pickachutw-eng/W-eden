@@ -830,6 +830,10 @@
             </div>
 
             <div id="identity-owner-actions" class="mt-8 border-t border-white/5 pt-6 text-center">
+                <button type="button" onclick="openLandingClearanceModal(currentIdentity)" class="mx-auto mb-4 flex items-center justify-center gap-2 rounded-full border border-fuchsia-300/20 bg-fuchsia-500/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.22em] text-fuchsia-100/80 transition-colors hover:border-fuchsia-300/40 hover:bg-fuchsia-500/20 hover:text-white">
+                    <i data-lucide="key-round" class="h-3.5 w-3.5"></i>
+                    查看登陸許可
+                </button>
                 <button type="button" onclick="resetIdentity()" class="mx-auto flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/20 transition-colors hover:text-fuchsia-400">
                     <i data-lucide="log-out" class="h-3 w-3"></i>
                     切換 LINE 帳號 / Switch Account
@@ -1080,6 +1084,22 @@
                 <div id="voting-empty" class="rounded-2xl border border-dashed border-white/10 bg-black/20 px-4 py-6 text-center text-sm text-white/40">目前尚無排名資料。</div>
             </div>
             <p class="mt-6 text-center text-[10px] leading-relaxed text-white/30">每人一張有效票，可改票、不可投自己。前台不公開投票者名單。</p>
+        </div>
+    </div>
+</div>
+
+<div id="landing-clearance-modal" role="dialog" aria-modal="true" aria-labelledby="landing-clearance-title" class="fixed inset-0 z-[75] flex items-end justify-center p-0 opacity-0 pointer-events-none transition-all duration-300 sm:items-center sm:p-4">
+    <div onclick="closeLandingClearanceModal()" class="absolute inset-0 bg-black/90 backdrop-blur-xl"></div>
+    <div class="relative w-full max-w-md translate-y-6 overflow-hidden rounded-t-[34px] border border-fuchsia-300/20 bg-[#0d091a] shadow-[0_0_70px_rgba(217,70,239,0.25)] transition-all duration-300 sm:translate-y-0 sm:scale-95 sm:rounded-[34px]">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(217,70,239,0.2),transparent_42%)]"></div>
+        <h2 id="landing-clearance-title" class="sr-only">登陸許可</h2>
+        <button type="button" onclick="closeLandingClearanceModal()" class="absolute right-4 top-4 z-20 rounded-full bg-black/35 p-2 text-white/55 transition-colors hover:text-white" aria-label="關閉登陸許可">
+            <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+        <div id="landing-clearance-content" class="relative max-h-[90svh] overflow-y-auto px-6 pb-8 pt-10 no-scrollbar sm:px-8">
+            <div class="flex min-h-64 items-center justify-center text-fuchsia-200/70">
+                <i data-lucide="loader-circle" class="h-6 w-6 animate-spin"></i>
+            </div>
         </div>
     </div>
 </div>
@@ -1592,6 +1612,257 @@ let swampUnlockNoticeSeen = null;
 let swampUnlockNoticeVisible = false;
 let swampUnlockNoticeCheckInFlight = false;
 let swampPreviousBodyOverflow = '';
+const LANDING_CLEARANCE_PASSPHRASE = '前進胖宮GO！';
+const LANDING_CLEARANCE_PREVIEW = new URLSearchParams(window.location.search).get('previewClearance');
+const LANDING_CLEARANCE_QUESTIONS = Object.freeze([
+    Object.freeze({
+        id: 'birthday-hosts',
+        prompt: '以下哪位不是本次壽星？',
+        choices: Object.freeze([
+            Object.freeze({ id: 'dudu', label: '嘟嘟' }),
+            Object.freeze({ id: 'dandan', label: '蛋蛋' }),
+            Object.freeze({ id: 'longlong', label: '隆隆' }),
+            Object.freeze({ id: 'haohao', label: '豪豪' }),
+            Object.freeze({ id: 'togepi', label: '波克比' })
+        ]),
+        correctAnswerId: 'togepi',
+        fact: '嘟嘟＝隆隆、蛋蛋＝豪豪！'
+    }),
+    Object.freeze({
+        id: 'birthday-animals',
+        prompt: '以下哪個動物跟壽星無關？',
+        choices: Object.freeze([
+            Object.freeze({ id: 'lion', label: '獅子' }),
+            Object.freeze({ id: 'rabbit', label: '兔子' }),
+            Object.freeze({ id: 'dog', label: '狗狗' }),
+            Object.freeze({ id: 'pikachu', label: '皮卡丘' }),
+            Object.freeze({ id: 'bear', label: '熊熊' })
+        ]),
+        correctAnswerId: 'bear',
+        fact: '隆隆跟豪豪分別是屬狗跟屬兔的可愛小獅子噢（請勿認真推算年紀！）'
+    }),
+    Object.freeze({
+        id: 'party-history',
+        prompt: '以下哪個不是歷屆生日趴的舉辦場景？',
+        choices: Object.freeze([
+            Object.freeze({ id: 'shangri-la', label: '香格里拉' }),
+            Object.freeze({ id: 'gstar', label: 'Gstar' }),
+            Object.freeze({ id: 'yacht', label: '遊艇' }),
+            Object.freeze({ id: 'campground', label: '露營區' })
+        ]),
+        correctAnswerId: 'campground',
+        fact: '從香格里拉、Gstar 到遊艇，今年兩位壽星又登陸 W 飯店，建立第四屆生日基地 W-EDEN！'
+    })
+]);
+let activeLandingClearanceIdentityId = null;
+let activeLandingClearanceQuestion = null;
+let landingClearancePreviousBodyOverflow = '';
+let landingClearanceRequestSequence = 0;
+
+function chooseLandingClearanceQuestion() {
+    if (window.crypto?.getRandomValues) {
+        const randomValue = new Uint32Array(1);
+        window.crypto.getRandomValues(randomValue);
+        return LANDING_CLEARANCE_QUESTIONS[randomValue[0] % LANDING_CLEARANCE_QUESTIONS.length];
+    }
+    return LANDING_CLEARANCE_QUESTIONS[Math.floor(Math.random() * LANDING_CLEARANCE_QUESTIONS.length)];
+}
+
+function setLandingClearanceContent(markup) {
+    const content = document.getElementById('landing-clearance-content');
+    if (!content) return;
+    content.innerHTML = markup;
+    initIcons();
+}
+
+function renderLandingClearanceLoading() {
+    setLandingClearanceContent(`
+        <div class="flex min-h-64 flex-col items-center justify-center gap-4 text-center">
+            <i data-lucide="loader-circle" class="h-7 w-7 animate-spin text-fuchsia-300"></i>
+            <p class="text-xs tracking-[0.2em] text-white/45">正在讀取登陸許可</p>
+        </div>
+    `);
+}
+
+function renderLandingClearanceQuestion(question) {
+    activeLandingClearanceQuestion = question;
+    const choiceButtons = question.choices.map((choice, index) => `
+        <button type="button" onclick="answerLandingClearance('${choice.id}')" class="group flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 text-left text-sm font-bold text-white/80 transition-all hover:border-fuchsia-300/40 hover:bg-fuchsia-500/15 hover:text-white active:scale-[0.99]">
+            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/20 text-[10px] text-fuchsia-200/70 transition-colors group-hover:border-fuchsia-300/30">${index + 1}</span>
+            <span>${choice.label}</span>
+        </button>
+    `).join('');
+
+    setLandingClearanceContent(`
+        <div class="text-[10px] font-black uppercase tracking-[0.36em] text-fuchsia-400">Landing Clearance</div>
+        <div class="mt-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-fuchsia-300/25 bg-fuchsia-500/10 text-fuchsia-200 shadow-[0_0_30px_rgba(217,70,239,0.18)]">
+            <i data-lucide="scan-face" class="h-7 w-7"></i>
+        </div>
+        <h2 class="mt-5 text-2xl font-black text-white">登陸許可測驗</h2>
+        <p class="mt-2 text-xs leading-relaxed text-white/45">基地隨機抽取一則壽星情報。無論判讀正確與否，都會核發臨時登陸許可。</p>
+        <div class="mt-7 rounded-3xl border border-fuchsia-300/15 bg-black/20 p-5">
+            <div class="text-[9px] font-bold uppercase tracking-[0.28em] text-fuchsia-300/60">Random Intelligence Check</div>
+            <p class="mt-3 text-lg font-black leading-relaxed text-white">${question.prompt}</p>
+            <div class="mt-5 space-y-2.5">${choiceButtons}</div>
+        </div>
+        <p class="mt-5 text-center text-[10px] leading-relaxed text-white/30">請依第一直覺作答；本測驗不影響實際入場資格。</p>
+    `);
+}
+
+function renderLandingClearancePermit({ isCorrect = null, fact = '', syncState = 'saved' } = {}) {
+    const resultLabel = isCorrect === null
+        ? '登陸許可已核發'
+        : isCorrect
+            ? '情報辨識正確'
+            : '情報略有偏差';
+    const resultCopy = isCorrect === false
+        ? '基地仍決定核發臨時登陸許可。'
+        : isCorrect === true
+            ? '看來你確實掌握了壽星的重要情報。'
+            : '你的登陸知識檢定已完成。';
+    const factMarkup = fact ? `
+        <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+            <div class="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.25em] text-fuchsia-300/65">
+                <i data-lucide="sparkles" class="h-3.5 w-3.5"></i> 趣味情報
+            </div>
+            <p class="mt-2 text-sm leading-relaxed text-white/70">${fact}</p>
+        </div>
+    ` : '';
+    const syncText = syncState === 'saving'
+        ? '正在同步登陸許可…'
+        : '密語已核發，但許可狀態暫未同步；下次登入可能需要再答一題。';
+    const syncClass = syncState === 'saving'
+        ? 'text-white/35'
+        : 'leading-relaxed text-amber-200/65';
+    const syncMarkup = syncState === 'saved'
+        ? ''
+        : `<p id="landing-clearance-sync" class="mt-4 text-center text-[10px] ${syncClass}">${syncText}</p>`;
+
+    setLandingClearanceContent(`
+        <div class="text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-emerald-300/30 bg-emerald-400/10 text-emerald-200 shadow-[0_0_35px_rgba(52,211,153,0.2)]">
+                <i data-lucide="badge-check" class="h-8 w-8"></i>
+            </div>
+            <div class="mt-5 text-[10px] font-black uppercase tracking-[0.35em] text-emerald-300/70">Clearance Granted</div>
+            <h2 class="mt-2 text-2xl font-black text-white">${resultLabel}</h2>
+            <p class="mt-2 text-sm leading-relaxed text-white/55">${resultCopy}</p>
+        </div>
+        ${factMarkup}
+        <div class="mt-5 rounded-3xl border border-fuchsia-300/25 bg-gradient-to-br from-fuchsia-500/15 via-violet-500/10 to-transparent px-5 py-6 text-center shadow-[inset_0_0_30px_rgba(217,70,239,0.08)]">
+            <div class="text-[9px] font-bold uppercase tracking-[0.3em] text-fuchsia-200/55">Unified Passphrase</div>
+            <div class="mt-3 text-[clamp(1.75rem,9vw,2.5rem)] font-black tracking-[0.12em] text-white drop-shadow-[0_0_16px_rgba(232,121,249,0.35)]">${LANDING_CLEARANCE_PASSPHRASE}</div>
+            <div class="mt-3 text-[10px] text-white/35">請截圖保存，抵達後向領航員報出密語。</div>
+        </div>
+        <div class="mt-5 rounded-2xl border border-cyan-300/15 bg-cyan-400/5 px-4 py-4">
+            <div class="flex gap-3">
+                <i data-lucide="navigation" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-200/75"></i>
+                <div>
+                    <div class="text-[9px] font-black uppercase tracking-[0.24em] text-cyan-200/60">Boarding Guidance</div>
+                    <p class="mt-2 text-sm font-bold leading-relaxed text-white/75">20:00 起，每十分鐘開放一批次，由領航員自大廳引導登艦。</p>
+                </div>
+            </div>
+        </div>
+        ${syncMarkup}
+        <button type="button" onclick="closeLandingClearanceModal()" class="mt-5 w-full rounded-2xl bg-fuchsia-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-fuchsia-500 active:scale-[0.99]">許可已保存</button>
+    `);
+}
+
+async function loadLandingClearance(identityId) {
+    if (LANDING_CLEARANCE_PREVIEW === 'permit') {
+        return { completedAt: Date.now(), preview: true };
+    }
+    if (LANDING_CLEARANCE_PREVIEW === 'quiz') return null;
+    if (!identityId || !auth.currentUser) return null;
+    const snapshot = await db.ref(`landingClearances/${identityId}`).once('value');
+    return snapshot.val() || null;
+}
+
+async function openLandingClearanceModal(identity = currentIdentity) {
+    const modal = document.getElementById('landing-clearance-modal');
+    if (!modal) return;
+    const identityId = LANDING_CLEARANCE_PREVIEW ? 'preview' : identity?.id;
+    if (!identityId) {
+        openAuthModal();
+        showAuthMessage('info', '請先使用 LINE 登入並建立 W-EDEN 身分。');
+        return;
+    }
+    if (activeLandingClearanceIdentityId === identityId && !modal.classList.contains('pointer-events-none')) return;
+
+    activeLandingClearanceIdentityId = identityId;
+    activeLandingClearanceQuestion = null;
+    const requestSequence = ++landingClearanceRequestSequence;
+    landingClearancePreviousBodyOverflow = document.body.style.overflow;
+    renderLandingClearanceLoading();
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    const panel = modal.children[1];
+    panel?.classList.remove('translate-y-6', 'sm:scale-95');
+    panel?.classList.add('translate-y-0', 'sm:scale-100');
+    document.body.style.overflow = 'hidden';
+
+    try {
+        const clearance = await loadLandingClearance(identityId);
+        if (requestSequence !== landingClearanceRequestSequence) return;
+        if (clearance?.completedAt) {
+            renderLandingClearancePermit();
+        } else {
+            renderLandingClearanceQuestion(chooseLandingClearanceQuestion());
+        }
+    } catch (error) {
+        console.error('loadLandingClearance error:', error);
+        if (requestSequence === landingClearanceRequestSequence) {
+            renderLandingClearanceQuestion(chooseLandingClearanceQuestion());
+        }
+    }
+}
+
+function closeLandingClearanceModal() {
+    const modal = document.getElementById('landing-clearance-modal');
+    if (!modal) return;
+    landingClearanceRequestSequence += 1;
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    const panel = modal.children[1];
+    panel?.classList.remove('translate-y-0', 'sm:scale-100');
+    panel?.classList.add('translate-y-6', 'sm:scale-95');
+    document.body.style.overflow = landingClearancePreviousBodyOverflow;
+}
+
+async function answerLandingClearance(answerId) {
+    const question = activeLandingClearanceQuestion;
+    const identityId = activeLandingClearanceIdentityId;
+    if (!question || !identityId) return;
+    const choice = question.choices.find((item) => item.id === answerId);
+    if (!choice) return;
+
+    activeLandingClearanceQuestion = null;
+    const isCorrect = answerId === question.correctAnswerId;
+    const isPreview = Boolean(LANDING_CLEARANCE_PREVIEW);
+    renderLandingClearancePermit({ isCorrect, fact: question.fact, syncState: isPreview ? 'saved' : 'saving' });
+    if (isPreview) return;
+
+    try {
+        await db.ref(`landingClearances/${identityId}`).set({
+            questionId: question.id,
+            answerId,
+            isCorrect,
+            completedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        const sync = document.getElementById('landing-clearance-sync');
+        if (sync) sync.remove();
+    } catch (error) {
+        console.error('answerLandingClearance error:', error);
+        const sync = document.getElementById('landing-clearance-sync');
+        if (sync) {
+            sync.className = 'mt-4 text-center text-[10px] leading-relaxed text-amber-200/65';
+            sync.textContent = '密語已核發，但許可狀態暫未同步；下次登入可能需要再答一題。';
+        }
+    }
+}
+
+function openPostLoginExperience(identity, options = {}) {
+    if (!identity?.id) return;
+    openIdentityCardModal(identity, options);
+    void openLandingClearanceModal(identity);
+}
 
 function getCurrentGuest() {
     if (currentIdentity) return currentIdentity;
@@ -2808,7 +3079,11 @@ async function restoreIdentityFromServer() {
     saveCurrentGuest(identity);
     renderIdCard(identity);
     jumpTo('map');
-    openAuthModal();
+    if (!LANDING_CLEARANCE_PREVIEW) {
+        openPostLoginExperience(identity, {
+            greeting: `歡迎回來，${identity.name || '冒險者'}。基地已恢復你的身分。`
+        });
+    }
     await refreshCostumeVotingState({ silent: true });
     return identity;
 }
@@ -3039,6 +3314,7 @@ async function confirmAndGenerate() {
 
         saveCurrentGuest(userData);
         renderIdCard(userData);
+        void openLandingClearanceModal(userData);
         await refreshCostumeVotingState({ silent: true });
     } catch (error) {
         console.error('confirmAndGenerate error:', error);
@@ -3062,9 +3338,10 @@ document.addEventListener('DOMContentLoaded', () => {
     dismissEntryGate();
 
     initializeLineSession().then((session) => {
+        if (LANDING_CLEARANCE_PREVIEW) return;
         if (session?.lineLoggedIn && session.identity?.id) {
             jumpToBaseImmediately();
-            openIdentityCardModal(session.identity, {
+            openPostLoginExperience(session.identity, {
                 greeting: `歡迎回來，${session.identity.name || '冒險者'}。基地已恢復你的身分。`
             });
         } else if (session?.lineLoggedIn) {
@@ -3073,6 +3350,10 @@ document.addEventListener('DOMContentLoaded', () => {
             showAuthMessage('success', '歡迎抵達伊甸星。完成身分資料後，基地將配發你的 WEDEN 流水號。');
         }
     });
+
+    if (LANDING_CLEARANCE_PREVIEW) {
+        window.setTimeout(() => openLandingClearanceModal({ id: 'preview' }), 0);
+    }
 });
 </script>
 

@@ -28,6 +28,13 @@ W-EDEN 活動網站以 GitHub Pages 提供前端，並以 LINE Login、LIFF、Fi
 - 解鎖後，已登入的使用者會收到一次開放通知；已讀狀態存於 `swampUnlockNotices/{guestId}`，跨裝置不重複顯示。
 - 此功能不需部署 Cloud Functions；合併至 `main` 後，專用 GitHub Actions 工作流會自動部署 Database Rules。
 
+## 登陸許可測驗
+
+- 完成 LINE 登入與身分建立後，系統會從三題壽星趣味題中隨機抽出一題。
+- 無論回答正確或錯誤，都會顯示趣味情報、統一通關密語與大廳接引方式。
+- 完成狀態存於 `landingClearances/{guestId}`，只允許該 LINE 身分首次寫入與本人讀取；之後登入會直接顯示登陸許可。
+- 前端測試可使用 `?previewClearance=quiz` 模擬答題，或使用 `?previewClearance=permit` 模擬已完成畫面，不會寫入資料庫。
+
 ## 首次部署設定
 
 ### 1. LINE Developers
