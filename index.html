@@ -3161,12 +3161,24 @@ async function runLineSessionInitialization(options = {}) {
             const existingUser = await waitForFirebaseSession();
             if (existingUser) {
                 showAuthMessage('info', '正在取回已登入的基地身分。');
-                const identity = await withLineRetry(() => withLineTimeout(
+                let identity = await withLineRetry(() => withLineTimeout(
                     restoreIdentityFromServer(),
                     LINE_STEP_TIMEOUT_MS,
                     '基地身分同步逾時。'
                 ));
-                renderLineProfile(null);
+
+                // Existing Firebase sessions predate the physical-card mapping. If LINE is
+                // still available, exchange the verified LINE token once so the backend can
+                // claim and persist the matching PG number for this account.
+                if (identity?.id && !identity.pgId && isLiffConfigured() && window.liff) {
+                    await ensureLiffInitialized();
+                    if (liff.isLoggedIn()) {
+                        showAuthMessage('info', '正在辨識並綁定實體房卡編號。');
+                        identity = await exchangeLineIdentity();
+                    }
+                }
+
+                renderLineProfile(identity?.pgId ? { pgId: identity.pgId } : null);
                 sessionStorage.removeItem(LINE_REAUTH_GUARD_KEY);
                 hideIdentitySyncStatus();
                 return { lineLoggedIn: true, identity };
