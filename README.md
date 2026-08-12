@@ -8,9 +8,10 @@ W-EDEN 活動網站以 GitHub Pages 提供前端，並以 LINE Login、LIFF、Fi
 2. 前端把 LINE ID Token 傳給 `lineLogin` Cloud Function 驗證。
 3. 後端簽發 Firebase Custom Token。
 4. 使用者填寫識別名稱、動物形態、Instagram 與能量光譜。
-5. `saveIdentity` 以 Realtime Database transaction 配發 `WEDEN-260814001` 起的流水號。
-6. 同一 LINE 帳號日後登入會取回原身分；流水號不重複、不回收。
-7. 新身分與尚未選擇區域的既有身分，登入後預設進駐「伊甸花園」。
+5. `saveIdentity` 以 Realtime Database transaction 配發 `WEDEN-260814001` 起的系統流水號。
+6. LINE 驗證同時以單向雜湊比對預設賓客名單，綁定 `PG-001` 起的實體房卡編號；公開原始碼不保存姓名，系統流水號也不受影響。
+7. 同一 LINE 帳號日後登入會取回原身分及已綁定的房卡；兩種編號都不重複、不回收。
+8. 新身分與尚未選擇區域的既有身分，登入後預設進駐「伊甸花園」。
 
 ## 最佳服裝投票
 

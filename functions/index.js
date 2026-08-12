@@ -14,6 +14,11 @@ const {
     getVotingWindow
 } = require('./costume-voting');
 const { InstagramValidationError, normalizeInstagramUsername } = require('./instagram');
+const {
+    PhysicalCardAssignmentError,
+    assignPhysicalCard,
+    findPhysicalCardByLineDisplayName
+} = require('./physical-card-registry');
 
 initializeApp();
 setGlobalOptions({ region: 'asia-east1', maxInstances: 10 });
@@ -90,6 +95,40 @@ async function getIdentityIdForUid(db, uid) {
     return registrySnapshot.val() || null;
 }
 
+async function getPhysicalCardIdForUid(db, uid) {
+    const snapshot = await db.ref(`physicalCardRegistry/byUid/${uid}`).get();
+    const assignment = snapshot.val();
+    return typeof assignment === 'string' ? assignment : assignment?.pgId || null;
+}
+
+async function claimPhysicalCardForLineUser(db, uid, displayName) {
+    const existingPgId = await getPhysicalCardIdForUid(db, uid);
+    if (existingPgId) return existingPgId;
+    if (!findPhysicalCardByLineDisplayName(displayName)) return null;
+
+    const registryRef = db.ref('physicalCardRegistry');
+    let assignment = null;
+    let assignmentError = null;
+    const transaction = await registryRef.transaction((current) => {
+        assignmentError = null;
+        try {
+            assignment = assignPhysicalCard(current, uid, displayName);
+            return assignment.registry;
+        } catch (error) {
+            assignmentError = error;
+            return undefined;
+        }
+    }, undefined, false);
+
+    if (!transaction.committed || !assignment?.pgId) {
+        if (assignmentError instanceof PhysicalCardAssignmentError) {
+            throw new HttpsError(assignmentError.code, assignmentError.message);
+        }
+        throw new HttpsError('aborted', '目前無法綁定實體房卡，請稍後再試。');
+    }
+    return assignment.pgId;
+}
+
 async function ensureDefaultSector(db, identity) {
     if (!identity?.id || identity.currentSector) return identity;
 
@@ -143,13 +182,23 @@ exports.lineLogin = onCall({ cors: true }, async (request) => {
 
     const lineIdentity = await verifyLineIdToken(idToken);
     const uid = `line_${lineIdentity.sub}`;
-    const customToken = await getAuth().createCustomToken(uid, { provider: 'line' });
+    const db = getDatabase();
+    const pgId = await claimPhysicalCardForLineUser(db, uid, lineIdentity.name || '');
+    const customClaims = { provider: 'line' };
+    if (pgId) customClaims.pgId = pgId;
+    const customToken = await getAuth().createCustomToken(uid, customClaims);
+
+    const existingIdentityId = await getIdentityIdForUid(db, uid);
+    if (existingIdentityId && pgId) {
+        await db.ref(`users/${existingIdentityId}/pgId`).set(pgId);
+    }
 
     return {
         customToken,
         profile: {
             displayName: lineIdentity.name || '',
-            pictureUrl: lineIdentity.picture || ''
+            pictureUrl: lineIdentity.picture || '',
+            pgId
         }
     };
 });
@@ -162,8 +211,16 @@ exports.getMyIdentity = onCall({ cors: true }, async (request) => {
     const id = await getIdentityIdForUid(db, uid);
     if (!id) return { identity: null };
 
-    const identitySnapshot = await db.ref(`users/${id}`).get();
-    const identity = await ensureDefaultSector(db, identitySnapshot.val() || null);
+    const [identitySnapshot, pgId] = await Promise.all([
+        db.ref(`users/${id}`).get(),
+        getPhysicalCardIdForUid(db, uid)
+    ]);
+    let identity = identitySnapshot.val() || null;
+    if (identity?.id && pgId && identity.pgId !== pgId) {
+        identity = { ...identity, pgId };
+        await db.ref(`users/${id}/pgId`).set(pgId);
+    }
+    identity = await ensureDefaultSector(db, identity);
     return { identity };
 });
 
@@ -201,12 +258,16 @@ exports.saveIdentity = onCall({ cors: true }, async (request) => {
     }
 
     const id = allocation.id;
-    const existingSnapshot = await db.ref(`users/${id}`).get();
+    const [existingSnapshot, pgId] = await Promise.all([
+        db.ref(`users/${id}`).get(),
+        getPhysicalCardIdForUid(db, uid)
+    ]);
     const existing = existingSnapshot.val() || {};
     const currentSector = existing.currentSector || DEFAULT_SECTOR_ID;
     const sectorUpdatedAt = existing.currentSectorUpdatedAt || Date.now();
     const identity = {
         id,
+        ...(pgId ? { pgId } : existing.pgId ? { pgId: existing.pgId } : {}),
         ...profile,
         timestamp: existing.timestamp || Date.now(),
         currentSector,

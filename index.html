@@ -707,13 +707,14 @@
             <div class="min-w-0 flex-1">
                 <div class="text-[10px] uppercase tracking-[0.2em] text-emerald-200/70">Connected</div>
                 <div id="line-profile-name" class="truncate text-sm font-bold text-white">LINE 使用者</div>
+                <div id="line-profile-pg" class="mt-0.5 hidden text-[10px] font-mono font-bold tracking-wider text-fuchsia-200"></div>
             </div>
             <i data-lucide="badge-check" class="h-5 w-5 shrink-0 text-emerald-300"></i>
         </div>
         <button id="line-login-btn" onclick="startLineLogin()" class="w-full rounded-2xl bg-[#06C755] px-4 py-3 text-sm font-bold text-white transition-all hover:bg-[#05b84f] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
             使用 LINE 登入
         </button>
-        <p id="line-auth-hint" class="text-[10px] text-white/40 mt-3">首次登入後填寫身分資料，系統會依序配發 WEDEN 流水號。</p>
+        <p id="line-auth-hint" class="text-[10px] text-white/40 mt-3">首次登入後填寫身分資料，系統會配發 WEDEN 流水號；名單內賓客另會自動綁定實體房卡編號。</p>
     </div>
 
     <div id="auth-message" class="hidden rounded-2xl border px-4 py-3 text-sm leading-relaxed"></div>
@@ -803,9 +804,9 @@
                     <span class="text-[10px] text-white/40 uppercase">Avatar</span>
                     <span id="display-animal" class="text-sm font-bold text-fuchsia-200">UNKNOWN</span>
                 </div>
-                <div class="flex justify-between border-b border-white/10 pb-2">
-                    <span class="text-[10px] text-white/40 uppercase">Serial No.</span>
-                    <span id="display-id" class="text-sm font-mono text-fuchsia-200">WEDEN-260814000</span>
+                <div id="display-pg-id-row" class="flex justify-between border-b border-white/10 pb-2">
+                    <span class="text-[10px] text-white/40 uppercase">Room Key</span>
+                    <span id="display-pg-id" class="text-sm font-mono font-bold text-fuchsia-200">待綁定</span>
                 </div>
                 <div class="pt-1">
                     <div class="mb-2 flex justify-between">
@@ -2633,6 +2634,7 @@ function getIdentityElements() {
         lineAuthProfile: document.getElementById('line-auth-profile'),
         lineProfilePicture: document.getElementById('line-profile-picture'),
         lineProfileName: document.getElementById('line-profile-name'),
+        lineProfilePg: document.getElementById('line-profile-pg'),
         lineAuthHint: document.getElementById('line-auth-hint'),
         inputName: document.getElementById('input-name'),
         inputAnimal: document.getElementById('input-animal'),
@@ -2646,7 +2648,8 @@ function getIdentityElements() {
         editButton: document.getElementById('identity-edit-button'),
         displayAnimal: document.getElementById('display-animal'),
         displayInstagramLink: document.getElementById('display-instagram-link'),
-        displayId: document.getElementById('display-id'),
+        displayPgIdRow: document.getElementById('display-pg-id-row'),
+        displayPgId: document.getElementById('display-pg-id'),
         displaySkillText: document.getElementById('display-skill-text'),
         displaySkillBar: document.getElementById('display-skill-bar'),
         ownerActions: document.getElementById('identity-owner-actions'),
@@ -3035,11 +3038,18 @@ function renderLineProfile(profile) {
             el.lineProfilePicture.classList.add('hidden');
         }
     }
+    if (el.lineProfilePg) {
+        const pgId = String(profile?.pgId || '').trim();
+        el.lineProfilePg.textContent = pgId ? `實體房卡 ${pgId}` : '';
+        el.lineProfilePg.classList.toggle('hidden', !pgId);
+    }
     el.lineAuthProfile?.classList.remove('hidden');
     el.lineAuthProfile?.classList.add('flex');
     el.lineLoginBtn?.classList.add('hidden');
     if (el.lineAuthHint) {
-        el.lineAuthHint.textContent = 'LINE 身分已驗證；同一帳號會固定取回同一組 WEDEN 編號。';
+        el.lineAuthHint.textContent = profile?.pgId
+            ? `已辨識實體房卡 ${profile.pgId}；系統 WEDEN 編號仍會獨立保留。`
+            : 'LINE 身分已驗證；同一帳號會固定取回同一組 WEDEN 編號。';
     }
     initIcons();
 }
@@ -3127,7 +3137,12 @@ async function exchangeLineIdentity() {
         LINE_STEP_TIMEOUT_MS,
         'Firebase 登入逾時。'
     ));
-    renderLineProfile(profileResult || loginResult.data?.profile || null);
+    const verifiedProfile = loginResult.data?.profile || {};
+    renderLineProfile({
+        ...verifiedProfile,
+        ...(profileResult || {}),
+        pgId: verifiedProfile.pgId || null
+    });
     const identity = await withLineRetry(() => withLineTimeout(
         restoreIdentityFromServer(),
         LINE_STEP_TIMEOUT_MS,
@@ -3146,12 +3161,24 @@ async function runLineSessionInitialization(options = {}) {
             const existingUser = await waitForFirebaseSession();
             if (existingUser) {
                 showAuthMessage('info', '正在取回已登入的基地身分。');
-                const identity = await withLineRetry(() => withLineTimeout(
+                let identity = await withLineRetry(() => withLineTimeout(
                     restoreIdentityFromServer(),
                     LINE_STEP_TIMEOUT_MS,
                     '基地身分同步逾時。'
                 ));
-                renderLineProfile(null);
+
+                // Existing Firebase sessions predate the physical-card mapping. If LINE is
+                // still available, exchange the verified LINE token once so the backend can
+                // claim and persist the matching PG number for this account.
+                if (identity?.id && !identity.pgId && isLiffConfigured() && window.liff) {
+                    await ensureLiffInitialized();
+                    if (liff.isLoggedIn()) {
+                        showAuthMessage('info', '正在辨識並綁定實體房卡編號。');
+                        identity = await exchangeLineIdentity();
+                    }
+                }
+
+                renderLineProfile(identity?.pgId ? { pgId: identity.pgId } : null);
                 sessionStorage.removeItem(LINE_REAUTH_GUARD_KEY);
                 hideIdentitySyncStatus();
                 return { lineLoggedIn: true, identity };
@@ -3248,7 +3275,7 @@ async function startLineLogin() {
 
 function renderIdCard(data, options = {}) {
     const el = getIdentityElements();
-    if (!el.displayName || !el.displayAnimal || !el.displayId) return;
+    if (!el.displayName || !el.displayAnimal) return;
 
     const skill = normalizeSkillValue(data.skill);
     const isOwner = options.isOwner ?? (data.id === currentIdentity?.id);
@@ -3256,7 +3283,8 @@ function renderIdCard(data, options = {}) {
 
     el.displayName.innerText = data.name || 'PILOT';
     el.displayAnimal.innerText = data.animal || 'UNKNOWN';
-    el.displayId.innerText = data.id || 'WEDEN-260814000';
+    const pgId = String(data.pgId || '').trim();
+    if (el.displayPgId) el.displayPgId.innerText = pgId || '待綁定';
     const instagramUsername = normalizeStoredInstagramUsername(data.IG || data.ig || '');
     const showInstagram = Boolean(instagramUsername);
     el.editButton?.classList.toggle('hidden', !isOwner);
