@@ -707,13 +707,14 @@
             <div class="min-w-0 flex-1">
                 <div class="text-[10px] uppercase tracking-[0.2em] text-emerald-200/70">Connected</div>
                 <div id="line-profile-name" class="truncate text-sm font-bold text-white">LINE 使用者</div>
+                <div id="line-profile-pg" class="mt-0.5 hidden text-[10px] font-mono font-bold tracking-wider text-fuchsia-200"></div>
             </div>
             <i data-lucide="badge-check" class="h-5 w-5 shrink-0 text-emerald-300"></i>
         </div>
         <button id="line-login-btn" onclick="startLineLogin()" class="w-full rounded-2xl bg-[#06C755] px-4 py-3 text-sm font-bold text-white transition-all hover:bg-[#05b84f] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
             使用 LINE 登入
         </button>
-        <p id="line-auth-hint" class="text-[10px] text-white/40 mt-3">首次登入後填寫身分資料，系統會依序配發 WEDEN 流水號。</p>
+        <p id="line-auth-hint" class="text-[10px] text-white/40 mt-3">首次登入後填寫身分資料，系統會配發 WEDEN 流水號；名單內賓客另會自動綁定實體房卡編號。</p>
     </div>
 
     <div id="auth-message" class="hidden rounded-2xl border px-4 py-3 text-sm leading-relaxed"></div>
@@ -802,6 +803,10 @@
                 <div class="flex justify-between border-b border-white/10 pb-2">
                     <span class="text-[10px] text-white/40 uppercase">Avatar</span>
                     <span id="display-animal" class="text-sm font-bold text-fuchsia-200">UNKNOWN</span>
+                </div>
+                <div id="display-pg-id-row" class="hidden justify-between border-b border-white/10 pb-2">
+                    <span class="text-[10px] text-white/40 uppercase">Room Key</span>
+                    <span id="display-pg-id" class="text-sm font-mono font-bold text-fuchsia-200">PG-000</span>
                 </div>
                 <div class="flex justify-between border-b border-white/10 pb-2">
                     <span class="text-[10px] text-white/40 uppercase">Serial No.</span>
@@ -2633,6 +2638,7 @@ function getIdentityElements() {
         lineAuthProfile: document.getElementById('line-auth-profile'),
         lineProfilePicture: document.getElementById('line-profile-picture'),
         lineProfileName: document.getElementById('line-profile-name'),
+        lineProfilePg: document.getElementById('line-profile-pg'),
         lineAuthHint: document.getElementById('line-auth-hint'),
         inputName: document.getElementById('input-name'),
         inputAnimal: document.getElementById('input-animal'),
@@ -2646,6 +2652,8 @@ function getIdentityElements() {
         editButton: document.getElementById('identity-edit-button'),
         displayAnimal: document.getElementById('display-animal'),
         displayInstagramLink: document.getElementById('display-instagram-link'),
+        displayPgIdRow: document.getElementById('display-pg-id-row'),
+        displayPgId: document.getElementById('display-pg-id'),
         displayId: document.getElementById('display-id'),
         displaySkillText: document.getElementById('display-skill-text'),
         displaySkillBar: document.getElementById('display-skill-bar'),
@@ -3035,11 +3043,18 @@ function renderLineProfile(profile) {
             el.lineProfilePicture.classList.add('hidden');
         }
     }
+    if (el.lineProfilePg) {
+        const pgId = String(profile?.pgId || '').trim();
+        el.lineProfilePg.textContent = pgId ? `實體房卡 ${pgId}` : '';
+        el.lineProfilePg.classList.toggle('hidden', !pgId);
+    }
     el.lineAuthProfile?.classList.remove('hidden');
     el.lineAuthProfile?.classList.add('flex');
     el.lineLoginBtn?.classList.add('hidden');
     if (el.lineAuthHint) {
-        el.lineAuthHint.textContent = 'LINE 身分已驗證；同一帳號會固定取回同一組 WEDEN 編號。';
+        el.lineAuthHint.textContent = profile?.pgId
+            ? `已辨識實體房卡 ${profile.pgId}；系統 WEDEN 編號仍會獨立保留。`
+            : 'LINE 身分已驗證；同一帳號會固定取回同一組 WEDEN 編號。';
     }
     initIcons();
 }
@@ -3127,7 +3142,12 @@ async function exchangeLineIdentity() {
         LINE_STEP_TIMEOUT_MS,
         'Firebase 登入逾時。'
     ));
-    renderLineProfile(profileResult || loginResult.data?.profile || null);
+    const verifiedProfile = loginResult.data?.profile || {};
+    renderLineProfile({
+        ...verifiedProfile,
+        ...(profileResult || {}),
+        pgId: verifiedProfile.pgId || null
+    });
     const identity = await withLineRetry(() => withLineTimeout(
         restoreIdentityFromServer(),
         LINE_STEP_TIMEOUT_MS,
@@ -3256,6 +3276,10 @@ function renderIdCard(data, options = {}) {
 
     el.displayName.innerText = data.name || 'PILOT';
     el.displayAnimal.innerText = data.animal || 'UNKNOWN';
+    const pgId = String(data.pgId || '').trim();
+    if (el.displayPgId) el.displayPgId.innerText = pgId || 'PG-000';
+    el.displayPgIdRow?.classList.toggle('hidden', !pgId);
+    el.displayPgIdRow?.classList.toggle('flex', Boolean(pgId));
     el.displayId.innerText = data.id || 'WEDEN-260814000';
     const instagramUsername = normalizeStoredInstagramUsername(data.IG || data.ig || '');
     const showInstagram = Boolean(instagramUsername);
