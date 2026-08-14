@@ -36,6 +36,35 @@ test('keeps the same PG number after the LINE display name changes', () => {
     assert.equal(second.registry.byUid.line_guest.linkedAt, 1234);
 });
 
+test('corrects the previously reversed PG-024 and PG-025 assignments', () => {
+    const pg024Hash = hashForPgId('PG-024');
+    const pg025Hash = hashForPgId('PG-025');
+    const reversedRegistry = {
+        byUid: {
+            line_pg024: { pgId: 'PG-025', lineDisplayNameHash: pg024Hash, linkedAt: 100 },
+            line_pg025: { pgId: 'PG-024', lineDisplayNameHash: pg025Hash, linkedAt: 200 }
+        },
+        byPgId: {
+            'PG-024': 'line_pg025',
+            'PG-025': 'line_pg024'
+        }
+    };
+
+    const result = assignPhysicalCardByDisplayNameHash(
+        reversedRegistry,
+        'line_pg024',
+        pg024Hash,
+        300
+    );
+
+    assert.equal(result.pgId, 'PG-024');
+    assert.equal(result.corrected, true);
+    assert.equal(result.registry.byUid.line_pg024.pgId, 'PG-024');
+    assert.equal(result.registry.byUid.line_pg025.pgId, 'PG-025');
+    assert.equal(result.registry.byPgId['PG-024'], 'line_pg024');
+    assert.equal(result.registry.byPgId['PG-025'], 'line_pg025');
+});
+
 test('normalizes compatible Unicode and surrounding whitespace before hashing', () => {
     const original = 'Ａｎｏｎｙｍｏｕｓ';
     const normalizedVariant = `  ${original.normalize('NFKC')}  `;
