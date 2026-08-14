@@ -27,8 +27,8 @@ const GUEST_CARD_HASH_ASSIGNMENTS = Object.freeze([
     ['88b2c6f4833c526d616808c5911b99cd12f579e908079819a353cbf0ec63c36b', 'PG-021'],
     ['fbc5d8a7fe982810c69e5cf659d1d62fdaca596ae4210ba2bfd14f4acf1eeb9f', 'PG-022'],
     ['0c9ab8c55d678ea513149008ce0ca19990aabc50f6bde84189031dad16079780', 'PG-023'],
-    ['9d20916075878a28a94b7562a3e6161cf2b432fca1c7087cc08a8d81a5215e6d', 'PG-024'],
-    ['35c263527a6eddd4246ae9b4da0b72aa79a05dc359a3a0159a8cb1e4b0d8d409', 'PG-025'],
+    ['35c263527a6eddd4246ae9b4da0b72aa79a05dc359a3a0159a8cb1e4b0d8d409', 'PG-024'],
+    ['9d20916075878a28a94b7562a3e6161cf2b432fca1c7087cc08a8d81a5215e6d', 'PG-025'],
     ['7ba7d16ac6eaa54ebfd924e4aa1d0b1f1d106eb49596c976f4147f4db8e1b39b', 'PG-026'],
     ['86b4c4510b01eed5f8477e4a22f72f2b0bf68a4a294fe5ff8ab0ceedffbec67d', 'PG-027'],
     ['9d3e816c33156849a4ebc0a03e932efff26885aa37aa443f75ed445dced64a46', 'PG-028'],
@@ -76,6 +76,20 @@ for (const assignment of GUEST_CARD_HASH_ASSIGNMENTS) {
     assignmentsByDisplayNameHash.set(assignment.lineDisplayNameHash, assignment);
 }
 
+const CORRECTED_CARD_PAIR = new Set(['PG-024', 'PG-025']);
+
+function replaceAssignmentPgId(assignment, pgId, fallbackDisplayNameHash, now) {
+    if (assignment && typeof assignment === 'object') {
+        return { ...assignment, pgId };
+    }
+
+    return {
+        pgId,
+        ...(fallbackDisplayNameHash ? { lineDisplayNameHash: fallbackDisplayNameHash } : {}),
+        linkedAt: now
+    };
+}
+
 function findPhysicalCardByLineDisplayName(displayName) {
     return assignmentsByDisplayNameHash.get(hashLineDisplayName(displayName)) || null;
 }
@@ -90,12 +104,48 @@ function assignPhysicalCardByDisplayNameHash(currentRegistry, uid, displayNameHa
         : {};
     const byUid = { ...(current.byUid || {}) };
     const byPgId = { ...(current.byPgId || {}) };
+    const matchedCard = assignmentsByDisplayNameHash.get(displayNameHash);
     const existingAssignment = byUid[uid];
     const existingPgId = typeof existingAssignment === 'string'
         ? existingAssignment
         : existingAssignment?.pgId;
 
     if (existingPgId) {
+        const shouldCorrectReversedPair = matchedCard
+            && matchedCard.pgId !== existingPgId
+            && CORRECTED_CARD_PAIR.has(matchedCard.pgId)
+            && CORRECTED_CARD_PAIR.has(existingPgId);
+
+        if (shouldCorrectReversedPair) {
+            const targetOwnerUid = byPgId[matchedCard.pgId];
+            if (targetOwnerUid && targetOwnerUid !== uid) {
+                byUid[targetOwnerUid] = replaceAssignmentPgId(
+                    byUid[targetOwnerUid],
+                    existingPgId,
+                    null,
+                    now
+                );
+                byPgId[existingPgId] = targetOwnerUid;
+            } else {
+                delete byPgId[existingPgId];
+            }
+
+            byUid[uid] = replaceAssignmentPgId(
+                existingAssignment,
+                matchedCard.pgId,
+                matchedCard.lineDisplayNameHash,
+                now
+            );
+            byPgId[matchedCard.pgId] = uid;
+
+            return {
+                pgId: matchedCard.pgId,
+                created: false,
+                corrected: true,
+                registry: { ...current, byUid, byPgId }
+            };
+        }
+
         return {
             pgId: existingPgId,
             created: false,
@@ -103,7 +153,6 @@ function assignPhysicalCardByDisplayNameHash(currentRegistry, uid, displayNameHa
         };
     }
 
-    const matchedCard = assignmentsByDisplayNameHash.get(displayNameHash);
     if (!matchedCard) {
         return {
             pgId: null,
